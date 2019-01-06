@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=LDAP Editor utility
+Comment=LDAP Editor utility
+Exec=/usr/local/bin/LdapEditorApp
+Icon=LdapEditorApp
+Terminal=false
+Type=Application
+Categories=Utilities
+MimeType=application/x-ldapeditor-item;
+GenericName=LDAP Editor utility
+
