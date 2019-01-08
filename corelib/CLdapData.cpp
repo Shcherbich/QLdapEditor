@@ -33,12 +33,12 @@ CLdapData::CLdapData(QObject* parent)
 
 CLdapData::~CLdapData()
 {
-    Disconnect();
+    disconnect();
 }
 
-void CLdapData::Connect(const tConnectionOptions& connectOptions)
+void CLdapData::connect(const tConnectionOptions& connectOptions)
 {
-    Disconnect();
+    disconnect();
 
     QThreadPool::globalInstance()->start(makeSimpleTask([=]
     {
@@ -64,7 +64,7 @@ void CLdapData::Connect(const tConnectionOptions& connectOptions)
 
             m_baseDN = connectOptions.basedn;
             m_Connection = std::move(localConn);
-            Build();
+            build();
             emit OnConnectionCompleted(this, true, QString(""));
         }
         catch(const LDAPException& e)
@@ -74,7 +74,7 @@ void CLdapData::Connect(const tConnectionOptions& connectOptions)
     }));
 }
 
-void CLdapData::Build()
+void CLdapData::build()
 {
     if (m_Connection.get() == nullptr)
     {
@@ -99,14 +99,13 @@ void CLdapData::Build()
     {
         for (LDAPEntry* le = ls->getNext(); le != nullptr; le = ls->getNext())
         {
-            m_Entries.push_back(new CLdapEntry(le, nullptr));
-            m_Entries.back()->Construct(m_Connection.get());
-            QVector<CLdapAttribute> attrs = m_Entries.back()->Attributes();
+            m_Entries.push_back(new CLdapEntry(nullptr, le, nullptr));
+            m_Entries.back()->construct(m_Connection.get());
         }
     }
 }
 
-void CLdapData::Disconnect()
+void CLdapData::disconnect()
 {
     foreach (CLdapEntry* en, m_Entries)
     {
@@ -116,12 +115,12 @@ void CLdapData::Disconnect()
     m_Connection.reset(nullptr);
 }
 
-QVector<CLdapEntry*> CLdapData::TopList()
+QVector<CLdapEntry*> CLdapData::topList()
 {
     return m_Entries;
 }
 
-void CLdapData::AddObject(QString id)
+void CLdapData::addObject(QString id)
 {
     /*
     CLdapObject* added = new CLdapObject(id, this);
@@ -134,7 +133,7 @@ void CLdapData::AddObject(QString id)
 */
 }
 
-void CLdapData::DeleteObject(CLdapObject* p)
+void CLdapData::deleteObject(CLdapObject* p)
 {
     /*auto f = std::find_if(m_Objects.begin(), m_Objects.end(), [=](const CLdapObject* pItr) { return p == pItr; });
     if (f == m_Objects.end())
@@ -168,7 +167,7 @@ QString CLdapData::baseDN()
     return QString::fromStdString(m_baseDN);
 }
 
-QStringList CLdapData::Search(const _tSearchOptions& searchOptions)
+QStringList CLdapData::search(const _tSearchOptions& searchOptions)
 {
     QStringList objList;
     StringList attrList;

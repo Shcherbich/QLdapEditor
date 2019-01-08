@@ -123,7 +123,7 @@ namespace ldapeditor
         connectOptions.useSASL = m_Settings.useSASL();
         connectOptions.useAnonymous = m_Settings.useAnonymous();
 
-        m_LdapData.Connect(connectOptions);
+        m_LdapData.connect(connectOptions);
         QTimer::singleShot(1000, this, &CConnectionDialog::onTimer );
     }
 

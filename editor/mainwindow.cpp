@@ -44,10 +44,9 @@ namespace ldapeditor
         setCentralWidget(m_AttributesList);
         m_AttributesList->horizontalHeader()->setDefaultSectionSize(width() / m_TableModel->columnCount());
 
-        QStringList entries = m_LdapData.GetTopObjectsList();
-        for(auto e:entries)
+        for(auto e : m_LdapData.topList())
         {
-            m_TreeModel->addLdapItem(e);
+            m_TreeModel->addLdapItem(e->getDn());
         }
 //        m_TreeModel->addLdapItem("ou=mathematicians,dc=example,dc=com");
 //        m_TreeModel->addLdapItem("uid=riemann,ou=mathematicians,dc=example,dc=com");

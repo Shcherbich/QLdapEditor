@@ -47,13 +47,13 @@ public:
     ~CLdapData();
 public:
 
-    void Connect(const tConnectionOptions& connectOptions);
-    void Disconnect();
-    QVector<CLdapEntry*> TopList();
-    void AddObject(QString id);
-    void DeleteObject(CLdapObject*);
+    void connect(const tConnectionOptions& connectOptions);
+    void disconnect();
+    QVector<CLdapEntry*> topList();
+    void addObject(QString id);
+    void deleteObject(CLdapObject*);
 
-    QStringList Search(const tSearchOptions& searchOptions);
+    QStringList search(const tSearchOptions& searchOptions);
 
     QString host();
     int port();
@@ -67,7 +67,7 @@ signals:
 public:
 
 private:
-    void Build();
+    void build();
 
 private:
     QVector<CLdapEntry*> m_Entries;

@@ -17,24 +17,29 @@ class CLdapEntry : public QObject
 {
     Q_OBJECT
 public:
-    explicit CLdapEntry(QObject *parent = nullptr);
-    explicit CLdapEntry(LDAPEntry* le, QObject *parent = nullptr);
+    explicit CLdapEntry(CLdapEntry* parentLdapEntry, LDAPEntry* le, QObject *parent = nullptr);
     ~CLdapEntry();
 
-    void Construct(LDAPConnection* conn);
-    QVector<CLdapEntry*> Children();
-    QVector<CLdapAttribute> Attributes();
+    CLdapEntry* parent();
+    QVector<CLdapEntry*> children();
+    QVector<CLdapAttribute> attributes();
 
 public:
-    QString GetDn();
+    QString getDn();
 
 signals:
 
 public slots:
 
 private:
-    LDAPEntry*           m_pEntry;
+    void construct(LDAPConnection* conn);
+
+private:
+    CLdapEntry*           m_pParent;
+    LDAPEntry*            m_pEntry;
     QVector<CLdapEntry*>  m_pEntries;
+
+    friend class CLdapData;
 };
 
 }

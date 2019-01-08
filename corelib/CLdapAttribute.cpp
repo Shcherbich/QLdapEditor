@@ -17,17 +17,17 @@ CLdapAttribute::CLdapAttribute(QString name, QString value, AttrType type)
 }
 
 
-QString CLdapAttribute::GetName()
+QString CLdapAttribute::name()
 {
     return m_Name;
 }
 
-QString CLdapAttribute::GetValue()
+QString CLdapAttribute::value()
 {
     return m_Value;
 }
 
-AttrType CLdapAttribute::GetType()
+AttrType CLdapAttribute::type()
 {
     return m_Type;
 }

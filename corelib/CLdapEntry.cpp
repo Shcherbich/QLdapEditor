@@ -7,15 +7,8 @@
 namespace ldapcore
 {
 
-
-CLdapEntry::CLdapEntry(QObject *parent)
-    : QObject(parent)
-{
-
-}
-
-CLdapEntry::CLdapEntry(LDAPEntry* le, QObject *parent)
-    : QObject(parent), m_pEntry(le)
+CLdapEntry::CLdapEntry(CLdapEntry* parentLdapEntry, LDAPEntry* le, QObject *parent)
+    : m_pParent(parentLdapEntry), m_pEntry(le), QObject(parent)
 {}
 
 CLdapEntry::~CLdapEntry()
@@ -27,22 +20,22 @@ CLdapEntry::~CLdapEntry()
     }
 }
 
-QString CLdapEntry::GetDn()
+QString CLdapEntry::getDn()
 {
     return m_pEntry->getDN().c_str();
 }
 
-void CLdapEntry::Construct(LDAPConnection* conn)
+void CLdapEntry::construct(LDAPConnection* conn)
 {
     try
     {
-        LDAPSearchResults* ls = conn->search(GetDn().toStdString(), LDAPAsynConnection::SEARCH_ONE);
+        LDAPSearchResults* ls = conn->search(getDn().toStdString(), LDAPAsynConnection::SEARCH_ONE);
         if (ls != nullptr)
         {
             for (LDAPEntry* le = ls->getNext(); le != nullptr; le = ls->getNext())
             {
-                m_pEntries.push_back(new CLdapEntry(le, nullptr));
-                m_pEntries.back()->Construct(conn);
+                m_pEntries.push_back(new CLdapEntry(this, le, nullptr));
+                m_pEntries.back()->construct(conn);
             }
         }
     }
@@ -52,12 +45,17 @@ void CLdapEntry::Construct(LDAPConnection* conn)
     }
 }
 
-QVector<CLdapEntry*> CLdapEntry::Children()
+CLdapEntry* CLdapEntry::parent()
+{
+    return m_pParent;
+}
+
+QVector<CLdapEntry*> CLdapEntry::children()
 {
     return m_pEntries;
 }
 
-QVector<CLdapAttribute> CLdapEntry::Attributes()
+QVector<CLdapAttribute> CLdapEntry::attributes()
 {
     QVector<CLdapAttribute> ret;
 

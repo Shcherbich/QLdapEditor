@@ -31,9 +31,9 @@ public:
 
 public:
 
-    QString GetName();
-    QString GetValue();
-    AttrType GetType();
+    QString name();
+    QString value();
+    AttrType type();
 
 
 private:
