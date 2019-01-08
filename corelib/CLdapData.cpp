@@ -2,9 +2,28 @@
 #include "qfunctional.h"
 #include <LDAPConnection.h>
 #include "StringList.h"
+#include <vector>
+#include <string>
 
 namespace ldapcore
 {
+
+using namespace std;
+vector<string> split(const string& str, const string& delim)
+{
+    vector<string> tokens;
+    size_t prev = 0, pos = 0;
+    do
+    {
+        pos = str.find(delim, prev);
+        if (pos == string::npos) pos = str.length();
+        string token = str.substr(prev, pos-prev);
+        if (!token.empty()) tokens.push_back(token);
+        prev = pos + delim.length();
+    }
+    while (pos < str.length() && prev < str.length());
+    return tokens;
+}
 
 CLdapData::CLdapData(QObject* parent)
     :QObject(parent)
@@ -14,16 +33,15 @@ CLdapData::CLdapData(QObject* parent)
 
 CLdapData::~CLdapData()
 {
-
+    Disconnect();
 }
 
 void CLdapData::Connect(const tConnectionOptions& connectOptions)
 {
+    Disconnect();
 
     QThreadPool::globalInstance()->start(makeSimpleTask([=]
     {
-        //std::this_thread::sleep_for (std::chrono::seconds(5));
-
         std::unique_ptr<LDAPConnection> localConn(new LDAPConnection(connectOptions.host, connectOptions.port));
         try
         {
@@ -35,8 +53,8 @@ void CLdapData::Connect(const tConnectionOptions& connectOptions)
                 }
                 else
                 {
-                    //localConn->bind(connectOptions.basedn, connectOptions.password);
-                    throw LDAPException(LDAP_AUTH_UNKNOWN, "This Authorize schema is not supported by LdApEditor application yet");
+                    localConn->bind(connectOptions.basedn, connectOptions.password);
+                    //throw LDAPException(LDAP_AUTH_UNKNOWN, "This Authorize schema is not supported by LdApEditor application yet");
                 }
             }
             else
@@ -46,6 +64,7 @@ void CLdapData::Connect(const tConnectionOptions& connectOptions)
 
             m_baseDN = connectOptions.basedn;
             m_Connection = std::move(localConn);
+            Build();
             emit OnConnectionCompleted(this, true, QString(""));
         }
         catch(const LDAPException& e)
@@ -55,38 +74,56 @@ void CLdapData::Connect(const tConnectionOptions& connectOptions)
     }));
 }
 
+void CLdapData::Build()
+{
+    if (m_Connection.get() == nullptr)
+    {
+        return;
+    }
+    auto v = split(m_baseDN, ";");
+    std::string baseDn;
+    for (auto itr = v.begin(); itr != v.end(); ++itr)
+    {
+        auto str = *itr;
+        str.erase(std::remove(str.begin(), str.end(), ' '), str.end());
+        if (str.find("dc=") == 0)
+        {
+            if (baseDn.size())
+                baseDn += ";";
+            baseDn += str;
+        }
+    }
+    m_baseDN = baseDn;
+    LDAPSearchResults* ls = m_Connection->search(m_baseDN, LDAPAsynConnection::SEARCH_ONE);
+    if (ls != nullptr)
+    {
+        for (LDAPEntry* le = ls->getNext(); le != nullptr; le = ls->getNext())
+        {
+            m_Entries.push_back(new CLdapEntry(le, nullptr));
+            m_Entries.back()->Construct(m_Connection.get());
+            QVector<CLdapAttribute> attrs = m_Entries.back()->Attributes();
+        }
+    }
+}
+
 void CLdapData::Disconnect()
 {
+    foreach (CLdapEntry* en, m_Entries)
+    {
+        delete en;
+    }
     m_baseDN.clear();
     m_Connection.reset(nullptr);
 }
 
-
-QStringList CLdapData::GetTopObjectsList()
+QVector<CLdapEntry*> CLdapData::TopList()
 {
-    tSearchOptions searchOptions;
-
-    searchOptions.scope = LDAPAsynConnection::SEARCH_ONE;
-    searchOptions.basedn = m_baseDN;
-    //searchOptions.filter = "";
-    //searchOptions.attributes = "";
-
-    return Search(searchOptions);
-
-//    if (m_Objects.size())
-//    {
-//        return m_Objects;
-//    }
-//    QVector<CLdapObject*> vector;
-//    vector << new CLdapObject("Id_1", this);
-//    vector << new CLdapObject("Id_2", this);
-//    vector << new CLdapObject("Id_3", this);
-//    m_Objects.append(vector);
-//    return vector;
+    return m_Entries;
 }
 
 void CLdapData::AddObject(QString id)
 {
+    /*
     CLdapObject* added = new CLdapObject(id, this);
     QThreadPool::globalInstance()->start(makeSimpleTask([=]
     {
@@ -94,12 +131,12 @@ void CLdapData::AddObject(QString id)
         m_Objects << added;
         emit OnObjectAdded(added, true, QString(""));
     }));
-
+*/
 }
 
 void CLdapData::DeleteObject(CLdapObject* p)
 {
-    auto f = std::find_if(m_Objects.begin(), m_Objects.end(), [=](const CLdapObject* pItr) { return p == pItr; });
+    /*auto f = std::find_if(m_Objects.begin(), m_Objects.end(), [=](const CLdapObject* pItr) { return p == pItr; });
     if (f == m_Objects.end())
     {
         emit OnObjectDeleted(p, false, QString("No found!"));
@@ -113,6 +150,7 @@ void CLdapData::DeleteObject(CLdapObject* p)
             emit OnObjectDeleted(p, true, QString(""));
         }));
     }
+    */
 }
 
 QString CLdapData::host()

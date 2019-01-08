@@ -1,11 +1,12 @@
 #ifndef CLdapData_H
 #define CLdapData_H
 
-//#include <share.h>
 #include <QObject>
 #include <QString>
 #include <QVector>
+#include <QList>
 #include "CLdapObject.h"
+#include "CLdapEntry.h"
 #include <memory>
 
 class LDAPConnection;
@@ -48,7 +49,7 @@ public:
 
     void Connect(const tConnectionOptions& connectOptions);
     void Disconnect();
-    QStringList GetTopObjectsList();
+    QVector<CLdapEntry*> TopList();
     void AddObject(QString id);
     void DeleteObject(CLdapObject*);
 
@@ -66,7 +67,10 @@ signals:
 public:
 
 private:
-    QVector<CLdapObject*> m_Objects;
+    void Build();
+
+private:
+    QVector<CLdapEntry*> m_Entries;
     std::unique_ptr<LDAPConnection> m_Connection;
     std::string m_baseDN;
 };

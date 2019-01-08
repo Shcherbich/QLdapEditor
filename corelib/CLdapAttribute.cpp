@@ -5,16 +5,17 @@ namespace ldapcore
 {
 
 
-CLdapAttribute::CLdapAttribute(QObject *parent) : QObject(parent)
+CLdapAttribute::CLdapAttribute()
 {
 
 }
 
-CLdapAttribute::CLdapAttribute(QString name, QString value, AttrType type, QObject *parent)
-    : m_Name(name), m_Value(value), m_Type(type),  QObject(parent)
+CLdapAttribute::CLdapAttribute(QString name, QString value, AttrType type)
+    : m_Name(name), m_Value(value), m_Type(type)
 {
 
 }
+
 
 QString CLdapAttribute::GetName()
 {

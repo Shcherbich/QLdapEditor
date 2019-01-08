@@ -40,10 +40,10 @@ QVector<CLdapAttribute*> CLdapObject::GetAttributes()
 {
     return m_Attributes;
 }
-
+/*
 void CLdapObject::AddAttribute(QString name, QString value, AttrType type)
 {
-    CLdapAttribute* pAttr = new CLdapAttribute(name, value, type, this);
+    CLdapAttribute* pAttr = new CLdapAttribute(name, value, type);
     QThreadPool::globalInstance()->start(makeSimpleTask([=]
     {
         std::this_thread::sleep_for (std::chrono::seconds(2));
@@ -70,5 +70,5 @@ void CLdapObject::DeleteAttribute(CLdapAttribute* pDelete)
         }));
     }
 }
-
+*/
 }
