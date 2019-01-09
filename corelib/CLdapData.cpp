@@ -60,7 +60,7 @@ void CLdapData::connect(const tConnectionOptions& connectOptions)
                 {
                     if(connectOptions.useAnonymous)
                     {
-                        localConn->start_tls();
+                        localConn->bind();
                     }
                     else
                     {
@@ -101,7 +101,7 @@ void CLdapData::build()
         {
             if (baseDn.size())
             {
-                baseDn += ";";
+                baseDn += ",";
             }
             baseDn += str;
         }

@@ -81,7 +81,7 @@ namespace ldapeditor
         if(!item) return QVariant();
 
         if(role == Qt::DisplayRole)
-            return item->getDn();
+            return item->rDn();
 //        if(role == ldapeditor::AttributesListRole)
 //            return QString();//item->itemDN().split(",");
 

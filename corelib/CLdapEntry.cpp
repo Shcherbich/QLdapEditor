@@ -29,9 +29,25 @@ QString CLdapEntry::rDn()
 {
     if (m_rDn.isEmpty())
     {
-        m_rDn = dn();
-        m_rDn.replace(m_baseDn, "");
-        m_rDn = m_rDn.isEmpty() ? dn() : m_rDn;
+        QString rdn(dn());
+        rdn.replace(parent() ? parent()->dn() : m_baseDn, "");
+        rdn.trimmed();
+
+        if(rdn.isEmpty())
+        {
+            rdn = dn();
+        }
+        else
+        {
+            if(rdn.right(1) == ',')
+            {
+                rdn = rdn.left(rdn.length()-1);
+            }
+            rdn.trimmed();
+        }
+        m_rDn = rdn;
+
+
     }
     return m_rDn;
 }
