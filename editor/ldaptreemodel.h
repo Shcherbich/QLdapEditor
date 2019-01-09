@@ -4,6 +4,10 @@
 #include <QAbstractItemModel>
 #include <QVector>
 
+namespace ldapcore {
+class CLdapEntry;
+}
+
 namespace ldapeditor
 {
 
@@ -13,7 +17,7 @@ namespace ldapeditor
 
     public:
         explicit CLdapTreeModel(const QString& baseDN, QObject *parent = nullptr);
-        bool addLdapItem(const QString& itemDN);
+        bool setTopItems(QVector<ldapcore::CLdapEntry*> topItems);
 
         // Basic functionality:
         QModelIndex index(int row, int column,
@@ -31,55 +35,57 @@ namespace ldapeditor
        //  bool insertRows(int row, int count, const QModelIndex &parent = QModelIndex()) override;
 
     private:
-        typedef struct _tLdapItem
-        {
-            QString parentDN;
-            QString itemRDN;
-            _tLdapItem* parent{nullptr};
-            QVector<_tLdapItem*> childItems;
+//        typedef struct _tLdapItem
+//        {
+//            QString parentDN;
+//            QString itemRDN;
+//            _tLdapItem* parent{nullptr};
+//            QVector<_tLdapItem*> childItems;
 
-            _tLdapItem(const QString& _parentDN, const QString& _itemRDN):
-                parentDN(_parentDN), itemRDN(_itemRDN)
-            {
+//            _tLdapItem(const QString& _parentDN, const QString& _itemRDN):
+//                parentDN(_parentDN), itemRDN(_itemRDN)
+//            {
 
-            }
+//            }
 
-            ~_tLdapItem()
-            {
-                for(const auto& c: childItems)
-                    delete c;
-            }
+//            ~_tLdapItem()
+//            {
+//                for(const auto& c: childItems)
+//                    delete c;
+//            }
 
-            QString itemDN()
-            {
-                return QStringList{itemRDN, parentDN}.join(", ");
-            }
+//            QString itemDN()
+//            {
+//                return QStringList{itemRDN, parentDN}.join(", ");
+//            }
 
-            void addSubItem(_tLdapItem* subItem)
-            {
-                subItem->parent = this;
-                childItems.append(subItem);
-            }
-            _tLdapItem* subItem(int idx)
-            {
-                if(idx < 0 || idx >= childItems.size()) return nullptr;
-                return childItems[idx];
-            }
+//            void addSubItem(_tLdapItem* subItem)
+//            {
+//                subItem->parent = this;
+//                childItems.append(subItem);
+//            }
+//            _tLdapItem* subItem(int idx)
+//            {
+//                if(idx < 0 || idx >= childItems.size()) return nullptr;
+//                return childItems[idx];
+//            }
 
-            int indexOf()
-            {
-                return parent ? parent->childItems.indexOf(this) : -1;
-            }
-            int rowCount()
-            {
-                 return childItems.size() ;
-            }
+//            int indexOf()
+//            {
+//                return parent ? parent->childItems.indexOf(this) : -1;
+//            }
+//            int rowCount()
+//            {
+//                 return childItems.size() ;
+//            }
 
-        } tLdapItem;
+//        } tLdapItem;
 
-        const QString& m_baseDN;
-        tLdapItem* m_rootItem{nullptr};
-        tLdapItem* m_invisibleRoot{nullptr};
+        //const QString& m_baseDN;
+        //tLdapItem* m_rootItem{nullptr};
+        //tLdapItem* m_invisibleRoot{nullptr};
+        ldapcore::CLdapEntry* m_invisibleRoot{nullptr};
+        QVector<ldapcore::CLdapEntry*> m_topItems;
     };
 } //namespace ldapeditor
 

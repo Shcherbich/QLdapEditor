@@ -1,15 +1,16 @@
 #include "ldaptreemodel.h"
 #include "ldapeditordefines.h"
+#include "CLdapEntry.h"
 
 namespace ldapeditor
 {
     CLdapTreeModel::CLdapTreeModel(const QString &baseDN, QObject *parent)
         : QAbstractItemModel(parent)
-        , m_baseDN(baseDN)
+        //, m_baseDN(baseDN)
     {
-        m_invisibleRoot = new tLdapItem(QString(), QString());
-        m_rootItem = new tLdapItem(QString(), m_baseDN);
-        m_invisibleRoot->addSubItem(m_rootItem);
+       // m_invisibleRoot = new tLdapItem(QString(), QString());
+       // m_rootItem = new tLdapItem(QString(), m_baseDN);
+      //  m_invisibleRoot->addSubItem(m_rootItem);
     }
 
     QModelIndex CLdapTreeModel::index(int row, int column, const QModelIndex &parent) const
@@ -17,17 +18,19 @@ namespace ldapeditor
         if (!hasIndex(row, column, parent))
             return QModelIndex();
 
-        tLdapItem* parentItem{nullptr};
         if (!parent.isValid())
-            parentItem = m_invisibleRoot;
+        {
+            return createIndex(row, column, m_topItems[row]);
+        }
         else
-            parentItem = static_cast<tLdapItem*>(parent.internalPointer());
-
-        tLdapItem* childItem = parentItem->subItem(row);
-        if (childItem)
-            return createIndex(row, column, childItem);
-        else
-            return QModelIndex();
+        {
+            ldapcore::CLdapEntry* parentItem = static_cast<ldapcore::CLdapEntry*>(parent.internalPointer());
+            ldapcore::CLdapEntry* childItem = parentItem->children().at(row);
+            if (childItem)
+                return createIndex(row, column, childItem);
+            else
+                return QModelIndex();
+        }
     }
 
     QModelIndex CLdapTreeModel::parent(const QModelIndex &index) const
@@ -35,24 +38,31 @@ namespace ldapeditor
         if (!index.isValid())
            return QModelIndex();
 
-        tLdapItem* childItem = static_cast<tLdapItem*>(index.internalPointer());
+        ldapcore::CLdapEntry* childItem = static_cast<ldapcore::CLdapEntry*>(index.internalPointer());
         if(!childItem)
             return QModelIndex();
 
-        tLdapItem *parentItem = childItem->parent;
+        ldapcore::CLdapEntry *parentItem = childItem->parent();
         if (parentItem == m_invisibleRoot)
             return QModelIndex();
 
-        return createIndex(parentItem->indexOf(), 0, parentItem);
+        if(!parentItem->parent())
+        {
+            int idx = m_topItems.indexOf(parentItem);
+            return createIndex(idx, 0, parentItem);
+        }
+        QVector<ldapcore::CLdapEntry*> items = parentItem->parent()->children();
+        int idx = items.indexOf(parentItem);
+        return createIndex(idx, 0, parentItem);
     }
 
     int CLdapTreeModel::rowCount(const QModelIndex &parent) const
     {
         if (!parent.isValid())
-            return m_invisibleRoot->rowCount() ;
+            return m_topItems.size();
 
-        tLdapItem* parentItem = static_cast<tLdapItem*>(parent.internalPointer());
-        return parentItem ? parentItem->childItems.size() : 0 ;
+        ldapcore::CLdapEntry* parentItem = static_cast<ldapcore::CLdapEntry*>(parent.internalPointer());
+        return parentItem ? parentItem->children().size() : 0 ;
     }
 
     int CLdapTreeModel::columnCount(const QModelIndex &parent) const
@@ -67,13 +77,13 @@ namespace ldapeditor
 
         // FIXME: Implement me!
         if (index.column() != 0) return QVariant();
-        tLdapItem* item = static_cast<tLdapItem*>(index.internalPointer());
+        ldapcore::CLdapEntry* item = static_cast<ldapcore::CLdapEntry*>(index.internalPointer());
         if(!item) return QVariant();
 
         if(role == Qt::DisplayRole)
-            return item->itemDN();
-        if(role == ldapeditor::AttributesListRole)
-            return item->itemDN().split(",");
+            return item->rDn();
+//        if(role == ldapeditor::AttributesListRole)
+//            return QString();//item->itemDN().split(",");
 
         return QVariant();
     }
@@ -94,10 +104,10 @@ namespace ldapeditor
 
         if(role == ldapeditor::AttributesListRole)
         {
-             tLdapItem* item = static_cast<tLdapItem*>(index.internalPointer());
+             ldapcore::CLdapEntry* item = static_cast<ldapcore::CLdapEntry*>(index.internalPointer());
              if(item)
              {
-                 item->itemRDN =value.toStringList().join(", ");
+                 //item->itemRDN =value.toStringList().join(", ");
                  emit dataChanged(index, index, QVector<int>() << Qt::DisplayRole << role);
                  return true;
              }
@@ -105,11 +115,12 @@ namespace ldapeditor
         return false;
     }
 
-    bool CLdapTreeModel::addLdapItem(const QString& itemDN)
+    bool CLdapTreeModel::setTopItems(QVector<ldapcore::CLdapEntry*> topItems)
     {
-        tLdapItem* item = new tLdapItem(QString(),itemDN);
-        m_rootItem->addSubItem(item);
-        //emit dataChanged(createIndex(0,0), createIndex(0, 0));
+        m_topItems = topItems;
+        //ldapcore::CLdapEntry* item = new tLdapItem(QString(),entry->getDn());
+        //m_rootItem->addSubItem(item);
+        emit dataChanged(createIndex(0,0), createIndex(m_topItems.size(), 0));
         return true;
     }
 

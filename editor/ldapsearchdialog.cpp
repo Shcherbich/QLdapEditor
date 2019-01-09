@@ -53,7 +53,7 @@ namespace ldapeditor
         {
             headers << h.trimmed();
         }
-        QStringList items = m_LdapData.Search(searchOptions);
+        QStringList items = m_LdapData.search(searchOptions);
 
         ui->tableWidget->setRowCount(items.size());
         ui->tableWidget->setColumnCount(headers.size());

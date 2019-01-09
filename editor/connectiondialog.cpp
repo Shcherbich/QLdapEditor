@@ -123,7 +123,7 @@ namespace ldapeditor
         connectOptions.useSASL = m_Settings.useSASL();
         connectOptions.useAnonymous = m_Settings.useAnonymous();
 
-        m_LdapData.Connect(connectOptions);
+        m_LdapData.connect(connectOptions);
         QTimer::singleShot(1000, this, &CConnectionDialog::onTimer );
     }
 
@@ -159,14 +159,6 @@ namespace ldapeditor
         }
     }
 
-    void CConnectionDialog::onHostChanged(const QString&)
-    {
-        enableConnection();
-    }
-    void CConnectionDialog::onBaseDNChanged(const QString&)
-    {
-        enableConnection();
-    }
     void CConnectionDialog::enableConnection()
     {
         bool enableConnection= !ui->hostBox->text().trimmed().isEmpty() && !ui->baseEdit->text().trimmed().isEmpty();

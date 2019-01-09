@@ -18,18 +18,22 @@ enum AttrType
 };
 
 //class LDAPEDITORCORE_SO_API CLdapAttribute : public QObject
-class CLdapAttribute : public QObject
+//class CLdapAttribute : public QObject
+class CLdapAttribute
 {
-    Q_OBJECT
+    //Q_OBJECT
 public:
-    explicit CLdapAttribute(QObject *parent = nullptr);
-    explicit CLdapAttribute(QString name, QString value, AttrType type, QObject *parent = nullptr);
+    //explicit CLdapAttribute(QObject *parent = nullptr);
+    //explicit CLdapAttribute(QString name, QString value, AttrType type, QObject *parent = nullptr);
+
+    explicit CLdapAttribute();
+    explicit CLdapAttribute(QString name, QString value, AttrType type);
 
 public:
 
-    QString GetName();
-    QString GetValue();
-    AttrType GetType();
+    QString name() const;
+    QString value() const;
+    AttrType type() const;
 
 
 private:
