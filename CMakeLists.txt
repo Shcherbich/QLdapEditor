@@ -3,7 +3,7 @@ PROJECT(QLdapEditor)
 
 SET(PRODUCT "LDAP Editor")
 SET(PACKAGENAME "ldapeditor")
-SET(VERSION "0.1.0")
+SET(VERSION "0.2.0")
 SET(COMPANY "Very Big Company Inc.")
 SET(APP_DEFAULT_LOCATION_DIR "/usr/local/bin/${PACKAGE_NAME}" )
 SET(SO_DEFAULT_LOCATION_DIR "/usr/local/lib/${PACKAGE_NAME}" )
@@ -24,7 +24,7 @@ SET(CPACK_PACKAGE_VERSION ${VERSION})
 SET(CPACK_GENERATOR "RPM")
 SET(CPACK_PACKAGE_NAME ${PACKAGENAME})
 SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "${PRODUCT} tool for view/edit LDAP directories.")
-SET(CPACK_RPM_PACKAGE_LICENSE "GPL v2")
+SET(CPACK_RPM_PACKAGE_LICENSE "GPLv2")
 SET(CPACK_RPM_PACKAGE_GROUP ${PACKAGEGROUP})
 SET(CPACK_PACKAGE_RELEASE 1)
 SET(CPACK_PACKAGE_CONTACT "Dmitry Markevich <d_markevich@bte.ae>")
@@ -42,8 +42,13 @@ LIST(APPEND CPACK_RPM_EXCLUDE_FROM_AUTO_FILELIST "/usr"
     "/usr/local/lib"
     "/usr/share"
     "/usr/share/applications"
+    "/usr/share/desktop-directories"
     "/usr/share/icons"
     "/opt"
+    "/etc"
+    "/etc/xdg"
+    "/etc/xdg/menus"
+    "/etc/xdg/menus/application-merged"
 )
 
 

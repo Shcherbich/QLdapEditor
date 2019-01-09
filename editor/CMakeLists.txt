@@ -52,6 +52,8 @@ SET(ldapeditor_HEADERS
 
 SET(ldapeditor_OTHER
     install/LdapEditorApp.desktop
+    install/LdapEditorApp.directory
+    install/LdapEditorApp.menu
 )
 
 # Tell CMake to create the helloworld executable
@@ -65,12 +67,16 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 # Copy the ldap-editor pixmap
 SET(LDAP_EDITOR_DESKTOP_DIR     "/usr/share/applications")
 SET(LDAP_EDITOR_PIXMAPS_DIR     "/usr/share/icons")
+SET(LDAP_EDITOR_DIRECTORY_DIR   "/usr/share/desktop-directories")
+SET(LDAP_EDITOR_MENU_MERGED_DIR "/etc/xdg/menus/application-merged")
 
 INSTALL(TARGETS ${PROJECT_NAME}
     RUNTIME DESTINATION bin
 )
-INSTALL (FILES install/LdapEditorApp.desktop DESTINATION ${LDAP_EDITOR_DESKTOP_DIR})
 INSTALL (FILES install/LdapEditorApp.png DESTINATION ${LDAP_EDITOR_PIXMAPS_DIR})
+INSTALL (FILES install/LdapEditorApp.desktop DESTINATION ${LDAP_EDITOR_DESKTOP_DIR})
+INSTALL (FILES install/LdapEditorApp.menu DESTINATION ${LDAP_EDITOR_MENU_MERGED_DIR})
+INSTALL (FILES install/LdapEditorApp.directory DESTINATION ${LDAP_EDITOR_DIRECTORY_DIR})
 
 # try to set up the menu system
 #find_program(XDG-MIME_EXECUTABLE xdg-mime)
