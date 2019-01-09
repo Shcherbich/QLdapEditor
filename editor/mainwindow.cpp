@@ -44,15 +44,7 @@ namespace ldapeditor
         setCentralWidget(m_AttributesList);
         m_AttributesList->horizontalHeader()->setDefaultSectionSize(width() / m_TableModel->columnCount());
 
-        for(auto e : m_LdapData.topList())
-        {
-            m_TreeModel->addLdapItem(e->rDn());
-        }
-//        m_TreeModel->addLdapItem("ou=mathematicians,dc=example,dc=com");
-//        m_TreeModel->addLdapItem("uid=riemann,ou=mathematicians,dc=example,dc=com");
-//        m_TreeModel->addLdapItem("uid=gauss,ou=mathematicians,dc=example,dc=com");
-//        m_TreeModel->addLdapItem("uid=euler,dc=example,dc=com");
-//        m_TreeModel->addLdapItem("uid=euclid,dc=example,dc=com");
+        m_TreeModel->setTopItems(m_LdapData.topList());
         m_RootIndex = m_TreeModel->index(0,0);
 
         m_TableModel->setBaseDN(baseDN);
@@ -124,7 +116,7 @@ namespace ldapeditor
         lines << QString("Icons, are kindly provided by www.flaticon.com");
 
         QString text(lines.join("\n"));
-        QMessageBox dlg(QMessageBox::Information, title, text, QMessageBox::Ok);
+        QMessageBox dlg(QMessageBox::Information, title, text, QMessageBox::Ok, this);
         dlg.exec();
     }
 
@@ -151,37 +143,37 @@ namespace ldapeditor
         return dn.trimmed();
     };
 
-    QStandardItem* MainWindow::prepareRootItem(const QString& dn, const QString& host)
-    {
-        QString ndn=normilizeDN(dn);
-        QString title(ndn);
-        title += QString(" (%1)").arg(host);
-        QStringList parts = ndn.split(",");
-        QStandardItem* item =  new QStandardItem(title);
-        item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
+//    QStandardItem* MainWindow::prepareRootItem(const QString& dn, const QString& host)
+//    {
+//        QString ndn=normilizeDN(dn);
+//        QString title(ndn);
+//        title += QString(" (%1)").arg(host);
+//        QStringList parts = ndn.split(",");
+//        QStandardItem* item =  new QStandardItem(title);
+//        item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
 
-        if(parts.length() > 1 )
-        {
-            item->setData(parts, ldapeditor::AttributesListRole);
-        }
+//        if(parts.length() > 1 )
+//        {
+//            item->setData(parts, ldapeditor::AttributesListRole);
+//        }
 
-        return item;
-    }
+//        return item;
+//    }
 
-    QStandardItem* MainWindow::prepareDataForDn(const QString& dn, QStandardItem* parentItem)
-    {
-        QString ndn=normilizeDN(dn);
-        QStringList parts = ndn.split(",");
-        QStandardItem* item =  new QStandardItem(ndn);
-        item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
+//    QStandardItem* MainWindow::prepareDataForDn(const QString& dn, QStandardItem* parentItem)
+//    {
+//        QString ndn=normilizeDN(dn);
+//        QStringList parts = ndn.split(",");
+//        QStandardItem* item =  new QStandardItem(ndn);
+//        item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
 
-        if(parts.length() > 1 )
-        {
-            item->setData(parts, ldapeditor::AttributesListRole);
-        }
-        parentItem->appendRow(item);
-        return item;
-    }
+//        if(parts.length() > 1 )
+//        {
+//            item->setData(parts, ldapeditor::AttributesListRole);
+//        }
+//        parentItem->appendRow(item);
+//        return item;
+//    }
 
     void MainWindow::onTreeItemChanged(const QModelIndex& current, const QModelIndex& previous)
     {
@@ -197,7 +189,7 @@ namespace ldapeditor
 
     void MainWindow::onLdapSearch()
     {
-        CLDapSearchDialog searchDlg(m_LdapData);
+        CLDapSearchDialog searchDlg(m_LdapData, this);
         searchDlg.exec();
     }
 }// namespace ldapeditor

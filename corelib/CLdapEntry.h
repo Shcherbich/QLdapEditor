@@ -36,8 +36,8 @@ private:
     void construct(LDAPConnection* conn, QString baseDn);
 
 private:
-    CLdapEntry*           m_pParent;
-    LDAPEntry*            m_pEntry;
+    CLdapEntry*           m_pParent{nullptr};
+    LDAPEntry*            m_pEntry{nullptr};
     QVector<CLdapEntry*>  m_pEntries;
     QString               m_baseDn;
     QString               m_rDn;

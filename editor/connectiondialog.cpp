@@ -159,14 +159,6 @@ namespace ldapeditor
         }
     }
 
-    void CConnectionDialog::onHostChanged(const QString&)
-    {
-        enableConnection();
-    }
-    void CConnectionDialog::onBaseDNChanged(const QString&)
-    {
-        enableConnection();
-    }
     void CConnectionDialog::enableConnection()
     {
         bool enableConnection= !ui->hostBox->text().trimmed().isEmpty() && !ui->baseEdit->text().trimmed().isEmpty();

@@ -29,13 +29,12 @@ namespace ldapeditor
         void onTimer();
 
         void OnConnectionCompleted(ldapcore::CLdapData* pThis, bool isSucceed, QString errorDescription);
-        void onHostChanged(const QString& );
-        void onBaseDNChanged(const QString& );
+        void enableConnection();
 
     private:
         void loadSettings();
         void saveSettings();
-        void enableConnection();
+
 
         Ui::CConnectionDialog *ui{nullptr};
         CLdapSettings& m_Settings;
