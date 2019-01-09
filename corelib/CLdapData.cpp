@@ -42,19 +42,30 @@ void CLdapData::connect(const tConnectionOptions& connectOptions)
 
     QThreadPool::globalInstance()->start(makeSimpleTask([=]
     {
-        std::unique_ptr<LDAPConnection> localConn(new LDAPConnection(connectOptions.host, connectOptions.port));
         try
         {
+            std::unique_ptr<LDAPConnection> localConn(new LDAPConnection(connectOptions.host, connectOptions.port));
             if(connectOptions.simpleAuth)
             {
-                if(connectOptions.useAnonymous)
+                if (connectOptions.useTLS)
                 {
-                    localConn->bind();
+                    std::string cefile("/etc/pki/tls/certs/ca-bundle.trust.crt");
+                    std::string cedir("/etc/pki/tls/certs");
+                    TlsOptions tls = localConn->getTlsOptions();
+                    tls.setOption(TlsOptions::REQUIRE_CERT, TlsOptions::DEMAND);
+                    tls.setOption(TlsOptions::CACERTFILE, cefile);
+                    localConn->start_tls();
                 }
                 else
                 {
-                    localConn->bind(connectOptions.basedn, connectOptions.password);
-                    //throw LDAPException(LDAP_AUTH_UNKNOWN, "This Authorize schema is not supported by LdApEditor application yet");
+                    if(connectOptions.useAnonymous)
+                    {
+                        localConn->start_tls();
+                    }
+                    else
+                    {
+                        localConn->bind(connectOptions.basedn, connectOptions.password);
+                    }
                 }
             }
             else
@@ -80,7 +91,7 @@ void CLdapData::build()
     {
         return;
     }
-    auto v = split(m_baseDN, ";");
+    auto v = split(m_baseDN, ",");
     std::string baseDn;
     for (auto itr = v.begin(); itr != v.end(); ++itr)
     {
@@ -89,20 +100,25 @@ void CLdapData::build()
         if (str.find("dc=") == 0)
         {
             if (baseDn.size())
+            {
                 baseDn += ";";
+            }
             baseDn += str;
         }
     }
     m_baseDN = baseDn;
-    LDAPSearchResults* ls = m_Connection->search(m_baseDN, LDAPAsynConnection::SEARCH_ONE);
+    m_Entries.push_back(new CLdapEntry(nullptr, nullptr, nullptr));
+    m_Entries.back()->construct(m_Connection.get(), m_baseDN.c_str());
+
+    /*LDAPSearchResults* ls = m_Connection->search(m_baseDN, LDAPAsynConnection::SEARCH_ONE);
     if (ls != nullptr)
     {
         for (LDAPEntry* le = ls->getNext(); le != nullptr; le = ls->getNext())
         {
             m_Entries.push_back(new CLdapEntry(nullptr, le, nullptr));
-            m_Entries.back()->construct(m_Connection.get());
+            m_Entries.back()->construct(m_Connection.get(), m_baseDN);
         }
-    }
+    }*/
 }
 
 void CLdapData::disconnect()
@@ -111,6 +127,7 @@ void CLdapData::disconnect()
     {
         delete en;
     }
+    m_Entries.clear();
     m_baseDN.clear();
     m_Connection.reset(nullptr);
 }

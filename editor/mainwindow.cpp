@@ -46,7 +46,7 @@ namespace ldapeditor
 
         for(auto e : m_LdapData.topList())
         {
-            m_TreeModel->addLdapItem(e->getDn());
+            m_TreeModel->addLdapItem(e->rDn());
         }
 //        m_TreeModel->addLdapItem("ou=mathematicians,dc=example,dc=com");
 //        m_TreeModel->addLdapItem("uid=riemann,ou=mathematicians,dc=example,dc=com");

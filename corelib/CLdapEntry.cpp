@@ -20,22 +20,34 @@ CLdapEntry::~CLdapEntry()
     }
 }
 
-QString CLdapEntry::getDn()
+QString CLdapEntry::dn()
 {
-    return m_pEntry->getDN().c_str();
+    return m_pEntry ? m_pEntry->getDN().c_str() : m_baseDn;
 }
 
-void CLdapEntry::construct(LDAPConnection* conn)
+QString CLdapEntry::rDn()
 {
+    if (m_rDn.isEmpty())
+    {
+        m_rDn = dn();
+        m_rDn.replace(m_baseDn, "");
+        m_rDn = m_rDn.isEmpty() ? dn() : m_rDn;
+    }
+    return m_rDn;
+}
+
+void CLdapEntry::construct(LDAPConnection* conn, QString baseDn)
+{
+    m_baseDn = baseDn;
     try
     {
-        LDAPSearchResults* ls = conn->search(getDn().toStdString(), LDAPAsynConnection::SEARCH_ONE);
+        LDAPSearchResults* ls = conn->search(dn().toStdString(), LDAPAsynConnection::SEARCH_ONE);
         if (ls != nullptr)
         {
             for (LDAPEntry* le = ls->getNext(); le != nullptr; le = ls->getNext())
             {
                 m_pEntries.push_back(new CLdapEntry(this, le, nullptr));
-                m_pEntries.back()->construct(conn);
+                m_pEntries.back()->construct(conn, baseDn);
             }
         }
     }
@@ -76,3 +88,4 @@ QVector<CLdapAttribute> CLdapEntry::attributes()
 }
 
 }
+

@@ -25,19 +25,22 @@ public:
     QVector<CLdapAttribute> attributes();
 
 public:
-    QString getDn();
+    QString dn();
+    QString rDn();
 
 signals:
 
 public slots:
 
 private:
-    void construct(LDAPConnection* conn);
+    void construct(LDAPConnection* conn, QString baseDn);
 
 private:
     CLdapEntry*           m_pParent;
     LDAPEntry*            m_pEntry;
     QVector<CLdapEntry*>  m_pEntries;
+    QString               m_baseDn;
+    QString               m_rDn;
 
     friend class CLdapData;
 };
