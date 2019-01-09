@@ -79,7 +79,7 @@ namespace ldapeditor
         case 0: return QString("%1=%2").arg(attr.name()).arg(attr.value());
         case 1: return attr.name();
         case 2: return attr.value();
-        case 3: return attr.type();
+        case 3: return attr.typeAsString();
         case 4: return QString::number(attr.name().length());
         }
         return QVariant();
@@ -122,16 +122,16 @@ namespace ldapeditor
             return Qt::NoItemFlags;
 
         Qt::ItemFlags defaultFlags{Qt::ItemIsEnabled | Qt::ItemIsSelectable};
-        Qt::ItemFlags editFlags{Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsEditable};
-        if (index.column() == 2)
-        {
-            QModelIndex idxAttr = index.model()->index(index.row(), 1, index.parent());
-            if(idxAttr.isValid())
-            {
-                if(idxAttr.data(Qt::DisplayRole).toString().trimmed() != "dc")
-                    return editFlags;
-            }
-        }
+//        Qt::ItemFlags editFlags{Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsEditable};
+//        if (index.column() == 2)
+//        {
+//            QModelIndex idxAttr = index.model()->index(index.row(), 1, index.parent());
+//            if(idxAttr.isValid())
+//            {
+//                if(idxAttr.data(Qt::DisplayRole).toString().trimmed() != "dc")
+//                    return editFlags;
+//            }
+//        }
         return defaultFlags;
     }
 

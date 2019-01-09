@@ -97,6 +97,8 @@ QVector<CLdapAttribute> CLdapEntry::attributes()
             StringList::const_iterator j = values.begin();
             for( ; j != values.end(); j++)
             {
+                if (!value.empty())
+                    value += ";";
                 value += j->c_str();
             }
             CLdapAttribute attr(i->getName().c_str(), value.c_str(), AttrType::Int);

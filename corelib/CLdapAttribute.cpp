@@ -32,6 +32,22 @@ AttrType CLdapAttribute::type()const
     return m_Type;
 }
 
+QString CLdapAttribute::typeAsString()const
+{
+    return type2String(m_Type);
+}
 
+QString CLdapAttribute::type2String(AttrType type) const
+{
+    switch(type)
+    {
+    case AttrType::Int: return QString("Int");
+    case AttrType::Binary: return QString("Binary");
+    case AttrType::String: return QString("String");
+    case AttrType::Date: return QString("Date");
+    case AttrType::Time: return QString("Time");
+    }
+    return QString("???");
+}
 }
 
