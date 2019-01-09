@@ -86,19 +86,21 @@ QVector<CLdapEntry*> CLdapEntry::children()
 QVector<CLdapAttribute> CLdapEntry::attributes()
 {
     QVector<CLdapAttribute> ret;
-
-    const LDAPAttributeList *al = m_pEntry->getAttributes();
-    LDAPAttributeList::const_iterator i = al->begin();
-    for ( ; i != al->end(); i++ )
+    if(m_pEntry)
     {
-        StringList values = i->getValues();
-        StringList::const_iterator j = values.begin();
-        for( ; j != values.end(); j++)
+        const LDAPAttributeList *al = m_pEntry->getAttributes();
+        LDAPAttributeList::const_iterator i = al->begin();
+        for ( ; i != al->end(); i++ )
         {
-        }
+            StringList values = i->getValues();
+            StringList::const_iterator j = values.begin();
+            for( ; j != values.end(); j++)
+            {
+            }
 
-        CLdapAttribute attr(i->getName().c_str(), j->c_str(), AttrType::Int);
-        ret.push_back(attr);
+            CLdapAttribute attr(i->getName().c_str(), j->c_str(), AttrType::Int);
+            ret.push_back(attr);
+        }
     }
     return ret;
 }

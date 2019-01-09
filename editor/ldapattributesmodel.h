@@ -3,8 +3,12 @@
 
 #include <QAbstractTableModel>
 #include <QStringList>
-#include <QSet>
+#include <QVector>
+#include "CLdapAttribute.h"
 
+namespace ldapcore {
+ class CLdapAttribute;
+}
 namespace ldapeditor
 {
     class CLdapAttributesModel : public QAbstractTableModel
@@ -12,10 +16,10 @@ namespace ldapeditor
         Q_OBJECT
 
     public:
-        explicit CLdapAttributesModel(QSet<QString>& uniqueDNs, QObject *parent = nullptr);
+        explicit CLdapAttributesModel(QObject *parent = nullptr);
 
-        QStringList attributesList() const;
-        void setAttributesList(const QStringList& list);
+        QVector<ldapcore::CLdapAttribute> attributesList() const;
+        void setAttributesList(QVector<ldapcore::CLdapAttribute>& attrs);
         bool IsChanged() const {return m_IsChanged;}
         void setBaseDN(const QString& baseDN){m_baseDN = baseDN.toLower();}
 
@@ -42,24 +46,24 @@ namespace ldapeditor
         bool insertColumns(int column, int count, const QModelIndex &parent = QModelIndex()) override;
 
     private:
-        typedef struct tLDapAttributeItem{
-            QString dn;
-            QString attr;
-            QString value;
-            QString type;
-            QString size;
-        } LDapAttributeItem;
-        typedef QVector<LDapAttributeItem> tLdapAttributes;
+//        typedef struct tLDapAttributeItem{
+//            QString dn;
+//            QString attr;
+//            QString value;
+//            QString type;
+//            QString size;
+//        } LDapAttributeItem;
+//        typedef QVector<LDapAttributeItem> tLdapAttributes;
 
-        bool verifyAttributes(const tLdapAttributes& tmpAttributes, int row) const;
-        QStringList buildAttributesList(const tLdapAttributes& tmpAttributes) const;
-        QString buildDN(const tLdapAttributes& tmpAttributes)const;
+       // bool verifyAttributes(const tLdapAttributes& tmpAttributes, int row) const;
+        //QVector<ldapcore::CLdapAttribute*> buildAttributesList(const tLdapAttributes& tmpAttributes) const;
+       // QString buildDN(const tLdapAttributes& tmpAttributes)const;
 
-        tLdapAttributes m_attributes;
         QStringList m_SectionsList;
         bool m_IsChanged{false};
         QString m_baseDN;
-        QSet<QString>& m_uniqueDNs;
+        QVector<ldapcore::CLdapAttribute> m_attributes;
+
     };
 } //namespace ldapeditor
 

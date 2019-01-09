@@ -31,9 +31,9 @@ public:
 
 public:
 
-    QString name();
-    QString value();
-    AttrType type();
+    QString name() const;
+    QString value() const;
+    AttrType type() const;
 
 
 private:

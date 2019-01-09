@@ -1,39 +1,26 @@
 #include "ldapattributesmodel.h"
 
+
 namespace ldapeditor
 {
-    CLdapAttributesModel::CLdapAttributesModel(QSet<QString>& uniqueDNs, QObject *parent)
+    CLdapAttributesModel::CLdapAttributesModel(QObject *parent)
         : QAbstractTableModel(parent)
         , m_SectionsList{ tr("Dn"), tr("Attribute"), tr("Value"), tr("Type"), tr("Size") }
-        , m_uniqueDNs(uniqueDNs)
     {
     }
 
-    QStringList CLdapAttributesModel::attributesList() const
+    QVector<ldapcore::CLdapAttribute> CLdapAttributesModel::attributesList() const
     {
-        return buildAttributesList(m_attributes);
+        return m_attributes;
     }
 
-    void CLdapAttributesModel::setAttributesList(const QStringList& list)
+    void CLdapAttributesModel::setAttributesList(QVector<ldapcore::CLdapAttribute>& attrs)
     {
         beginResetModel();
         m_attributes.clear();
         removeRows(0, rowCount());
 
-        for(const QString& attr : list)
-        {
-            QStringList values = attr.trimmed().split("=");
-            if(values.size()>1)
-            {
-                LDapAttributeItem item;
-                item.dn = attr;
-                item.attr = values[0].trimmed();
-                item.value = values[1].trimmed();
-                item.type = tr("Text");
-                item.size = QString::number(item.value.length()) ;
-                m_attributes.append(item);
-            }
-        }
+        m_attributes = attrs;
         endResetModel();
         emit dataChanged(index(0,0), index(m_attributes.size(),m_SectionsList.size()), QVector<int>() << Qt::DisplayRole);
         m_IsChanged = false;
@@ -85,13 +72,15 @@ namespace ldapeditor
 
         // FIXME: Implement me!
         if(role != Qt::DisplayRole) return QVariant();
+
+        ldapcore::CLdapAttribute const &  attr = m_attributes[index.row()];
         switch(index.column())
         {
-        case 0: return m_attributes[index.row()].dn;
-        case 1: return m_attributes[index.row()].attr;
-        case 2: return m_attributes[index.row()].value;
-        case 3: return m_attributes[index.row()].type;
-        case 4: return m_attributes[index.row()].size;
+        case 0: return QString("%1=%2").arg(attr.name()).arg(attr.value());
+        case 1: return attr.name();
+        case 2: return attr.value();
+        case 3: return attr.type();
+        case 4: return QString::number(attr.name().length());
         }
         return QVariant();
     }
@@ -101,28 +90,28 @@ namespace ldapeditor
         if (!index.isValid())
             return false;
 
-        if(index.column() == 2 && role == Qt::EditRole)
-        {
-            if (!value.toString().trimmed().isEmpty())
-            {
-                if (data(index, role) != value) {
-                    // FIXME: Implement me!
-                    tLdapAttributes tmpAttributes (m_attributes);
-                    auto& a = tmpAttributes[index.row()];
-                    a.value = value.toString().trimmed();
-                    a.size = QString::number(a.value.length());
-                    a.dn = QString("%1=%2").arg(a.attr).arg(a.value);
+//        if(index.column() == 2 && role == Qt::EditRole)
+//        {
+//            if (!value.toString().trimmed().isEmpty())
+//            {
+//                if (data(index, role) != value) {
+//                    // FIXME: Implement me!
+//                    tLdapAttributes tmpAttributes (m_attributes);
+//                    auto& a = tmpAttributes[index.row()];
+//                    a.value = value.toString().trimmed();
+//                    a.size = QString::number(a.value.length());
+//                    a.dn = QString("%1=%2").arg(a.attr).arg(a.value);
 
-                    if(verifyAttributes(tmpAttributes, index.row()))
-                    {
-                        m_attributes = tmpAttributes;
-                        m_IsChanged = true;
-                        emit dataChanged(index, index, QVector<int>() << role);
-                        return true;
-                    }
-                }
-            }
-        }
+//                    if(verifyAttributes(tmpAttributes, index.row()))
+//                    {
+//                        m_attributes = tmpAttributes;
+//                        m_IsChanged = true;
+//                        emit dataChanged(index, index, QVector<int>() << role);
+//                        return true;
+//                    }
+//                }
+//            }
+//        }
 
         return false;
     }
@@ -163,32 +152,30 @@ namespace ldapeditor
         return false;
     }
 
-    bool CLdapAttributesModel::verifyAttributes(const tLdapAttributes& tmpAttributes, int row) const
-    {
-        bool bRet {true};
-        const auto& a = tmpAttributes[row];
-        QString newDN= buildDN(tmpAttributes).toLower();
-        bRet &=  a.attr.toLower() != "dc";
-        //bRet &=  !m_uniqueDNs.contains(newDN);
-        return bRet;
+//    bool CLdapAttributesModel::verifyAttributes(const tLdapAttributes& tmpAttributes, int row) const
+//    {
+//        bool bRet {true};
+//       // const auto& a = tmpAttributes[row];
+//        //QString newDN= buildDN(tmpAttributes).toLower();
+//        //bRet &=  a.attr.toLower() != "dc";
+//        //bRet &=  !m_uniqueDNs.contains(newDN);
+//        return bRet;
 
-    //    QString dn =  buildDN(tmpAttributes);
-    //    return dn.contains(m_baseDN);
-    }
+//    }
 
-    QStringList CLdapAttributesModel::buildAttributesList(const tLdapAttributes& tmpAttributes) const
-    {
-        QStringList attributes;
-        for(auto a: tmpAttributes)
-        {
-            attributes << a.dn;
-        }
-        return attributes;
-    }
+//    QStringList CLdapAttributesModel::buildAttributesList(const tLdapAttributes& tmpAttributes) const
+//    {
+//        QStringList attributes;
+//        for(auto a: tmpAttributes)
+//        {
+//            attributes << a.dn;
+//        }
+//        return attributes;
+//    }
 
-    QString CLdapAttributesModel::buildDN(const tLdapAttributes& tmpAttributes) const
-    {
-        return buildAttributesList(tmpAttributes).join(", ").toLower();
-    }
+//    QString CLdapAttributesModel::buildDN(const tLdapAttributes& tmpAttributes) const
+//    {
+//        return buildAttributesList(tmpAttributes).join(", ").toLower();
+//    }
 
 } //namespace ldapeditor

@@ -17,17 +17,17 @@ CLdapAttribute::CLdapAttribute(QString name, QString value, AttrType type)
 }
 
 
-QString CLdapAttribute::name()
+QString CLdapAttribute::name()const
 {
     return m_Name;
 }
 
-QString CLdapAttribute::value()
+QString CLdapAttribute::value()const
 {
     return m_Value;
 }
 
-AttrType CLdapAttribute::type()
+AttrType CLdapAttribute::type()const
 {
     return m_Type;
 }

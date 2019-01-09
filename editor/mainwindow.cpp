@@ -38,7 +38,7 @@ namespace ldapeditor
         QString host = m_Settings.host();
 
         m_TreeModel = new CLdapTreeModel(baseDN, this);
-        m_TableModel = new CLdapAttributesModel(m_uniqueDNs, this);
+        m_TableModel = new CLdapAttributesModel(this);
         m_AttributesList = new CLdapTableView(this);
 
         setCentralWidget(m_AttributesList);
@@ -177,14 +177,22 @@ namespace ldapeditor
 
     void MainWindow::onTreeItemChanged(const QModelIndex& current, const QModelIndex& previous)
     {
-        if(previous.isValid() && m_TableModel->IsChanged())
+//        if(previous.isValid() && m_TableModel->IsChanged())
+//        {
+//            QStringList l = m_TableModel->attributesList();
+//            QString dn = l.join(", ");
+//            m_TreeModel->setData(previous, l, ldapeditor::AttributesListRole);
+//            m_TreeModel->setData(previous, dn, Qt::DisplayRole);
+//        }
+//         m_TableModel->setAttributesList(current.data(ldapeditor::AttributesListRole).toStringList());
+
+
+        ldapcore::CLdapEntry* entry = static_cast<ldapcore::CLdapEntry*>(current.internalPointer());
+        if(entry)
         {
-            QStringList l = m_TableModel->attributesList();
-            QString dn = l.join(", ");
-            m_TreeModel->setData(previous, l, ldapeditor::AttributesListRole);
-            m_TreeModel->setData(previous, dn, Qt::DisplayRole);
+            QVector<ldapcore::CLdapAttribute> attrs = entry->attributes();
+            m_TableModel->setAttributesList(attrs);
         }
-         m_TableModel->setAttributesList(current.data(ldapeditor::AttributesListRole).toStringList());
     }
 
     void MainWindow::onLdapSearch()
