@@ -92,13 +92,14 @@ QVector<CLdapAttribute> CLdapEntry::attributes()
         LDAPAttributeList::const_iterator i = al->begin();
         for ( ; i != al->end(); i++ )
         {
+            std::string value;
             StringList values = i->getValues();
             StringList::const_iterator j = values.begin();
             for( ; j != values.end(); j++)
             {
+                value += j->c_str();
             }
-
-            CLdapAttribute attr(i->getName().c_str(), j->c_str(), AttrType::Int);
+            CLdapAttribute attr(i->getName().c_str(), value.c_str(), AttrType::Int);
             ret.push_back(attr);
         }
     }
