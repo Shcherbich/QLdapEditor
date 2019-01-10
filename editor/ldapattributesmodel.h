@@ -1,10 +1,12 @@
 #ifndef CLDAPATTRIBUTESMODEL_H
 #define CLDAPATTRIBUTESMODEL_H
 
+
 #include <QAbstractTableModel>
 #include <QStringList>
 #include <QVector>
 #include "CLdapAttribute.h"
+
 
 namespace ldapcore {
  class CLdapAttribute;
@@ -45,24 +47,17 @@ namespace ldapeditor
         bool insertRows(int row, int count, const QModelIndex &parent = QModelIndex()) override;
         bool insertColumns(int column, int count, const QModelIndex &parent = QModelIndex()) override;
 
-    private:
-//        typedef struct tLDapAttributeItem{
-//            QString dn;
-//            QString attr;
-//            QString value;
-//            QString type;
-//            QString size;
-//        } LDapAttributeItem;
-//        typedef QVector<LDapAttributeItem> tLdapAttributes;
 
-       // bool verifyAttributes(const tLdapAttributes& tmpAttributes, int row) const;
-        //QVector<ldapcore::CLdapAttribute*> buildAttributesList(const tLdapAttributes& tmpAttributes) const;
-       // QString buildDN(const tLdapAttributes& tmpAttributes)const;
+
+    private:
+        QString formatValueByType(const ldapcore::CLdapAttribute &attr)const;
 
         QStringList m_SectionsList;
         bool m_IsChanged{false};
         QString m_baseDN;
         QVector<ldapcore::CLdapAttribute> m_attributes;
+
+
 
     };
 } //namespace ldapeditor

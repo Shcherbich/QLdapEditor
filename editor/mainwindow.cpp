@@ -77,10 +77,14 @@ namespace ldapeditor
 
     void MainWindow::CreateActions()
     {
-        QMenu *searchMenu = menuBar()->addMenu(tr("&Search"));
-        QAction *searchAction = searchMenu->addAction(tr("&Ldap search"), this, &MainWindow::onLdapSearch);
-        searchAction->setStatusTip(tr("Ldap search"));
-        searchMenu->addAction(searchAction);
+        QMenu *dataMenu = menuBar()->addMenu(tr("&Data"));
+        QAction *searchAction = dataMenu->addAction(tr("&Ldap search"), this, &MainWindow::onLdapSearch);
+        dataMenu->setStatusTip(tr("Ldap search"));
+        dataMenu->addAction(searchAction);
+
+//        QAction *reloadAction = dataMenu->addAction(tr("&Re-connect to server"), this, &MainWindow::onReload);
+//        reloadAction->setStatusTip(tr("Reconnect to server and reload data"));
+//        dataMenu->addAction(reloadAction);
 
         QMenu *helpMenu = menuBar()->addMenu(tr("&Help"));
         QAction *aboutAction = helpMenu->addAction(tr("About &App"), this, &MainWindow::onAboutApp);
@@ -199,5 +203,10 @@ namespace ldapeditor
     {
         CLDapSearchDialog searchDlg(m_LdapData, this);
         searchDlg.exec();
+    }
+
+    void MainWindow::onReload()
+    {
+
     }
 }// namespace ldapeditor

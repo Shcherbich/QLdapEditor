@@ -2,7 +2,10 @@
 #define LDAPTABLEVIEW_H
 
 #include <QTableView>
+#include <QStyledItemDelegate>
 #include <QSortFilterProxyModel>
+#include "datetimeeditdelegate.h"
+
 namespace ldapeditor
 {
     /*
@@ -45,6 +48,11 @@ namespace ldapeditor
     signals:
 
     public slots:
+
+    protected:
+        virtual bool edit(const QModelIndex& index, QAbstractItemView::EditTrigger trigger, QEvent* event)override;
+        CDateTimeEditDelegate m_datetimeDelegate;
+        QStyledItemDelegate   m_defaultDelegate;
     };
 
 } //namespace ldapeditor

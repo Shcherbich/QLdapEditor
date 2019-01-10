@@ -3,7 +3,7 @@ PROJECT(QLdapEditor)
 
 SET(PRODUCT "LDAP Editor")
 SET(PACKAGENAME "ldapeditor")
-SET(VERSION "0.2.0")
+SET(VERSION "0.3.0")
 SET(COMPANY "Very Big Company Inc.")
 SET(APP_DEFAULT_LOCATION_DIR "/usr/local/bin/${PACKAGE_NAME}" )
 SET(SO_DEFAULT_LOCATION_DIR "/usr/local/lib/${PACKAGE_NAME}" )

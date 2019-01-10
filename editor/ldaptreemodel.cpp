@@ -2,6 +2,8 @@
 #include "ldapeditordefines.h"
 #include "CLdapEntry.h"
 
+#include <QIcon>
+
 namespace ldapeditor
 {
     CLdapTreeModel::CLdapTreeModel(const QString &baseDN, QObject *parent)
@@ -81,9 +83,20 @@ namespace ldapeditor
         if(!item) return QVariant();
 
         if(role == Qt::DisplayRole)
+        {
             return item->rDn();
-//        if(role == ldapeditor::AttributesListRole)
-//            return QString();//item->itemDN().split(",");
+        }
+        if(role == Qt::DecorationRole)
+        {
+            if(!item->parent()) return QIcon(":/home");
+            for(auto a: item->attributes())
+            {
+                if(a.value().contains("groupOfUniqueNames;"))
+                    return QIcon(":/group");
+                if(a.value().contains("inetOrgPerson;organizationalPerson;person;"))
+                           return QIcon(":/person");
+            }
+        }
 
         return QVariant();
     }

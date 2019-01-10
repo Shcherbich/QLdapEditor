@@ -8,7 +8,7 @@
 namespace ldapcore
 {
 
-enum AttrType
+enum  class AttrType
 {
     Int,
     Binary,
@@ -16,6 +16,8 @@ enum AttrType
     Date,
     Time
 };
+
+
 
 //class LDAPEDITORCORE_SO_API CLdapAttribute : public QObject
 //class CLdapAttribute : public QObject
@@ -34,12 +36,15 @@ public:
     QString name() const;
     QString value() const;
     AttrType type() const;
+    QString typeAsString()const;
 
 
 private:
     QString m_Name;
     QString m_Value;
     AttrType m_Type;
+
+    QString type2String(AttrType type) const;
 
 signals:
 

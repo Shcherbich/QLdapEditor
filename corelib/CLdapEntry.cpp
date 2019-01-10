@@ -97,10 +97,34 @@ QVector<CLdapAttribute> CLdapEntry::attributes()
             StringList::const_iterator j = values.begin();
             for( ; j != values.end(); j++)
             {
+                if (!value.empty())
+                    value += ";";
                 value += j->c_str();
             }
-            CLdapAttribute attr(i->getName().c_str(), value.c_str(), AttrType::Int);
-            ret.push_back(attr);
+
+
+            if(value == "tesla")
+            {
+                CLdapAttribute attr(i->getName().c_str(), "2017-11-23", AttrType::Date);
+                //CLdapAttribute attr(i->getName().c_str(), "23:05:58", AttrType::Time);
+                ret.push_back(attr);
+            }
+            else if(value == "88888")
+            {
+                CLdapAttribute attr(i->getName().c_str(), value.c_str(), AttrType::Int);
+                ret.push_back(attr);
+            }
+            else if(value == "99999")
+            {
+                CLdapAttribute attr(i->getName().c_str(), value.c_str(), AttrType::Binary);
+                ret.push_back(attr);
+            }
+            else
+            {
+                CLdapAttribute attr(i->getName().c_str(), value.c_str(), AttrType::String);
+                ret.push_back(attr);
+            }
+
         }
     }
     return ret;

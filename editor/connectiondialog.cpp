@@ -110,20 +110,7 @@ namespace ldapeditor
         setEnabled(false);
         setWindowTitle(QString("Waiting connection %1s").arg(m_WaitTime));
 
-        ldapcore::tConnectionOptions connectOptions;
-        connectOptions.host = m_Settings.host().toStdString();
-        connectOptions.port = m_Settings.port();
-        connectOptions.version = m_Settings.version();
-        connectOptions.basedn = m_Settings.baseDN().toStdString();
-        connectOptions.username = m_Settings.username().toStdString();
-        connectOptions.password = m_Settings.password().toStdString();
-        connectOptions.simpleAuth = m_Settings.simpleAuth();
-        connectOptions.useSSL = m_Settings.useSSL();
-        connectOptions.useTLS = m_Settings.useTLS();
-        connectOptions.useSASL = m_Settings.useSASL();
-        connectOptions.useAnonymous = m_Settings.useAnonymous();
-
-        m_LdapData.connect(connectOptions);
+        m_LdapData.connect(m_Settings.connectionOptions());
         QTimer::singleShot(1000, this, &CConnectionDialog::onTimer );
     }
 
