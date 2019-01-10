@@ -1,6 +1,8 @@
 #include "ldaptableview.h"
 #include "ldapeditordefines.h"
-#include <QtDebug>
+#include "CLdapAttribute.h"
+
+//#include <QtDebug>
 
 namespace ldapeditor
 {
@@ -28,8 +30,24 @@ namespace ldapeditor
 
 
     CLdapTableView::CLdapTableView(QWidget *parent) : QTableView(parent)
+              , m_datetimeDelegate(this)
     {
         setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+        setAlternatingRowColors(true);
     }
 
+    bool CLdapTableView::edit(const QModelIndex& index, QAbstractItemView::EditTrigger trigger, QEvent* event)
+    {
+        ldapcore::AttrType type = static_cast<ldapcore::AttrType>(index.data(ldapeditor::AttrTypeRole).toInt());
+        switch(type)
+        {
+        case ldapcore::AttrType::Date:
+        case ldapcore::AttrType::Time:
+            setItemDelegate(&m_datetimeDelegate);
+            break;
+        default:
+            setItemDelegate(&m_defaultDelegate);
+        }
+        return QTableView::edit(index, trigger, event);
+    }
 } //namespace ldapeditor

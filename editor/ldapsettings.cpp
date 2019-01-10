@@ -169,4 +169,20 @@ namespace ldapeditor
         setValue(makeKey(key), value);
     }
 
+    ldapcore::tConnectionOptions& CLdapSettings::connectionOptions()const
+    {
+        m_connectionOptions.host = host().toStdString();
+        m_connectionOptions.port = port();
+        m_connectionOptions.version = version();
+        m_connectionOptions.basedn = baseDN().toStdString();
+        m_connectionOptions.username = username().toStdString();
+        m_connectionOptions.password = password().toStdString();
+        m_connectionOptions.simpleAuth = simpleAuth();
+        m_connectionOptions.useSSL = useSSL();
+        m_connectionOptions.useTLS = useTLS();
+        m_connectionOptions.useSASL = useSASL();
+        m_connectionOptions.useAnonymous = useAnonymous();
+
+        return m_connectionOptions;
+    }
 }//namespace ldapeditor

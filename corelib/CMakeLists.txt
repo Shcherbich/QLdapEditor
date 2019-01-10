@@ -21,9 +21,10 @@ add_compile_options(-std=c++11)
 FIND_PACKAGE(Qt5Core CONFIG REQUIRED)
 
 set(LdapCore_SRCS
+    datatypes.h
     qfunctional.h
-	CLdapEntry.h
-	CLdapEntry.cpp
+    CLdapEntry.h
+    CLdapEntry.cpp
     CLdapData.h
     CLdapData.cpp
     CLdapObject.h

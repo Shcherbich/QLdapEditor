@@ -6,7 +6,7 @@
 
 #define OrganizationName "Very big company Inc."
 #define ApplicationName  "LdapEditorApp"
-#define ApplicationVersion "0.2"
+#define ApplicationVersion "0.3"
 
 namespace ldapeditor
 {

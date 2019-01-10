@@ -1,6 +1,7 @@
 #include "ldapattributesmodel.h"
-
-
+#include "ldapeditordefines.h"
+#include <QDate>
+#include <QTime>
 namespace ldapeditor
 {
     CLdapAttributesModel::CLdapAttributesModel(QObject *parent)
@@ -71,16 +72,40 @@ namespace ldapeditor
         if (!index.isValid())  return QVariant();
 
         // FIXME: Implement me!
-        if(role != Qt::DisplayRole) return QVariant();
-
         ldapcore::CLdapAttribute const &  attr = m_attributes[index.row()];
-        switch(index.column())
+        if(role == Qt::DisplayRole)
         {
-        case 0: return QString("%1=%2").arg(attr.name()).arg(attr.value());
-        case 1: return attr.name();
-        case 2: return attr.value();
-        case 3: return attr.typeAsString();
-        case 4: return QString::number(attr.name().length());
+            QString value = formatValueByType(attr);
+            QString length = QString::number(attr.value().length());
+            switch(index.column())
+            {
+            case 0: return QString("%1=%2").arg(attr.name()).arg(attr.value());
+            case 1: return attr.name();
+            case 2: return value;
+            case 3: return attr.typeAsString();
+            case 4: return length;
+            }
+        }
+        else if(role ==Qt::EditRole)
+        {
+            if(index.column() == 2)
+            {
+                switch(attr.type())
+                {
+                case ldapcore::AttrType::Date:
+                    return QDate::fromString(attr.value()); break;
+                case ldapcore::AttrType::Time:
+                    return QTime::fromString(attr.value()); break;
+                case ldapcore::AttrType::Int:
+                     return attr.value().toInt(); break;
+                default:
+                    return attr.value();
+                }
+            }
+        }
+        else if(role == AttrTypeRole)
+        {
+            return static_cast<int>(attr.type());
         }
         return QVariant();
     }
@@ -116,22 +141,47 @@ namespace ldapeditor
         return false;
     }
 
+    QString CLdapAttributesModel::formatValueByType(const ldapcore::CLdapAttribute& attr) const
+    {
+        QString retValue;
+        switch(attr.type())
+        {
+        case ldapcore::AttrType::Int:
+            retValue = attr.value();
+            break;
+        case ldapcore::AttrType::Binary:
+            {
+                QByteArray a = attr.value().toLocal8Bit().toHex();
+                for(int i=0;i<a.size();i+=2)
+                {
+                    if(!retValue.isEmpty())
+                        retValue += " ";
+                    retValue+= QString("%1%2").arg(QChar(a[i]).toUpper()).arg(QChar(a[i+1]).toUpper());
+                }
+            }
+            break;
+        case ldapcore::AttrType::String:
+        case ldapcore::AttrType::Date:
+        case ldapcore::AttrType::Time:
+            retValue = attr.value();
+            break;
+        }
+        return retValue;
+    }
+
     Qt::ItemFlags CLdapAttributesModel::flags(const QModelIndex &index) const
     {
         if (!index.isValid())
             return Qt::NoItemFlags;
 
         Qt::ItemFlags defaultFlags{Qt::ItemIsEnabled | Qt::ItemIsSelectable};
-//        Qt::ItemFlags editFlags{Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsEditable};
-//        if (index.column() == 2)
-//        {
-//            QModelIndex idxAttr = index.model()->index(index.row(), 1, index.parent());
-//            if(idxAttr.isValid())
-//            {
-//                if(idxAttr.data(Qt::DisplayRole).toString().trimmed() != "dc")
-//                    return editFlags;
-//            }
-//        }
+        Qt::ItemFlags editFlags{Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsEditable};
+        ldapcore::CLdapAttribute const &  attr = m_attributes[index.row()];
+
+        if (index.column() == 2) //do not allow edit binary data
+        {
+            return attr.type() == ldapcore::AttrType::Binary ? defaultFlags : editFlags;
+        }
         return defaultFlags;
     }
 
@@ -151,6 +201,8 @@ namespace ldapeditor
         endInsertColumns();
         return false;
     }
+
+
 
 //    bool CLdapAttributesModel::verifyAttributes(const tLdapAttributes& tmpAttributes, int row) const
 //    {

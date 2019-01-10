@@ -24,6 +24,7 @@ include_directories(../corelib)
 # Populate a CMake variable with the sources
 SET(ldapeditor_SOURCES
     resources.qrc
+    datetimeeditdelegate.cpp
     ldapsettings.cpp
     simplecrypt.cpp
     ldaptreemodel.cpp
@@ -38,6 +39,7 @@ SET(ldapeditor_SOURCES
     main.cpp
 )
 SET(ldapeditor_HEADERS
+    datetimeeditdelegate.h
     ldapsettings.h
     simplecrypt.h
     ldaptreemodel.h

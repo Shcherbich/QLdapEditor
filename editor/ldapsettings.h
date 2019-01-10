@@ -2,6 +2,8 @@
 #define LDAPSETTINGS_H
 
 #include "simplecrypt.h"
+#include "datatypes.h"
+
 #include <QSettings>
 
 namespace ldapeditor
@@ -49,6 +51,8 @@ namespace ldapeditor
 
         void sync();
 
+        ldapcore::tConnectionOptions& connectionOptions()const;
+
     protected:
         QString makeKey(const QString& key) const;
          QString readString(const QString& key, const QString& defaultValue="") const;
@@ -61,7 +65,7 @@ namespace ldapeditor
          void writeBool(const QString& key, bool value);
 
          mutable SimpleCrypt m_crypto;
-
+         mutable ldapcore::tConnectionOptions m_connectionOptions;
     };
 }//namespace ldapeditor
 
