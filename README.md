@@ -12,5 +12,5 @@ Prepare development environment for CentOS7
 - $./qt-opensource-linux-x64-5.8.2.run
 
 
-
+[Fortress LDAP Schema and Config](https://github.com/apache/directory-fortress-core/tree/master/ldap) for reference.
 
