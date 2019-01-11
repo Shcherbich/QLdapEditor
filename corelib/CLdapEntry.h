@@ -7,11 +7,14 @@
 #include <memory>
 #include "CLdapAttribute.h"
 
+
 class LDAPEntry;
 class LDAPConnection;
 
 namespace ldapcore
 {
+
+class CLdapData;
 
 class CLdapEntry : public QObject
 {
@@ -33,7 +36,7 @@ signals:
 public slots:
 
 private:
-    void construct(LDAPConnection* conn, QString baseDn);
+    void construct(CLdapData* data, LDAPConnection* conn, QString baseDn);
 
 private:
     CLdapEntry*           m_pParent{nullptr};
@@ -41,6 +44,7 @@ private:
     QVector<CLdapEntry*>  m_pEntries;
     QString               m_baseDn;
     QString               m_rDn;
+    CLdapData*            m_pData;
 
     friend class CLdapData;
 };

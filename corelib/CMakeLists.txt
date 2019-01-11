@@ -22,6 +22,8 @@ FIND_PACKAGE(Qt5Core CONFIG REQUIRED)
 
 set(LdapCore_SRCS
     datatypes.h
+    CLdapSchema.h
+    CLdapSchema.cpp
     qfunctional.h
     CLdapEntry.h
     CLdapEntry.cpp

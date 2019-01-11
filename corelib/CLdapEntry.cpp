@@ -1,3 +1,4 @@
+#include "CLdapData.h"
 #include "CLdapEntry.h"
 #include "LDAPEntry.h"
 #include "LDAPException.h"
@@ -52,8 +53,9 @@ QString CLdapEntry::rDn()
     return m_rDn;
 }
 
-void CLdapEntry::construct(LDAPConnection* conn, QString baseDn)
+void CLdapEntry::construct(CLdapData* data, LDAPConnection* conn, QString baseDn)
 {
+    m_pData = data;
     m_baseDn = baseDn;
     try
     {
@@ -63,7 +65,7 @@ void CLdapEntry::construct(LDAPConnection* conn, QString baseDn)
             for (LDAPEntry* le = ls->getNext(); le != nullptr; le = ls->getNext())
             {
                 m_pEntries.push_back(new CLdapEntry(this, le, nullptr));
-                m_pEntries.back()->construct(conn, baseDn);
+                m_pEntries.back()->construct(data, conn, baseDn);
             }
         }
     }
@@ -103,7 +105,7 @@ QVector<CLdapAttribute> CLdapEntry::attributes()
             }
 
 
-            if(value == "tesla")
+           /* if(value == "tesla")
             {
                 CLdapAttribute attr(i->getName().c_str(), "2017-11-23", AttrType::Date);
                 //CLdapAttribute attr(i->getName().c_str(), "23:05:58", AttrType::Time);
@@ -119,8 +121,13 @@ QVector<CLdapAttribute> CLdapEntry::attributes()
                 CLdapAttribute attr(i->getName().c_str(), value.c_str(), AttrType::Binary);
                 ret.push_back(attr);
             }
-            else
+            else*/
             {
+                auto t = m_pData->schema().GetAttributeInfoByName(i->getName().c_str());
+
+                auto tp = std::get<0>(t);
+                auto editable = std::get<1>(t);
+
                 CLdapAttribute attr(i->getName().c_str(), value.c_str(), AttrType::String);
                 ret.push_back(attr);
             }

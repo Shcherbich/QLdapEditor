@@ -10,8 +10,8 @@ CLdapAttribute::CLdapAttribute()
 
 }
 
-CLdapAttribute::CLdapAttribute(QString name, QString value, AttrType type)
-    : m_Name(name), m_Value(value), m_Type(type)
+CLdapAttribute::CLdapAttribute(QString name, QString value, AttrType type, bool editable)
+    :m_Name(name), m_Value(value), m_Type(type), m_editable(editable)
 {
 
 }
@@ -30,6 +30,11 @@ QString CLdapAttribute::value()const
 AttrType CLdapAttribute::type()const
 {
     return m_Type;
+}
+
+bool CLdapAttribute::editable()const
+{
+    return m_editable;
 }
 
 QString CLdapAttribute::typeAsString()const
