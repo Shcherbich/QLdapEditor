@@ -6,11 +6,12 @@
 #include <QStringList>
 #include <QVector>
 #include "CLdapAttribute.h"
+#include "attributemodelhelper.h"
 
+//namespace ldapcore {
+// class CLdapAttribute;
+//}
 
-namespace ldapcore {
- class CLdapAttribute;
-}
 namespace ldapeditor
 {
     class CLdapAttributesModel : public QAbstractTableModel
@@ -50,12 +51,15 @@ namespace ldapeditor
 
 
     private:
-        QString formatValueByType(const ldapcore::CLdapAttribute &attr)const;
+
+
 
         QStringList m_SectionsList;
         bool m_IsChanged{false};
         QString m_baseDN;
         QVector<ldapcore::CLdapAttribute> m_attributes;
+
+        CAttributeModelHelper m_attrHelper;
 
 
 

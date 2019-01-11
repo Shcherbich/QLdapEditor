@@ -10,14 +10,6 @@ namespace ldapcore
 
 enum  class AttrType
 {
-    Int = -5,
-    //Binary = -4,
-    String = -3,
-    Date = -2,
-    Time = -1,
-
-
-
     UnknownText = 0,
     ACIItem = 1,
     AccessPoint = 2,
@@ -45,8 +37,8 @@ enum  class AttrType
     GeneralizedTime = 24,
     Guide = 25,
     IA5String = 26,
-    INTEGER = 27,
-    JPEG = 28,
+    Integer = 27,
+    Jpeg = 28,
     LDAPSyntaxDescription = 54,
     LDAPSchemaDefinition = 56,
     LDAPSchemaDescription = 57,
@@ -61,7 +53,7 @@ enum  class AttrType
     NumericString = 36,
     ObjectClassDescription = 37,
     OctetString = 40,
-    OID = 38,
+    Oid = 38,
     OtherMailbox = 39,
     PostalAddress = 41,
     ProtocolInformation = 42,
@@ -76,7 +68,7 @@ enum  class AttrType
     TelephoneNumber = 50,
     TeletexTerminalIdentifier = 51,
     TelexNumber = 52,
-    UTCTime = 53,
+    UtcTime = 53,
 };
 
 
@@ -99,16 +91,12 @@ public:
     QString value() const;
     AttrType type() const;
     bool editable() const;
-    QString typeAsString()const;
-
 
 private:
     QString m_Name;
     QString m_Value;
     AttrType m_Type;
-    bool    m_editable;
-
-    QString type2String(AttrType type) const;
+    bool    m_Editable;
 
 signals:
 

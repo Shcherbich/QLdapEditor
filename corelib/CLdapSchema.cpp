@@ -111,7 +111,7 @@ std::tuple<AttrType, bool> CLdapSchema::GetAttributeInfoByName(std::string attrN
     {
         return f->second;
     }
-    return std::tuple<AttrType, bool>{AttrType::String, false};
+    return std::tuple<AttrType, bool>{AttrType::UnknownText, false};
 
 }
 

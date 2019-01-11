@@ -11,7 +11,7 @@ CLdapAttribute::CLdapAttribute()
 }
 
 CLdapAttribute::CLdapAttribute(QString name, QString value, AttrType type, bool editable)
-    :m_Name(name), m_Value(value), m_Type(type), m_editable(editable)
+    :m_Name(name), m_Value(value), m_Type(type), m_Editable(editable)
 {
 
 }
@@ -34,25 +34,8 @@ AttrType CLdapAttribute::type()const
 
 bool CLdapAttribute::editable()const
 {
-    return m_editable;
+    return m_Editable;
 }
 
-QString CLdapAttribute::typeAsString()const
-{
-    return type2String(m_Type);
-}
-
-QString CLdapAttribute::type2String(AttrType type) const
-{
-    switch(type)
-    {
-    case AttrType::Int: return QString("Int");
-    case AttrType::Binary: return QString("Binary");
-    case AttrType::String: return QString("String");
-    case AttrType::Date: return QString("Date");
-    case AttrType::Time: return QString("Time");
-    }
-    return QString("???");
-}
 }
 

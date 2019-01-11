@@ -41,10 +41,10 @@ namespace ldapeditor
         ldapcore::AttrType type = static_cast<ldapcore::AttrType>(index.data(ldapeditor::AttrTypeRole).toInt());
         switch(type)
         {
-        case ldapcore::AttrType::Date:
-        case ldapcore::AttrType::Time:
-            setItemDelegate(&m_datetimeDelegate);
-            break;
+//        case ldapcore::AttrType::Date:
+//        case ldapcore::AttrType::Time:
+//            setItemDelegate(&m_datetimeDelegate);
+//            break;
         default:
             setItemDelegate(&m_defaultDelegate);
         }

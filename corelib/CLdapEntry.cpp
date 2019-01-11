@@ -4,9 +4,21 @@
 #include "LDAPException.h"
 #include "LDAPConnection.h"
 
-
 namespace ldapcore
 {
+// supported types for edit
+static QVector<ldapcore::AttrType> g_supportedTypesForEdit({
+                                                     ldapcore::AttrType::UnknownText,
+                                                     ldapcore::AttrType::Binary,
+                                                     ldapcore::AttrType::Boolean,
+                                                     ldapcore::AttrType::DN,
+                                                     ldapcore::AttrType::GeneralizedTime,
+                                                     ldapcore::AttrType::IA5String,
+                                                     ldapcore::AttrType::Integer,
+                                                     ldapcore::AttrType::Oid,
+                                                     ldapcore::AttrType::OctetString,
+                                                     ldapcore::AttrType::TelephoneNumber
+                                                    });
 
 CLdapEntry::CLdapEntry(CLdapEntry* parentLdapEntry, LDAPEntry* le, QObject *parent)
     : m_pParent(parentLdapEntry), m_pEntry(le), QObject(parent)
@@ -105,30 +117,31 @@ QVector<CLdapAttribute> CLdapEntry::attributes()
             }
 
 
-           /* if(value == "tesla")
+            if(value == "tesla")
             {
-                CLdapAttribute attr(i->getName().c_str(), "2017-11-23", AttrType::Date);
+                CLdapAttribute attr(i->getName().c_str(), "TRUE", AttrType::Boolean);
+                //CLdapAttribute attr(i->getName().c_str(), "2017-11-23", AttrType::Date);
                 //CLdapAttribute attr(i->getName().c_str(), "23:05:58", AttrType::Time);
                 ret.push_back(attr);
             }
-            else if(value == "88888")
-            {
-                CLdapAttribute attr(i->getName().c_str(), value.c_str(), AttrType::Int);
-                ret.push_back(attr);
-            }
+//            else if(value == "88888")
+//            {
+//                CLdapAttribute attr(i->getName().c_str(), value.c_str(), AttrType::Int);
+//                ret.push_back(attr);
+//            }
             else if(value == "99999")
             {
-                CLdapAttribute attr(i->getName().c_str(), value.c_str(), AttrType::Binary);
+                CLdapAttribute attr(i->getName().c_str(), "111111111222222223333333334444444", AttrType::Binary);
                 ret.push_back(attr);
             }
-            else*/
+            else
             {
                 auto t = m_pData->schema().GetAttributeInfoByName(i->getName().c_str());
 
                 auto tp = std::get<0>(t);
-                auto editable = std::get<1>(t);
-
-                CLdapAttribute attr(i->getName().c_str(), value.c_str(), AttrType::String);
+                //auto editable = std::get<1>(t);
+                bool editable = g_supportedTypesForEdit.contains(tp);
+                CLdapAttribute attr(i->getName().c_str(), value.c_str(), tp, editable);
                 ret.push_back(attr);
             }
 

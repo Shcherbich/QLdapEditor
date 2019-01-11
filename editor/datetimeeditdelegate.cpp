@@ -20,16 +20,16 @@ namespace ldapeditor
         ldapcore::AttrType type = static_cast<ldapcore::AttrType>(index.data(ldapeditor::AttrTypeRole).toInt());
         switch(type)
         {
-        case
-        ldapcore::AttrType::Date: m_type = DataType::DateOnly;
-            editor = new QDateEdit(parent);
-            editor->setDisplayFormat("yyyy-MMM-dd");
-            break;
-        case ldapcore::AttrType::Time:
-            m_type = DataType::TimeOnly;
-            editor = new QTimeEdit(parent);
-            editor->setDisplayFormat("HH:mm:ss");
-            break;
+//        case
+//        ldapcore::AttrType::Date: m_type = DataType::DateOnly;
+//            editor = new QDateEdit(parent);
+//            editor->setDisplayFormat("yyyy-MMM-dd");
+//            break;
+//        case ldapcore::AttrType::Time:
+//            m_type = DataType::TimeOnly;
+//            editor = new QTimeEdit(parent);
+//            editor->setDisplayFormat("HH:mm:ss");
+//            break;
         default:
             break;
         }

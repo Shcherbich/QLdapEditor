@@ -72,7 +72,11 @@ namespace ldapeditor
         if (!index.isValid())  return QVariant();
 
         // FIXME: Implement me!
-        ldapcore::CLdapAttribute const &  attr = m_attributes[index.row()];
+        const ldapcore::CLdapAttribute&  attr = m_attributes[index.row()];
+        return m_attrHelper.data(attr, index,role);
+
+/*
+        //ldapcore::CLdapAttribute const &  attr = m_attributes[index.row()];
         if(role == Qt::DisplayRole)
         {
             QString value = formatValueByType(attr);
@@ -82,9 +86,26 @@ namespace ldapeditor
             case 0: return QString("%1=%2").arg(attr.name()).arg(attr.value());
             case 1: return attr.name();
             case 2: return value;
-            case 3: return attr.typeAsString();
+            case 3: return attributeType2String(attr.type());
             case 4: return length;
+            default: break;
             }
+        }
+        else if(role == Qt::ToolTipRole)
+        {
+            QString v;
+            QString value = formatValueByType(attr);
+            QString length = QString::number(attr.value().length());
+            switch(index.column())
+            {
+            case 0: v = QString("%1=%2").arg(attr.name()).arg(attr.value()); break;
+            case 1: v = attr.name(); break;
+            case 2: v = value; break;
+            case 3: v = attributeType2String(attr.type());break;
+            case 4: v = length; break;
+            default: break;
+            }
+            return v.split(";").join("\n");
         }
         else if(role ==Qt::EditRole)
         {
@@ -96,7 +117,7 @@ namespace ldapeditor
                     return QDate::fromString(attr.value()); break;
                 case ldapcore::AttrType::Time:
                     return QTime::fromString(attr.value()); break;
-                case ldapcore::AttrType::Int:
+                case ldapcore::AttrType::INTEGER:
                      return attr.value().toInt(); break;
                 default:
                     return attr.value();
@@ -107,6 +128,7 @@ namespace ldapeditor
         {
             return static_cast<int>(attr.type());
         }
+      */
         return QVariant();
     }
 
@@ -141,33 +163,7 @@ namespace ldapeditor
         return false;
     }
 
-    QString CLdapAttributesModel::formatValueByType(const ldapcore::CLdapAttribute& attr) const
-    {
-        QString retValue;
-        switch(attr.type())
-        {
-        case ldapcore::AttrType::Int:
-            retValue = attr.value();
-            break;
-        case ldapcore::AttrType::Binary:
-            {
-                QByteArray a = attr.value().toLocal8Bit().toHex();
-                for(int i=0;i<a.size();i+=2)
-                {
-                    if(!retValue.isEmpty())
-                        retValue += " ";
-                    retValue+= QString("%1%2").arg(QChar(a[i]).toUpper()).arg(QChar(a[i+1]).toUpper());
-                }
-            }
-            break;
-        case ldapcore::AttrType::String:
-        case ldapcore::AttrType::Date:
-        case ldapcore::AttrType::Time:
-            retValue = attr.value();
-            break;
-        }
-        return retValue;
-    }
+
 
     Qt::ItemFlags CLdapAttributesModel::flags(const QModelIndex &index) const
     {
@@ -178,9 +174,9 @@ namespace ldapeditor
         Qt::ItemFlags editFlags{Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsEditable};
         ldapcore::CLdapAttribute const &  attr = m_attributes[index.row()];
 
-        if (index.column() == 2) //do not allow edit binary data
+        if (index.column() == 2)
         {
-            return attr.type() == ldapcore::AttrType::Binary ? defaultFlags : editFlags;
+            return attr.editable() ? editFlags : defaultFlags;
         }
         return defaultFlags;
     }
@@ -201,7 +197,6 @@ namespace ldapeditor
         endInsertColumns();
         return false;
     }
-
 
 
 //    bool CLdapAttributesModel::verifyAttributes(const tLdapAttributes& tmpAttributes, int row) const
