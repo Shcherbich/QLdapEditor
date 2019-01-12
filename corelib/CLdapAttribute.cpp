@@ -10,8 +10,8 @@ CLdapAttribute::CLdapAttribute()
 
 }
 
-CLdapAttribute::CLdapAttribute(QString name, QString value, AttrType type)
-    : m_Name(name), m_Value(value), m_Type(type)
+CLdapAttribute::CLdapAttribute(QString name, QString value, AttrType type, bool editable)
+    :m_Name(name), m_Value(value), m_Type(type), m_Editable(editable)
 {
 
 }
@@ -32,22 +32,29 @@ AttrType CLdapAttribute::type()const
     return m_Type;
 }
 
-QString CLdapAttribute::typeAsString()const
+bool CLdapAttribute::editable()const
 {
-    return type2String(m_Type);
+    return m_Editable;
 }
 
-QString CLdapAttribute::type2String(AttrType type) const
+bool CLdapAttribute::isModified() const
 {
-    switch(type)
-    {
-    case AttrType::Int: return QString("Int");
-    case AttrType::Binary: return QString("Binary");
-    case AttrType::String: return QString("String");
-    case AttrType::Date: return QString("Date");
-    case AttrType::Time: return QString("Time");
-    }
-    return QString("???");
+    return m_isModified;
 }
+
+void CLdapAttribute::setValue(const QString& value)
+{
+    if(!validateValue(value))
+        throw std::invalid_argument("can't set value due to wrong data format");
+
+     m_Value = value;
+     m_isModified = true;
+}
+
+bool CLdapAttribute::validateValue(const QString& value)
+{
+    return true;
+}
+
 }
 

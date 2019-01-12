@@ -75,6 +75,7 @@ void CLdapData::connect(const tConnectionOptions& connectOptions)
 
             m_baseDN = connectOptions.basedn;
             m_Connection = std::move(localConn);
+            m_Schema.build(m_Connection.get(), m_baseDN);
             build();
             emit OnConnectionCompleted(this, true, QString(""));
         }
@@ -108,7 +109,7 @@ void CLdapData::build()
     }
     m_baseDN = baseDn;
     m_Entries.push_back(new CLdapEntry(nullptr, nullptr, nullptr));
-    m_Entries.back()->construct(m_Connection.get(), m_baseDN.c_str());
+    m_Entries.back()->construct(this, m_Connection.get(), m_baseDN.c_str());
 
     /*LDAPSearchResults* ls = m_Connection->search(m_baseDN, LDAPAsynConnection::SEARCH_ONE);
     if (ls != nullptr)
@@ -182,6 +183,11 @@ int CLdapData::port()
 QString CLdapData::baseDN()
 {
     return QString::fromStdString(m_baseDN);
+}
+
+CLdapSchema& CLdapData::schema()
+{
+    return m_Schema;
 }
 
 QStringList CLdapData::search(const _tSearchOptions& searchOptions)

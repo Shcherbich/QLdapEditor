@@ -8,6 +8,7 @@
 #include "CLdapObject.h"
 #include "CLdapEntry.h"
 #include "datatypes.h"
+#include "CLdapSchema.h"
 #include <memory>
 
 class LDAPConnection;
@@ -32,6 +33,7 @@ public:
 
     QStringList search(const tSearchOptions& searchOptions);
 
+    CLdapSchema& schema();
     QString host();
     int port();
     QString baseDN();
@@ -49,6 +51,7 @@ private:
 private:
     QVector<CLdapEntry*> m_Entries;
     std::unique_ptr<LDAPConnection> m_Connection;
+    CLdapSchema m_Schema;
     std::string m_baseDN;
 };
 

@@ -30,7 +30,8 @@ namespace ldapeditor
 
 
     CLdapTableView::CLdapTableView(QWidget *parent) : QTableView(parent)
-              , m_datetimeDelegate(this)
+    , m_ldapDataDelegate(this)
+    , m_defaultDelegate(this)
     {
         setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
         setAlternatingRowColors(true);
@@ -41,9 +42,9 @@ namespace ldapeditor
         ldapcore::AttrType type = static_cast<ldapcore::AttrType>(index.data(ldapeditor::AttrTypeRole).toInt());
         switch(type)
         {
-        case ldapcore::AttrType::Date:
-        case ldapcore::AttrType::Time:
-            setItemDelegate(&m_datetimeDelegate);
+        case ldapcore::AttrType::TelephoneNumber:
+        case ldapcore::AttrType::GeneralizedTime:
+            setItemDelegate(&m_ldapDataDelegate);
             break;
         default:
             setItemDelegate(&m_defaultDelegate);

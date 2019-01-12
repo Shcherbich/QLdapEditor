@@ -10,20 +10,17 @@ namespace ldapeditor
     {
     }
 
-    QVector<ldapcore::CLdapAttribute> CLdapAttributesModel::attributesList() const
-    {
-        return m_attributes;
-    }
 
-    void CLdapAttributesModel::setAttributesList(QVector<ldapcore::CLdapAttribute>& attrs)
+    void CLdapAttributesModel::setAttributesList(QVector<ldapcore::CLdapAttribute>* pAttrs)
     {
         beginResetModel();
-        m_attributes.clear();
+        if(m_pAttributes)
+            m_pAttributes->clear();
         removeRows(0, rowCount());
 
-        m_attributes = attrs;
+        m_pAttributes = pAttrs;
         endResetModel();
-        emit dataChanged(index(0,0), index(m_attributes.size(),m_SectionsList.size()), QVector<int>() << Qt::DisplayRole);
+        emit dataChanged(index(0,0), index(m_pAttributes->size(),m_SectionsList.size()), QVector<int>() << Qt::DisplayRole);
         m_IsChanged = false;
     }
 
@@ -54,7 +51,7 @@ namespace ldapeditor
             return 0;
 
         // FIXME: Implement me!
-        return m_attributes.size();
+        return m_pAttributes ? m_pAttributes->size() : 0;
     }
 
     int CLdapAttributesModel::columnCount(const QModelIndex &parent) const
@@ -72,42 +69,8 @@ namespace ldapeditor
         if (!index.isValid())  return QVariant();
 
         // FIXME: Implement me!
-        ldapcore::CLdapAttribute const &  attr = m_attributes[index.row()];
-        if(role == Qt::DisplayRole)
-        {
-            QString value = formatValueByType(attr);
-            QString length = QString::number(attr.value().length());
-            switch(index.column())
-            {
-            case 0: return QString("%1=%2").arg(attr.name()).arg(attr.value());
-            case 1: return attr.name();
-            case 2: return value;
-            case 3: return attr.typeAsString();
-            case 4: return length;
-            }
-        }
-        else if(role ==Qt::EditRole)
-        {
-            if(index.column() == 2)
-            {
-                switch(attr.type())
-                {
-                case ldapcore::AttrType::Date:
-                    return QDate::fromString(attr.value()); break;
-                case ldapcore::AttrType::Time:
-                    return QTime::fromString(attr.value()); break;
-                case ldapcore::AttrType::Int:
-                     return attr.value().toInt(); break;
-                default:
-                    return attr.value();
-                }
-            }
-        }
-        else if(role == AttrTypeRole)
-        {
-            return static_cast<int>(attr.type());
-        }
-        return QVariant();
+        const ldapcore::CLdapAttribute&  attr = (*m_pAttributes)[index.row()];
+        return m_attrHelper.data(attr, index,role);
     }
 
     bool CLdapAttributesModel::setData(const QModelIndex &index, const QVariant &value, int role)
@@ -115,74 +78,42 @@ namespace ldapeditor
         if (!index.isValid())
             return false;
 
-//        if(index.column() == 2 && role == Qt::EditRole)
-//        {
-//            if (!value.toString().trimmed().isEmpty())
-//            {
-//                if (data(index, role) != value) {
-//                    // FIXME: Implement me!
-//                    tLdapAttributes tmpAttributes (m_attributes);
-//                    auto& a = tmpAttributes[index.row()];
-//                    a.value = value.toString().trimmed();
-//                    a.size = QString::number(a.value.length());
-//                    a.dn = QString("%1=%2").arg(a.attr).arg(a.value);
-
-//                    if(verifyAttributes(tmpAttributes, index.row()))
-//                    {
-//                        m_attributes = tmpAttributes;
-//                        m_IsChanged = true;
-//                        emit dataChanged(index, index, QVector<int>() << role);
-//                        return true;
-//                    }
-//                }
-//            }
-//        }
+        ldapcore::CLdapAttribute&  attr = (*m_pAttributes)[index.row()];
+        if(index.column() == 2 && role == Qt::EditRole)
+        {
+            if (data(index, role) != value)
+            {
+                bool bRet{true};
+                try
+                {
+                    bRet = m_attrHelper.setData(attr, index, value, role);
+                    emit dataChanged(index, index, QVector<int>() << role);
+                }
+                catch(std::exception& e)
+                {
+                    bRet = false;
+                }
+                return bRet;
+            }
+        }
 
         return false;
     }
 
-    QString CLdapAttributesModel::formatValueByType(const ldapcore::CLdapAttribute& attr) const
-    {
-        QString retValue;
-        switch(attr.type())
-        {
-        case ldapcore::AttrType::Int:
-            retValue = attr.value();
-            break;
-        case ldapcore::AttrType::Binary:
-            {
-                QByteArray a = attr.value().toLocal8Bit().toHex();
-                for(int i=0;i<a.size();i+=2)
-                {
-                    if(!retValue.isEmpty())
-                        retValue += " ";
-                    retValue+= QString("%1%2").arg(QChar(a[i]).toUpper()).arg(QChar(a[i+1]).toUpper());
-                }
-            }
-            break;
-        case ldapcore::AttrType::String:
-        case ldapcore::AttrType::Date:
-        case ldapcore::AttrType::Time:
-            retValue = attr.value();
-            break;
-        }
-        return retValue;
-    }
+
 
     Qt::ItemFlags CLdapAttributesModel::flags(const QModelIndex &index) const
     {
         if (!index.isValid())
             return Qt::NoItemFlags;
 
-        Qt::ItemFlags defaultFlags{Qt::ItemIsEnabled | Qt::ItemIsSelectable};
+        Qt::ItemFlags readonlyFlags{Qt::ItemIsEnabled | Qt::ItemIsSelectable};
         Qt::ItemFlags editFlags{Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsEditable};
-        ldapcore::CLdapAttribute const &  attr = m_attributes[index.row()];
-
-        if (index.column() == 2) //do not allow edit binary data
+        if (index.column() == 2) // only value column can be editable
         {
-            return attr.type() == ldapcore::AttrType::Binary ? defaultFlags : editFlags;
+            return (*m_pAttributes)[index.row()].editable() ? editFlags : readonlyFlags;
         }
-        return defaultFlags;
+        return readonlyFlags;
     }
 
     bool CLdapAttributesModel::insertRows(int row, int count, const QModelIndex &parent)
@@ -201,7 +132,6 @@ namespace ldapeditor
         endInsertColumns();
         return false;
     }
-
 
 
 //    bool CLdapAttributesModel::verifyAttributes(const tLdapAttributes& tmpAttributes, int row) const

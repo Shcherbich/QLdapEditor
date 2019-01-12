@@ -20,11 +20,13 @@ FIND_PACKAGE(Qt5Widgets CONFIG REQUIRED)
 ADD_DEFINITIONS(${QT_DEFINITIONS})
 
 include_directories(../corelib)
+INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR})
 
 # Populate a CMake variable with the sources
 SET(ldapeditor_SOURCES
     resources.qrc
-    datetimeeditdelegate.cpp
+    ldapdataeditdelegate.cpp
+    attributemodelhelper.cpp
     ldapsettings.cpp
     simplecrypt.cpp
     ldaptreemodel.cpp
@@ -38,8 +40,9 @@ SET(ldapeditor_SOURCES
     mainwindow.cpp
     main.cpp
 )
-SET(ldapeditor_HEADERS
-    datetimeeditdelegate.h
+SET(ldapeditor_HEADERS    
+    ldapdataeditdelegate.h
+    attributemodelhelper.h
     ldapsettings.h
     simplecrypt.h
     ldaptreemodel.h
@@ -50,6 +53,7 @@ SET(ldapeditor_HEADERS
     ldaptreeview.h
     mainwindow.h
     ldapeditordefines.h
+    ${CMAKE_BINARY_DIR}/version.h
 )
 
 SET(ldapeditor_OTHER
@@ -60,6 +64,8 @@ SET(ldapeditor_OTHER
 
 # Tell CMake to create the helloworld executable
 ADD_EXECUTABLE(${PROJECT_NAME} ${ldapeditor_SOURCES} ${ldapeditor_HEADERS} ${ldapeditor_OTHER})
+
+
 target_link_libraries(${PROJECT_NAME} LdapEditorCore)
 set_target_properties(${PROJECT_NAME} PROPERTIES
                       INSTALL_RPATH /usr/local/lib

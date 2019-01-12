@@ -1,11 +1,24 @@
+#include "CLdapData.h"
 #include "CLdapEntry.h"
 #include "LDAPEntry.h"
 #include "LDAPException.h"
 #include "LDAPConnection.h"
 
-
 namespace ldapcore
 {
+// supported types for edit
+static QVector<ldapcore::AttrType> g_supportedTypesForEdit({
+                                                     ldapcore::AttrType::UnknownText,
+                                                     ldapcore::AttrType::Binary,
+                                                     ldapcore::AttrType::Boolean,
+                                                     ldapcore::AttrType::DN,
+                                                     ldapcore::AttrType::GeneralizedTime,
+                                                     ldapcore::AttrType::IA5String,
+                                                     ldapcore::AttrType::Integer,
+                                                     ldapcore::AttrType::Oid,
+                                                     ldapcore::AttrType::OctetString,
+                                                     ldapcore::AttrType::TelephoneNumber
+                                                    });
 
 CLdapEntry::CLdapEntry(CLdapEntry* parentLdapEntry, LDAPEntry* le, QObject *parent)
     : m_pParent(parentLdapEntry), m_pEntry(le), QObject(parent)
@@ -52,8 +65,9 @@ QString CLdapEntry::rDn()
     return m_rDn;
 }
 
-void CLdapEntry::construct(LDAPConnection* conn, QString baseDn)
+void CLdapEntry::construct(CLdapData* data, LDAPConnection* conn, QString baseDn)
 {
+    m_pData = data;
     m_baseDn = baseDn;
     try
     {
@@ -63,7 +77,7 @@ void CLdapEntry::construct(LDAPConnection* conn, QString baseDn)
             for (LDAPEntry* le = ls->getNext(); le != nullptr; le = ls->getNext())
             {
                 m_pEntries.push_back(new CLdapEntry(this, le, nullptr));
-                m_pEntries.back()->construct(conn, baseDn);
+                m_pEntries.back()->construct(data, conn, baseDn);
             }
         }
     }
@@ -83,9 +97,9 @@ QVector<CLdapEntry*> CLdapEntry::children()
     return m_pEntries;
 }
 
-QVector<CLdapAttribute> CLdapEntry::attributes()
+void CLdapEntry::prepareAttributes()
 {
-    QVector<CLdapAttribute> ret;
+   m_attributes.clear();
     if(m_pEntry)
     {
         const LDAPAttributeList *al = m_pEntry->getAttributes();
@@ -105,29 +119,40 @@ QVector<CLdapAttribute> CLdapEntry::attributes()
 
             if(value == "tesla")
             {
-                CLdapAttribute attr(i->getName().c_str(), "2017-11-23", AttrType::Date);
+                //CLdapAttribute attr(i->getName().c_str(), "TRUE", AttrType::Boolean);
+                CLdapAttribute attr(i->getName().c_str(), "20171123230558.000", AttrType::GeneralizedTime);
                 //CLdapAttribute attr(i->getName().c_str(), "23:05:58", AttrType::Time);
-                ret.push_back(attr);
+                m_attributes.push_back(attr);
             }
-            else if(value == "88888")
-            {
-                CLdapAttribute attr(i->getName().c_str(), value.c_str(), AttrType::Int);
-                ret.push_back(attr);
-            }
+//            else if(value == "88888")
+//            {
+//                CLdapAttribute attr(i->getName().c_str(), value.c_str(), AttrType::Int);
+//                ret.push_back(attr);
+//            }
             else if(value == "99999")
             {
-                CLdapAttribute attr(i->getName().c_str(), value.c_str(), AttrType::Binary);
-                ret.push_back(attr);
+                CLdapAttribute attr(i->getName().c_str(), "111111111222222223333333334444444", AttrType::Binary);
+                m_attributes.push_back(attr);
             }
             else
             {
-                CLdapAttribute attr(i->getName().c_str(), value.c_str(), AttrType::String);
-                ret.push_back(attr);
+                auto t = m_pData->schema().GetAttributeInfoByName(i->getName().c_str());
+
+                auto tp = std::get<0>(t);
+                //auto editable = std::get<1>(t);
+                bool editable = g_supportedTypesForEdit.contains(tp);
+                CLdapAttribute attr(i->getName().c_str(), value.c_str(), tp, editable);
+                m_attributes.push_back(attr);
             }
 
         }
     }
-    return ret;
+}
+
+QVector<CLdapAttribute> *CLdapEntry::attributes()
+{
+    prepareAttributes();
+    return &m_attributes;
 }
 
 }
