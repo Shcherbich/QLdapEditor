@@ -13,7 +13,7 @@ public:
     CAttributeModelHelper();
 
     QVariant data(const ldapcore::CLdapAttribute &attr, const QModelIndex &index, int role = Qt::DisplayRole)const;
-    bool setData(const QModelIndex &index, const QVariant &value, int role = Qt::EditRole)const;
+    bool setData(ldapcore::CLdapAttribute&  attr, const QModelIndex &index, const QVariant &value, int role = Qt::EditRole);
 
 private:
     typedef struct _tAttrHelper
@@ -30,6 +30,9 @@ private:
     QString displayRoleData(const ldapcore::CLdapAttribute &attr, const QModelIndex &index)const;
     QVariant editRoleData(const ldapcore::CLdapAttribute &attr, const QModelIndex &index)const;
     QVariant tooltipRoleData(const ldapcore::CLdapAttribute &attr, const QModelIndex &index)const;
+    QVariant foregroundRoleData(const ldapcore::CLdapAttribute &attr, const QModelIndex &index)const;
+
+    bool setEditRoleData(ldapcore::CLdapAttribute &attr, const QVariant& value, const QModelIndex &index);
 };
 } //namespace ldapeditor
 #endif // ATTRIBUTEMODELHELPER_H

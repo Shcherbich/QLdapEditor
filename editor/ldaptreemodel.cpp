@@ -89,7 +89,7 @@ namespace ldapeditor
         if(role == Qt::DecorationRole)
         {
             if(!item->parent()) return QIcon(":/home");
-            for(auto a: item->attributes())
+            for(auto& a: *item->attributes())
             {
                 if(a.value().contains("groupOfUniqueNames;"))
                     return QIcon(":/group");

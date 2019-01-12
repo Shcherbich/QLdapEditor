@@ -191,11 +191,13 @@ namespace ldapeditor
 //         m_TableModel->setAttributesList(current.data(ldapeditor::AttributesListRole).toStringList());
 
 
-        ldapcore::CLdapEntry* entry = static_cast<ldapcore::CLdapEntry*>(current.internalPointer());
-        if(entry)
+        if(!current.isValid()) return ;
+
+        ldapcore::CLdapEntry* currentEntry = static_cast<ldapcore::CLdapEntry*>(current.internalPointer());
+        if(currentEntry)
         {
-            QVector<ldapcore::CLdapAttribute> attrs = entry->attributes();
-            m_TableModel->setAttributesList(attrs);
+            QVector<ldapcore::CLdapAttribute>* pAttrs = currentEntry->attributes();
+            m_TableModel->setAttributesList(pAttrs);
         }
     }
 

@@ -3,8 +3,25 @@ PROJECT(QLdapEditor)
 
 SET(PRODUCT "LDAP Editor")
 SET(PACKAGENAME "ldapeditor")
-SET(VERSION "0.3.0")
 SET(COMPANY "Very Big Company Inc.")
+
+SET(CMAKE_VERSION_MAJOR 0)
+SET(CMAKE_VERSION_MINOR 3)
+SET(CMAKE_VERSION_PATCH 1)
+
+SET(VERSION "${CMAKE_VERSION_MAJOR}.${CMAKE_VERSION_MINOR}.${CMAKE_VERSION_PATCH}")
+
+FILE(WRITE ${CMAKE_BINARY_DIR}/version.h.in
+"/*CMAKE Generated file, do not edit*/\n
+\#define VERSION \"@VERSION@\"\n\
+\#define PRODUCT \"@PRODUCT@\"\n\
+\#define COMPANY \"@COMPANY@\"\n\
+"
+)
+configure_file(${CMAKE_BINARY_DIR}/version.h.in ${CMAKE_BINARY_DIR}/version.h)
+
+
+
 SET(APP_DEFAULT_LOCATION_DIR "/usr/local/bin/${PACKAGE_NAME}" )
 SET(SO_DEFAULT_LOCATION_DIR "/usr/local/lib/${PACKAGE_NAME}" )
 SET(PACKAGEGROUP "Utilities")
@@ -16,6 +33,7 @@ ENDIF(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 #include_directories(common)
 add_subdirectory(corelib)
 add_subdirectory(editor)
+
 
 #INSTALL (DIRECTORY 3rd_party/openldap/lib/ DESTINATION lib)
 

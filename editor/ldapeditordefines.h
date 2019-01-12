@@ -2,11 +2,11 @@
 #define LDAPEDITORDEFINES_H
 
 #include <qnamespace.h>
+#include "version.h" // use generated version file
 
-
-#define OrganizationName "Very big company Inc."
-#define ApplicationName  "LdapEditorApp"
-#define ApplicationVersion "0.3"
+#define OrganizationName COMPANY
+#define ApplicationName  PRODUCT
+#define ApplicationVersion VERSION
 
 namespace ldapeditor
 {

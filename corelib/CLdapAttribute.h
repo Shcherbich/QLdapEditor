@@ -91,12 +91,18 @@ public:
     QString value() const;
     AttrType type() const;
     bool editable() const;
+    bool isModified() const;
+
+    void setValue(const QString& value);
 
 private:
     QString m_Name;
     QString m_Value;
-    AttrType m_Type;
-    bool    m_Editable;
+    AttrType m_Type{AttrType::UnknownText};
+    bool    m_Editable{true};
+    bool    m_isModified{false};
+
+    bool validateValue(const QString& value);
 
 signals:
 

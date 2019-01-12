@@ -21,8 +21,7 @@ namespace ldapeditor
     public:
         explicit CLdapAttributesModel(QObject *parent = nullptr);
 
-        QVector<ldapcore::CLdapAttribute> attributesList() const;
-        void setAttributesList(QVector<ldapcore::CLdapAttribute>& attrs);
+        void setAttributesList(QVector<ldapcore::CLdapAttribute>* pAttrs);
         bool IsChanged() const {return m_IsChanged;}
         void setBaseDN(const QString& baseDN){m_baseDN = baseDN.toLower();}
 
@@ -48,8 +47,6 @@ namespace ldapeditor
         bool insertRows(int row, int count, const QModelIndex &parent = QModelIndex()) override;
         bool insertColumns(int column, int count, const QModelIndex &parent = QModelIndex()) override;
 
-
-
     private:
 
 
@@ -57,7 +54,7 @@ namespace ldapeditor
         QStringList m_SectionsList;
         bool m_IsChanged{false};
         QString m_baseDN;
-        QVector<ldapcore::CLdapAttribute> m_attributes;
+        QVector<ldapcore::CLdapAttribute>* m_pAttributes{nullptr};
 
         CAttributeModelHelper m_attrHelper;
 

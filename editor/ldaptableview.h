@@ -4,7 +4,7 @@
 #include <QTableView>
 #include <QStyledItemDelegate>
 #include <QSortFilterProxyModel>
-#include "datetimeeditdelegate.h"
+#include "ldapdataeditdelegate.h"
 
 namespace ldapeditor
 {
@@ -51,7 +51,7 @@ namespace ldapeditor
 
     protected:
         virtual bool edit(const QModelIndex& index, QAbstractItemView::EditTrigger trigger, QEvent* event)override;
-        CDateTimeEditDelegate m_datetimeDelegate;
+        CLdapDataEditDelegate m_ldapDataDelegate;
         QStyledItemDelegate   m_defaultDelegate;
     };
 

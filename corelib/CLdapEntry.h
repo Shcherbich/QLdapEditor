@@ -25,7 +25,7 @@ public:
 
     CLdapEntry* parent();
     QVector<CLdapEntry*> children();
-    QVector<CLdapAttribute> attributes();
+    QVector<CLdapAttribute>* attributes();
 
 public:
     QString dn();
@@ -37,7 +37,7 @@ public slots:
 
 private:
     void construct(CLdapData* data, LDAPConnection* conn, QString baseDn);
-
+    void prepareAttributes();
 private:
     CLdapEntry*           m_pParent{nullptr};
     LDAPEntry*            m_pEntry{nullptr};
@@ -45,6 +45,8 @@ private:
     QString               m_baseDn;
     QString               m_rDn;
     CLdapData*            m_pData;
+
+    QVector<CLdapAttribute> m_attributes;
 
     friend class CLdapData;
 };

@@ -97,9 +97,9 @@ QVector<CLdapEntry*> CLdapEntry::children()
     return m_pEntries;
 }
 
-QVector<CLdapAttribute> CLdapEntry::attributes()
+void CLdapEntry::prepareAttributes()
 {
-    QVector<CLdapAttribute> ret;
+   m_attributes.clear();
     if(m_pEntry)
     {
         const LDAPAttributeList *al = m_pEntry->getAttributes();
@@ -119,10 +119,10 @@ QVector<CLdapAttribute> CLdapEntry::attributes()
 
             if(value == "tesla")
             {
-                CLdapAttribute attr(i->getName().c_str(), "TRUE", AttrType::Boolean);
-                //CLdapAttribute attr(i->getName().c_str(), "2017-11-23", AttrType::Date);
+                //CLdapAttribute attr(i->getName().c_str(), "TRUE", AttrType::Boolean);
+                CLdapAttribute attr(i->getName().c_str(), "20171123230558.000", AttrType::GeneralizedTime);
                 //CLdapAttribute attr(i->getName().c_str(), "23:05:58", AttrType::Time);
-                ret.push_back(attr);
+                m_attributes.push_back(attr);
             }
 //            else if(value == "88888")
 //            {
@@ -132,7 +132,7 @@ QVector<CLdapAttribute> CLdapEntry::attributes()
             else if(value == "99999")
             {
                 CLdapAttribute attr(i->getName().c_str(), "111111111222222223333333334444444", AttrType::Binary);
-                ret.push_back(attr);
+                m_attributes.push_back(attr);
             }
             else
             {
@@ -142,12 +142,17 @@ QVector<CLdapAttribute> CLdapEntry::attributes()
                 //auto editable = std::get<1>(t);
                 bool editable = g_supportedTypesForEdit.contains(tp);
                 CLdapAttribute attr(i->getName().c_str(), value.c_str(), tp, editable);
-                ret.push_back(attr);
+                m_attributes.push_back(attr);
             }
 
         }
     }
-    return ret;
+}
+
+QVector<CLdapAttribute> *CLdapEntry::attributes()
+{
+    prepareAttributes();
+    return &m_attributes;
 }
 
 }

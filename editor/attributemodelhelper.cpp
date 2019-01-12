@@ -1,6 +1,7 @@
 #include "attributemodelhelper.h"
 #include "ldapeditordefines.h"
 #include <QDateTime>
+#include <QBrush>
 
 namespace ldapeditor
 {
@@ -78,6 +79,8 @@ QVariant CAttributeModelHelper::data(const ldapcore::CLdapAttribute&  attr, cons
         return editRoleData(attr, index);
     case Qt::ToolTipRole:
         return tooltipRoleData(attr,index);
+    case Qt::ForegroundRole:
+        return foregroundRoleData(attr,index);
     case ldapeditor::AttrTypeRole:
         return static_cast<int>(attr.type());
     default: break;
@@ -85,8 +88,14 @@ QVariant CAttributeModelHelper::data(const ldapcore::CLdapAttribute&  attr, cons
     return QVariant();
 }
 
-bool CAttributeModelHelper::setData(const QModelIndex &index, const QVariant &value, int role)const
+bool CAttributeModelHelper::setData(ldapcore::CLdapAttribute&  attr, const QModelIndex &index, const QVariant &value, int role)
 {
+    switch(role)
+    {
+    case Qt::EditRole:
+        return setEditRoleData(attr, value, index);
+    default: break;
+    }
     return false;
 }
 
@@ -111,6 +120,8 @@ QString CAttributeModelHelper::formatValueByType(const ldapcore::CLdapAttribute&
             }
         }
         break;
+    case ldapcore::AttrType::GeneralizedTime:
+        retValue = (QDateTime::fromString(attr.value(), "yyyyMMddHHmmss.zzz")).toString("yyyyMMddHHmmss.zzz");
     default:
         retValue = attr.value();
         break;
@@ -151,7 +162,7 @@ QVariant CAttributeModelHelper::editRoleData(const ldapcore::CLdapAttribute &att
     case ldapcore::AttrType::GeneralizedTime:
         {
             v = v.trimmed().toLower();
-            return QDateTime::fromString(v);
+            return QDateTime::fromString(v, "yyyyMMddHHmmss.zzz");
         }
     case ldapcore::AttrType::UtcTime:
     {
@@ -178,6 +189,46 @@ QVariant CAttributeModelHelper::tooltipRoleData(const ldapcore::CLdapAttribute &
         return tooltipItems.join("\n");
     }
     return displayRoleData(attr,index).split(";").join("\n");
+}
+
+QVariant CAttributeModelHelper::foregroundRoleData(const ldapcore::CLdapAttribute &attr, const QModelIndex &index)const
+{
+    if(index.column()==2) //value column
+    {
+          if(attr.editable())
+          {
+              return attr.isModified() ? QBrush(Qt::red) : QBrush(Qt::black);
+          }
+          else
+          {
+              return QBrush(Qt::gray);
+          }
+    }
+    //other columns
+    return QBrush(Qt::darkGray);
+}
+
+bool CAttributeModelHelper::setEditRoleData(ldapcore::CLdapAttribute &attr, const QVariant& value, const QModelIndex &index)
+{
+    bool retValue {true};
+    switch(attr.type())
+    {
+    case ldapcore::AttrType::Boolean:
+         attr.setValue(value.toBool() ? "TRUE" : "FALSE");
+         break;
+    case ldapcore::AttrType::Integer:
+         attr.setValue(QString::number(value.toInt()));
+         break;
+    case ldapcore::AttrType::GeneralizedTime:
+        attr.setValue(value.toDateTime().toString("yyyyMMddHHmmss.zzz"));
+        break;
+    case ldapcore::AttrType::UtcTime:
+         attr.setValue(value.toDateTime().toUTC().toString("yyyyMMddHHmmss.zzz"));
+        break;
+    default:
+        attr.setValue(value.toString());
+    }
+    return retValue;
 }
 
 } //namespace ldapeditor
