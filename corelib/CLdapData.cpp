@@ -140,6 +140,7 @@ QVector<CLdapEntry*> CLdapData::topList()
 
 void CLdapData::addObject(QString id)
 {
+    Q_UNUSED(id);
     /*
     CLdapObject* added = new CLdapObject(id, this);
     QThreadPool::globalInstance()->start(makeSimpleTask([=]
@@ -153,6 +154,7 @@ void CLdapData::addObject(QString id)
 
 void CLdapData::deleteObject(CLdapObject* p)
 {
+    Q_UNUSED(p);
     /*auto f = std::find_if(m_Objects.begin(), m_Objects.end(), [=](const CLdapObject* pItr) { return p == pItr; });
     if (f == m_Objects.end())
     {
@@ -177,7 +179,7 @@ QString CLdapData::host()
 
 int CLdapData::port()
 {
-    m_Connection->getPort();
+    return m_Connection->getPort();
 }
 
 QString CLdapData::baseDN()
@@ -206,7 +208,7 @@ QStringList CLdapData::search(const _tSearchOptions& searchOptions)
         if(results)
         {
             LDAPEntry* entry{nullptr};
-            while(entry = results->getNext())
+            while((entry = results->getNext()) != nullptr)
             {
                 objList << QString::fromStdString(entry->getDN());
             }
@@ -214,7 +216,7 @@ QStringList CLdapData::search(const _tSearchOptions& searchOptions)
     }
     catch(const LDAPException& e)
     {
-
+        Q_UNUSED(e);
     }
     return objList;
 }

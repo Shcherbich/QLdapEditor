@@ -87,10 +87,11 @@ namespace ldapeditor
                 try
                 {
                     bRet = m_attrHelper.setData(attr, index, value, role);
-                    emit dataChanged(index, index, QVector<int>() << role);
+                    emit dataChanged(index, index, QVector<int>() << role << Qt::DisplayRole);
                 }
                 catch(std::exception& e)
                 {
+                    Q_UNUSED(e)
                     bRet = false;
                 }
                 return bRet;

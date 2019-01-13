@@ -1,6 +1,7 @@
 #ifndef DATATYPES_H
 #define DATATYPES_H
 
+#include <string>
 namespace ldapcore
 {
 

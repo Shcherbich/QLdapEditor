@@ -11,14 +11,6 @@
 namespace ldapeditor
 {
 
-//class CTelephoneNumberValidator: public QValidator{
-//    Q_OBJECT
-//public:
-//    explicit CTelephoneNumberValidator(QObject *parent = nullptr):QValidator(parent)
-//    {}
-//}
-
-
 CLdapDataEditDelegate::CLdapDataEditDelegate(QObject *parent) : QStyledItemDelegate(parent)
 {
 
@@ -37,10 +29,16 @@ QWidget* CLdapDataEditDelegate::createEditor(QWidget *parent, const QStyleOption
             editor = e;
         }
         break;
+        case ldapcore::AttrType::Binary:
+        {
+            QLineEdit* e  = new QLineEdit(parent);
+            e->setValidator(new QRegExpValidator(QRegExp("([0-9A-F]{2} ?)+")));
+            editor = e;
+        }
+        break;
         case ldapcore::AttrType::GeneralizedTime:
         {
             QDateTimeEdit* e  = new QDateTimeEdit(parent);
-            //e->setCalendarPopup(true);
             e->setDisplayFormat("yyyy.MM.dd HH:mm:ss.zzz");
             editor = e;
         }
