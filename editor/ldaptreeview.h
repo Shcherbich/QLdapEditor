@@ -7,22 +7,6 @@
 namespace ldapeditor
 {
 
-    /*
-    class CTreeFilterProxyModel : public QSortFilterProxyModel
-    {
-        Q_OBJECT
-
-    public:
-        CTreeFilterProxyModel(QObject *parent = nullptr):QSortFilterProxyModel(parent)
-        {
-            setDynamicSortFilter(true);
-            setFilterKeyColumn(0);
-        }
-
-    protected:
-        bool filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const override;
-    };
-    */
     class CLdapTreeView : public QTreeView
     {
         Q_OBJECT

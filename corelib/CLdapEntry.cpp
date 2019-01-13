@@ -21,7 +21,8 @@ static QVector<ldapcore::AttrType> g_supportedTypesForEdit({
                                                     });
 
 CLdapEntry::CLdapEntry(CLdapEntry* parentLdapEntry, LDAPEntry* le, QObject *parent)
-    : m_pParent(parentLdapEntry), m_pEntry(le), QObject(parent)
+    : QObject(parent)
+    , m_pParent(parentLdapEntry), m_pEntry(le)
 {}
 
 CLdapEntry::~CLdapEntry()
@@ -44,7 +45,7 @@ QString CLdapEntry::rDn()
     {
         QString rdn(dn());
         rdn.replace(parent() ? parent()->dn() : m_baseDn, "");
-        rdn.trimmed();
+        rdn = rdn.trimmed();
 
         if(rdn.isEmpty())
         {
@@ -56,11 +57,9 @@ QString CLdapEntry::rDn()
             {
                 rdn = rdn.left(rdn.length()-1);
             }
-            rdn.trimmed();
+            rdn = rdn;
         }
-        m_rDn = rdn;
-
-
+        m_rDn = rdn.trimmed();
     }
     return m_rDn;
 }
@@ -131,7 +130,7 @@ void CLdapEntry::prepareAttributes()
 //            }
             else if(value == "99999")
             {
-                CLdapAttribute attr(i->getName().c_str(), "111111111222222223333333334444444", AttrType::Binary);
+                CLdapAttribute attr(i->getName().c_str(), "FFFEAB34", AttrType::Binary);
                 m_attributes.push_back(attr);
             }
             else

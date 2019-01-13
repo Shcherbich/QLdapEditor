@@ -111,17 +111,18 @@ QString CAttributeModelHelper::formatValueByType(const ldapcore::CLdapAttribute&
     {
     case ldapcore::AttrType::Binary:
         {
-            QByteArray a = attr.value().toLocal8Bit().toHex();
-            for(int i=0;i<a.size();i+=2)
+            QString v = attr.value();
+            for(int i=0; i<v.length(); i+=2)
             {
                 if(!retValue.isEmpty())
                     retValue+= " ";
-                retValue+= QString("%1%2").arg(QChar(a[i]).toUpper()).arg(QChar(a[i+1]).toUpper());
+                retValue+= QString("%1%2").arg(v[i]).arg(v[i+1]);
             }
         }
         break;
     case ldapcore::AttrType::GeneralizedTime:
         retValue = (QDateTime::fromString(attr.value(), "yyyyMMddHHmmss.zzz")).toString("yyyyMMddHHmmss.zzz");
+        break;
     default:
         retValue = attr.value();
         break;
@@ -135,13 +136,14 @@ QString CAttributeModelHelper::displayRoleData(const ldapcore::CLdapAttribute &a
     QString length = QString::number(attr.value().length());
     switch(index.column())
     {
-    case 0: return QString("%1=%2").arg(attr.name()).arg(attr.value());
+    case 0: return QString("%1=%2").arg(attr.name()).arg(value);
     case 1: return attr.name();
     case 2: return value;
     case 3: return attributeType2String(attr.type());
     case 4: return length;
     default: break;
     }
+    return QString();
 }
 
 QVariant CAttributeModelHelper::editRoleData(const ldapcore::CLdapAttribute &attr, const QModelIndex &index)const
@@ -184,7 +186,7 @@ QVariant CAttributeModelHelper::tooltipRoleData(const ldapcore::CLdapAttribute &
         QStringList tooltipItems;
         for(int offs=0; offs<displayData.length(); offs+= chunkSize)
         {
-            tooltipItems << displayData.mid(offs, chunkSize);
+            tooltipItems << displayData.mid(offs, chunkSize).trimmed();
         }
         return tooltipItems.join("\n");
     }
@@ -210,12 +212,21 @@ QVariant CAttributeModelHelper::foregroundRoleData(const ldapcore::CLdapAttribut
 
 bool CAttributeModelHelper::setEditRoleData(ldapcore::CLdapAttribute &attr, const QVariant& value, const QModelIndex &index)
 {
+    Q_UNUSED(index);
     bool retValue {true};
     switch(attr.type())
     {
     case ldapcore::AttrType::Boolean:
          attr.setValue(value.toBool() ? "TRUE" : "FALSE");
          break;
+    case ldapcore::AttrType::Binary:
+        {
+
+            //QByteArray a = value.toString().replace(" ","").toUtf8();
+            //QString s = QString(QByteArray::fromHex(a));
+            attr.setValue(value.toString().replace(" ",""));
+        }
+        break;
     case ldapcore::AttrType::Integer:
          attr.setValue(QString::number(value.toInt()));
          break;

@@ -3,14 +3,6 @@
 
 namespace ldapeditor
 {
-    /*
-    bool CTreeFilterProxyModel::filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const
-    {
-        QModelIndex index0 = sourceModel()->index(sourceRow, 0, sourceParent);
-        QVariant v = sourceModel()->data(index0, IsLeafRole);
-        return v.isValid() ? !v.toBool() : false;
-    }
-    */
     CLdapTreeView::CLdapTreeView(QWidget *parent):QTreeView(parent)
     {
 
