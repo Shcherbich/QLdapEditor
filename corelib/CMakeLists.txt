@@ -9,11 +9,6 @@ set(CMAKE_AUTOUIC ON)
 include_directories(/usr/include)
 include_directories(../3rd_party/openldap/contrib/ldapcpp/src)
 
-#include_directories(../common)
-#include_directories(../3rd_party/openldap/contrib/ldapcpp/src)
-#include_directories(../3rd_party/openldap/include)
-
-
 add_compile_options(-DLDAPEDITORCORE_SO)
 add_compile_options(-DLDAPEDITORCORE_SO_EXPORTS)
 add_compile_options(-std=c++11)
@@ -33,6 +28,7 @@ set(LdapCore_SRCS
     CLdapObject.cpp
     CLdapAttribute.h
     CLdapAttribute.cpp
+    sasl_decode64.cpp
 )
 
 file(GLOB OpenLDAPCpp_SRCS
@@ -41,15 +37,13 @@ file(GLOB OpenLDAPCpp_SRCS
 )
 
 
-#FIND_LIBRARY(LDAPCPP_LIBRARY NAMES ldapcpp PATHS ../3rd_party/openldap/lib)
-#message(LDAPCPP_LIBRARY=${LDAPCPP_LIBRARY})
 FIND_LIBRARY(LDAP_LIBRARY NAMES ldap PATHS /usr/lib64)
 
 
 add_library(${PROJECT_NAME} SHARED ${LdapCore_SRCS} ${OpenLDAPCpp_SRCS})
 
 qt5_use_modules(${PROJECT_NAME} Core)
-target_link_libraries(${PROJECT_NAME} ${LDAP_LIBRARY} ) #${LDAPCPP_LIBRARY}
+target_link_libraries(${PROJECT_NAME} ${LDAP_LIBRARY} )
 
 
 INSTALL(TARGETS ${PROJECT_NAME}
