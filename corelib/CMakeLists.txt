@@ -28,8 +28,11 @@ set(LdapCore_SRCS
     CLdapObject.cpp
     CLdapAttribute.h
     CLdapAttribute.cpp
-    sasl_decode64.cpp
 )
+
+if (APPLE)
+    set(LdapCore_SRCS ${LdapCore_SRCS}  sasl_decode64.cpp)
+endif(APPLE)
 
 file(GLOB OpenLDAPCpp_SRCS
     "../3rd_party/openldap/contrib/ldapcpp/src/*.cpp"
