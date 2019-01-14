@@ -139,8 +139,8 @@ void CLdapEntry::prepareAttributes()
 
                 auto tp = std::get<0>(t);
                 //auto editable = std::get<1>(t);
-                bool editable = g_supportedTypesForEdit.contains(tp);
-                CLdapAttribute attr(i->getName().c_str(), value.c_str(), tp, editable);
+                AttributeState editState = g_supportedTypesForEdit.contains(tp) ? AttributeState::AttributeValueReadWrite : AttributeState::AttributeReadOnly;
+                CLdapAttribute attr(i->getName().c_str(), value.c_str(), tp, editState);
                 m_attributes.push_back(attr);
             }
 

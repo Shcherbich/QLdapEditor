@@ -47,6 +47,8 @@ namespace ldapeditor
         bool insertRows(int row, int count, const QModelIndex &parent = QModelIndex()) override;
         bool insertColumns(int column, int count, const QModelIndex &parent = QModelIndex()) override;
 
+        // Delete Data
+        bool removeRows(int row, int count, const QModelIndex &parent = QModelIndex()) ;
     private:
 
 

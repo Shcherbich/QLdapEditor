@@ -4,6 +4,8 @@
 #include <QTableView>
 #include <QStyledItemDelegate>
 #include <QSortFilterProxyModel>
+#include <QMenu>
+#include <QAction>
 #include "ldapdataeditdelegate.h"
 
 namespace ldapeditor
@@ -17,11 +19,17 @@ namespace ldapeditor
     signals:
 
     public slots:
-
+        void customContextMenuRequested(QPoint pos);
+    protected slots:
+        void onNewAttribute();
+        void onDeleteAttribute();
     protected:
         virtual bool edit(const QModelIndex& index, QAbstractItemView::EditTrigger trigger, QEvent* event)override;
         CLdapDataEditDelegate m_ldapDataDelegate;
         QStyledItemDelegate   m_defaultDelegate;
+        QMenu m_contextMenu;
+        QAction* m_newAttr{nullptr};
+        QAction* m_delAttr{nullptr};
     };
 
 } //namespace ldapeditor
