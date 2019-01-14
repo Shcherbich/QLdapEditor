@@ -71,7 +71,12 @@ enum  class AttrType
     UtcTime = 53,
 };
 
-
+enum  class AttributeState
+{
+    AttributeReadOnly=0,
+    AttributeReadWrite,
+    AttributeValueReadWrite
+};
 
 //class LDAPEDITORCORE_SO_API CLdapAttribute : public QObject
 //class CLdapAttribute : public QObject
@@ -83,23 +88,26 @@ public:
     //explicit CLdapAttribute(QString name, QString value, AttrType type, QObject *parent = nullptr);
 
     explicit CLdapAttribute();
-    explicit CLdapAttribute(QString name, QString value, AttrType type, bool editable = true);
+    explicit CLdapAttribute(QString name, QString value, AttrType type, AttributeState editState = AttributeState::AttributeValueReadWrite);
 
 public:
 
     QString name() const;
     QString value() const;
     AttrType type() const;
-    bool editable() const;
+    AttributeState editState() const;
     bool isModified() const;
 
+
+    void setName(const QString& name);
     void setValue(const QString& value);
+    void setType(AttrType type);
 
 private:
     QString m_Name;
     QString m_Value;
     AttrType m_Type{AttrType::UnknownText};
-    bool    m_Editable{true};
+    AttributeState    m_editState;
     bool    m_isModified{false};
 
     bool validateValue(const QString& value);

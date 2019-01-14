@@ -35,14 +35,14 @@ namespace ldapeditor
         CreateStatusBar();
 
         QString baseDN = normilizeDN(m_Settings.baseDN());
-        QString host = m_Settings.host();
 
         m_TreeModel = new CLdapTreeModel(baseDN, this);
         m_TableModel = new CLdapAttributesModel(this);
         m_AttributesList = new CLdapTableView(this);
 
         setCentralWidget(m_AttributesList);
-        m_AttributesList->horizontalHeader()->setDefaultSectionSize(width() / m_TableModel->columnCount());
+        m_AttributesList->horizontalHeader()->setDefaultSectionSize(100);
+        m_AttributesList->horizontalHeader()->setStretchLastSection(true);
 
         m_TreeModel->setTopItems(m_LdapData.topList());
         m_RootIndex = m_TreeModel->index(0,0);
@@ -146,38 +146,6 @@ namespace ldapeditor
         }
         return dn.trimmed();
     };
-
-//    QStandardItem* MainWindow::prepareRootItem(const QString& dn, const QString& host)
-//    {
-//        QString ndn=normilizeDN(dn);
-//        QString title(ndn);
-//        title += QString(" (%1)").arg(host);
-//        QStringList parts = ndn.split(",");
-//        QStandardItem* item =  new QStandardItem(title);
-//        item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
-
-//        if(parts.length() > 1 )
-//        {
-//            item->setData(parts, ldapeditor::AttributesListRole);
-//        }
-
-//        return item;
-//    }
-
-//    QStandardItem* MainWindow::prepareDataForDn(const QString& dn, QStandardItem* parentItem)
-//    {
-//        QString ndn=normilizeDN(dn);
-//        QStringList parts = ndn.split(",");
-//        QStandardItem* item =  new QStandardItem(ndn);
-//        item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
-
-//        if(parts.length() > 1 )
-//        {
-//            item->setData(parts, ldapeditor::AttributesListRole);
-//        }
-//        parentItem->appendRow(item);
-//        return item;
-//    }
 
     void MainWindow::onTreeItemChanged(const QModelIndex& current, const QModelIndex& previous)
     {

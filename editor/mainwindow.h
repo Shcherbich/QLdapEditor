@@ -43,9 +43,6 @@ namespace ldapeditor
         void UpdateActionStatus();
 
         QString normilizeDN(const QString& dn);
-        //QStandardItem* prepareRootItem(const QString& dn, const QString& host);
-        //QStandardItem* prepareDataForDn(const QString& dn, QStandardItem* parentItem);
-
         CLdapTreeView* m_LdapTree{nullptr};
         CLdapTableView* m_AttributesList{nullptr};
 

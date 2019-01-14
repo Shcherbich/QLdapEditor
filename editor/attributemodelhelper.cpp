@@ -195,18 +195,18 @@ QVariant CAttributeModelHelper::tooltipRoleData(const ldapcore::CLdapAttribute &
 
 QVariant CAttributeModelHelper::foregroundRoleData(const ldapcore::CLdapAttribute &attr, const QModelIndex &index)const
 {
-    if(index.column()==2) //value column
+    switch(attr.editState())
     {
-          if(attr.editable())
-          {
-              return attr.isModified() ? QBrush(Qt::red) : QBrush(Qt::black);
-          }
-          else
-          {
-              return QBrush(Qt::gray);
-          }
+        case ldapcore::AttributeState::AttributeReadOnly:
+            return QBrush(Qt::darkGray);
+        case ldapcore::AttributeState::AttributeReadWrite:
+            if(index.column() > 0 && index.column() != 4)
+                return attr.isModified() ? QBrush(Qt::red) : QBrush(Qt::black);
+        case ldapcore::AttributeState::AttributeValueReadWrite:
+            if(index.column() == 2)
+                return attr.isModified() ? QBrush(Qt::red) : QBrush(Qt::black);
+        default:break;
     }
-    //other columns
     return QBrush(Qt::darkGray);
 }
 
@@ -214,31 +214,38 @@ bool CAttributeModelHelper::setEditRoleData(ldapcore::CLdapAttribute &attr, cons
 {
     Q_UNUSED(index);
     bool retValue {true};
-    switch(attr.type())
+    if(index.column() == 1) // title
     {
-    case ldapcore::AttrType::Boolean:
-         attr.setValue(value.toBool() ? "TRUE" : "FALSE");
-         break;
-    case ldapcore::AttrType::Binary:
-        {
-
-            //QByteArray a = value.toString().replace(" ","").toUtf8();
-            //QString s = QString(QByteArray::fromHex(a));
-            attr.setValue(value.toString().replace(" ",""));
-        }
-        break;
-    case ldapcore::AttrType::Integer:
-         attr.setValue(QString::number(value.toInt()));
-         break;
-    case ldapcore::AttrType::GeneralizedTime:
-        attr.setValue(value.toDateTime().toString("yyyyMMddHHmmss.zzz"));
-        break;
-    case ldapcore::AttrType::UtcTime:
-         attr.setValue(value.toDateTime().toUTC().toString("yyyyMMddHHmmss.zzz"));
-        break;
-    default:
-        attr.setValue(value.toString());
+        attr.setName(value.toString());
     }
+    else if(index.column() == 2) //value
+    {
+        switch(attr.type())
+        {
+        case ldapcore::AttrType::Boolean:
+             attr.setValue(value.toBool() ? "TRUE" : "FALSE");
+             break;
+        case ldapcore::AttrType::Binary:
+             attr.setValue(value.toString().replace(" ",""));
+             break;
+        case ldapcore::AttrType::Integer:
+             attr.setValue(QString::number(value.toInt()));
+             break;
+        case ldapcore::AttrType::GeneralizedTime:
+            attr.setValue(value.toDateTime().toString("yyyyMMddHHmmss.zzz"));
+            break;
+        case ldapcore::AttrType::UtcTime:
+             attr.setValue(value.toDateTime().toUTC().toString("yyyyMMddHHmmss.zzz"));
+            break;
+        default:
+            attr.setValue(value.toString());
+        }
+    }
+     else if(index.column() == 3) //type
+    {
+        attr.setType(static_cast<ldapcore::AttrType>(value.toInt()));
+    }
+
     return retValue;
 }
 

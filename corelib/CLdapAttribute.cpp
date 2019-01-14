@@ -10,10 +10,11 @@ CLdapAttribute::CLdapAttribute()
 
 }
 
-CLdapAttribute::CLdapAttribute(QString name, QString value, AttrType type, bool editable)
-    :m_Name(name), m_Value(value), m_Type(type), m_Editable(editable)
+CLdapAttribute::CLdapAttribute(QString name, QString value, AttrType type, AttributeState editState)
+    :m_Name(name), m_Value(value), m_Type(type), m_editState(editState)
 {
-
+    if(m_editState == AttributeState::AttributeReadWrite)
+        m_isModified = true;
 }
 
 
@@ -32,9 +33,9 @@ AttrType CLdapAttribute::type()const
     return m_Type;
 }
 
-bool CLdapAttribute::editable()const
+AttributeState CLdapAttribute::editState()const
 {
-    return m_Editable;
+    return m_editState;
 }
 
 bool CLdapAttribute::isModified() const
@@ -42,13 +43,30 @@ bool CLdapAttribute::isModified() const
     return m_isModified;
 }
 
+void CLdapAttribute::setName(const QString& name)
+{
+    if(editState() == AttributeState::AttributeReadWrite)
+    {
+        m_Name = name;
+        m_isModified = true;
+    }
+}
 void CLdapAttribute::setValue(const QString& value)
 {
-    if(!validateValue(value))
-        throw std::invalid_argument("can't set value due to wrong data format");
+    if(editState() != AttributeState::AttributeReadOnly)
+    {
+        if(!validateValue(value))
+            throw std::invalid_argument("can't set value due to wrong data format");
 
-     m_Value = value;
-     m_isModified = true;
+         m_Value = value;
+         m_isModified = true;
+    }
+}
+
+void CLdapAttribute::setType(AttrType type)
+{
+    m_Type = type;
+    m_isModified = true;
 }
 
 bool CLdapAttribute::validateValue(const QString& value)

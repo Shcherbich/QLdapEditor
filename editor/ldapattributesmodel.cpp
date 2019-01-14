@@ -79,7 +79,7 @@ namespace ldapeditor
             return false;
 
         ldapcore::CLdapAttribute&  attr = (*m_pAttributes)[index.row()];
-        if(index.column() == 2 && role == Qt::EditRole)
+        if(role == Qt::EditRole)
         {
             if (data(index, role) != value)
             {
@@ -110,19 +110,36 @@ namespace ldapeditor
 
         Qt::ItemFlags readonlyFlags{Qt::ItemIsEnabled | Qt::ItemIsSelectable};
         Qt::ItemFlags editFlags{Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsEditable};
-        if (index.column() == 2) // only value column can be editable
+
+        ldapcore::AttributeState editState = (*m_pAttributes)[index.row()].editState();
+        switch(editState)
         {
-            return (*m_pAttributes)[index.row()].editable() ? editFlags : readonlyFlags;
+        case ldapcore::AttributeState::AttributeReadOnly:
+            return readonlyFlags; break;
+        case ldapcore::AttributeState::AttributeReadWrite:
+            return index.column() > 0 && index.column() != 4 ? editFlags:readonlyFlags; break;
+        case ldapcore::AttributeState::AttributeValueReadWrite:
+            return index.column() == 2 ? editFlags:readonlyFlags; break;
+        default: break;
         }
         return readonlyFlags;
     }
 
     bool CLdapAttributesModel::insertRows(int row, int count, const QModelIndex &parent)
     {
+//        beginResetModel();
+//        ldapcore::CLdapAttribute attr("newAttr","newValue",ldapcore::AttrType::UnknownText, ldapcore::AttributeState::AttributeReadWrite);
+//        m_pAttributes->push_back(attr);
+//        endResetModel();
+//        emit dataChanged(index(0,0), index(m_pAttributes->size(),m_SectionsList.size()), QVector<int>() << Qt::DisplayRole);
+
         beginInsertRows(parent, row, row + count - 1);
         // FIXME: Implement me!
+        ldapcore::CLdapAttribute attr("newAttr","newValue",ldapcore::AttrType::UnknownText, ldapcore::AttributeState::AttributeReadWrite);
+        m_pAttributes->push_back(attr);
         m_IsChanged = true;
         endInsertRows();
+
         return false;
     }
 
@@ -134,31 +151,17 @@ namespace ldapeditor
         return false;
     }
 
+    bool CLdapAttributesModel::removeRows(int row, int count, const QModelIndex &parent)
+    {
+        if(!m_pAttributes) return true;
 
-//    bool CLdapAttributesModel::verifyAttributes(const tLdapAttributes& tmpAttributes, int row) const
-//    {
-//        bool bRet {true};
-//       // const auto& a = tmpAttributes[row];
-//        //QString newDN= buildDN(tmpAttributes).toLower();
-//        //bRet &=  a.attr.toLower() != "dc";
-//        //bRet &=  !m_uniqueDNs.contains(newDN);
-//        return bRet;
-
-//    }
-
-//    QStringList CLdapAttributesModel::buildAttributesList(const tLdapAttributes& tmpAttributes) const
-//    {
-//        QStringList attributes;
-//        for(auto a: tmpAttributes)
-//        {
-//            attributes << a.dn;
-//        }
-//        return attributes;
-//    }
-
-//    QString CLdapAttributesModel::buildDN(const tLdapAttributes& tmpAttributes) const
-//    {
-//        return buildAttributesList(tmpAttributes).join(", ").toLower();
-//    }
+        beginRemoveRows(parent, row, row + count-1);
+        if(row>=0 && row < m_pAttributes->size())
+        {
+            m_pAttributes->remove(row, count);
+        }
+        endRemoveRows();
+        return true;
+    }
 
 } //namespace ldapeditor
