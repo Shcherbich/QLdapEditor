@@ -76,7 +76,7 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 SET(LDAP_EDITOR_DESKTOP_DIR     "/usr/share/applications")
 SET(LDAP_EDITOR_PIXMAPS_DIR     "/usr/share/icons")
 SET(LDAP_EDITOR_DIRECTORY_DIR   "/usr/share/desktop-directories")
-SET(LDAP_EDITOR_MENU_MERGED_DIR "/etc/xdg/menus/application-merged")
+SET(LDAP_EDITOR_MENU_MERGED_DIR "/etc/xdg/menus/applications-merged")
 
 INSTALL(TARGETS ${PROJECT_NAME}
     RUNTIME DESTINATION bin
