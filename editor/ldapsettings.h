@@ -49,6 +49,8 @@ namespace ldapeditor
         bool useAnonymous() const;
         void setUseAnonymous(bool anonymous);
 
+        int timeout() const;
+
         void sync();
 
         ldapcore::tConnectionOptions& connectionOptions()const;

@@ -18,6 +18,7 @@ typedef struct _tConnectionOptions
     bool useTLS{false};
     bool useSASL{false};
     bool useAnonymous{false};
+    int  timeout{60}; // seconds
 }tConnectionOptions;
 
 typedef struct _tSearchOptions

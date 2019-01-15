@@ -28,6 +28,9 @@ namespace ldapeditor
         connect(ui->hostBox, &QLineEdit::textChanged, this, &CConnectionDialog::enableConnection );
         connect(ui->baseEdit, &QLineEdit::textChanged, this, &CConnectionDialog::enableConnection );
 
+        ui->versionSpin->setVisible(false);
+        ui->versionLabel->setVisible(false);
+
         loadSettings();
         onAuthTypeChanged();
         enableConnection();
@@ -104,10 +107,9 @@ namespace ldapeditor
 
     void CConnectionDialog::onConnectClicked()
     {
-        saveSettings();
-
-        m_WaitTime =5;
+        saveSettings();        
         setEnabled(false);
+        m_WaitTime = m_Settings.timeout();
         setWindowTitle(QString("Waiting connection %1s").arg(m_WaitTime));
 
         m_LdapData.connect(m_Settings.connectionOptions());

@@ -1,4 +1,6 @@
 #include <map>
+#include <algorithm>
+#include <functional>
 #include <QRegExp>
 #include "CLdapSchema.h"
 #include "LDAPAttribute.h"
@@ -16,7 +18,7 @@ struct CLdapSchemaImpl
     std::unique_ptr<LDAPAttribute> at;
     std::unique_ptr<LDAPAttribute> mr;
 
-    std::map<std::string, std::tuple<AttrType, bool> > attr2info;
+    std::map<std::string, std::tuple<AttrType, bool, std::string> > attr2info;
 
 };
 
@@ -94,10 +96,11 @@ void CLdapSchema::build(LDAPConnection* lc, std::string& baseDn)
         QStringList list = rx.capturedTexts();
         bool isEditable = text.indexOf("NO-USER-MODIFICATION") == -1;
         int syntaxIndex = list.length() == 3 && list[2].length() != 0 ? list[2].toInt() : 0;
+        std::string syntax = list.length() == 3 && list[2].length() != 0 ? list[1].toStdString() + "." + list[2].toStdString() : "";
 
         for (const auto& i : names  )
         {
-            m_impl->attr2info[i.toStdString()] = std::tuple<AttrType, bool>{static_cast<AttrType>(syntaxIndex), isEditable};
+            m_impl->attr2info[i.toStdString()] = std::tuple<AttrType, bool, std::string>{static_cast<AttrType>(syntaxIndex), isEditable, syntax};
         }
 
     }
@@ -109,10 +112,111 @@ std::tuple<AttrType, bool> CLdapSchema::GetAttributeInfoByName(std::string attrN
     auto f = m_impl->attr2info.find(attrName);
     if (f != m_impl->attr2info.end())
     {
-        return f->second;
+        return std::tuple<AttrType, bool>(std::get<0>(f->second), std::get<1>(f->second));
     }
     return std::tuple<AttrType, bool>{AttrType::UnknownText, false};
 
+}
+
+
+bool CLdapSchema::isNameExist(std::string attributeName) throw (CLdapNameMissedException)
+{
+    auto f = m_impl->attr2info.find(attributeName);
+    if (f == m_impl->attr2info.end())
+    {
+        QString error = QString("There is no arribute '%1' for this schema").arg(attributeName.c_str());
+        throw CLdapNameMissedException(error.toStdString().c_str());
+    }
+    return true;
+}
+
+using namespace std;
+using namespace std::placeholders;
+
+std::string CheckBitString(std::string value)
+{
+    for (size_t i = 0; i < value.size(); i++)
+    {
+        auto ch = value.at(i);
+        bool b1 = ch == '0';
+        bool b2 = ch == '1';
+        if (!b1 && !b2)
+        {
+            return std::string("The symbol '") + ch + "' is invalid";
+        }
+    }
+    return std::string("");
+}
+
+std::string CheckBool(std::string value)
+{
+    bool b1 = value == "TRUE";
+    bool b2 = value == "FALSE";
+
+    return (b1 || b2) ? std::string("") : std::string("The value ")  + value + "' is invalid";;
+}
+
+std::string CheckCountryStringImpl(std::string value, std::string extendedSet)
+{
+    for (size_t i = 0; i < value.size(); i++)
+    {
+        auto ch = value.at(i);
+        bool b1 = isalpha(ch);
+        bool b2 = isdigit(ch);
+        bool b3 = extendedSet.find(ch) != std::string::npos;
+        if (!b1 && !b2)
+        {
+            return std::string("The symbol '") + ch + "' is invalid";
+        }
+    }
+    return std::string("");
+}
+
+
+std::string CheckOctet(std::string value)
+{
+    static std::string validSet1 =  "abcdef";
+    static std::string validSet2 =  "ABCDEF";
+
+    for (size_t i = 0; i < value.size(); i++)
+    {
+        auto ch = value.at(i);
+        bool b1 = isdigit(ch);
+        bool b2 = validSet1.find(ch) != std::string::npos;
+        bool b3 = validSet2.find(ch) != std::string::npos;
+        if (!b1 && !b2 && !b3)
+        {
+            return std::string("The symbol '") + ch + "' is invalid";
+        }
+    }
+    return std::string("");
+}
+
+static std::string validSetOfCountry  = "'()+ -.,/:?";
+static std::string validSetOfCountry2 = "'()+ -.,/:?$";
+
+std::map<std::string, std::function< std::string(std::string)> > syntaxNumber2toCheckFunction
+{
+    {"1.3.6.1.4.1.1466.115.121.1.6", CheckBitString},
+    {"1.3.6.1.4.1.1466.115.121.1.7", CheckBool},
+    {"1.3.6.1.4.1.1466.115.121.1.11", std::bind(CheckCountryStringImpl, _1, validSetOfCountry)},
+    {"1.3.6.1.4.1.1466.115.121.1.14", CheckOctet},
+    {"1.3.6.1.4.1.1466.115.121.1.15", CheckOctet},
+    {"1.3.6.1.4.1.1466.115.121.1.22", std::bind(CheckCountryStringImpl, _1, validSetOfCountry2)},
+};
+
+
+void CLdapSchema::checkBySyntaxName(std::string attributeName, std::string value) throw (CLdapMatchRuleException)
+{
+    auto f = syntaxNumber2toCheckFunction.find(attributeName);
+    if (f != syntaxNumber2toCheckFunction.end())
+    {
+        auto checkReturn = f->second(value);
+        if (checkReturn.size() != 0)
+        {
+            throw CLdapMatchRuleException(checkReturn.c_str());
+        }
+    }
 }
 
 }
