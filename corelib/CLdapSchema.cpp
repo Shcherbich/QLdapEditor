@@ -16,7 +16,7 @@ struct CLdapSchemaImpl
     std::unique_ptr<LDAPAttribute> at;
     std::unique_ptr<LDAPAttribute> mr;
 
-    std::map<std::string, std::tuple<AttrType, bool> > attr2info;
+    std::map<std::string, std::tuple<AttrType, bool, std::string> > attr2info;
 
 };
 
@@ -94,10 +94,11 @@ void CLdapSchema::build(LDAPConnection* lc, std::string& baseDn)
         QStringList list = rx.capturedTexts();
         bool isEditable = text.indexOf("NO-USER-MODIFICATION") == -1;
         int syntaxIndex = list.length() == 3 && list[2].length() != 0 ? list[2].toInt() : 0;
+        std::string syntax = list.length() == 3 && list[2].length() != 0 ? list[1].toStdString() + "." + list[2].toStdString() : "";
 
         for (const auto& i : names  )
         {
-            m_impl->attr2info[i.toStdString()] = std::tuple<AttrType, bool>{static_cast<AttrType>(syntaxIndex), isEditable};
+            m_impl->attr2info[i.toStdString()] = std::tuple<AttrType, bool, std::string>{static_cast<AttrType>(syntaxIndex), isEditable, syntax};
         }
 
     }
@@ -109,7 +110,7 @@ std::tuple<AttrType, bool> CLdapSchema::GetAttributeInfoByName(std::string attrN
     auto f = m_impl->attr2info.find(attrName);
     if (f != m_impl->attr2info.end())
     {
-        return f->second;
+        return std::tuple<AttrType, bool>(std::get<0>(f->second), std::get<1>(f->second));
     }
     return std::tuple<AttrType, bool>{AttrType::UnknownText, false};
 
