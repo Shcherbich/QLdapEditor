@@ -26,7 +26,7 @@ public:
 public:
 
     void connect(const tConnectionOptions& connectOptions);
-    void disconnect();
+    void resetConnection();
     QVector<CLdapEntry*> topList();
     void addObject(QString id);
     void deleteObject(CLdapObject*);

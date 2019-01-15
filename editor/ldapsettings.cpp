@@ -131,6 +131,11 @@ namespace ldapeditor
        writeBool("useAnonymous",anonymous);
     }
 
+    int CLdapSettings::timeout() const
+    {
+        return readInt("timeout", 60);
+    }
+
     void CLdapSettings::sync()
     {
         QSettings::sync();
@@ -182,7 +187,7 @@ namespace ldapeditor
         m_connectionOptions.useTLS = useTLS();
         m_connectionOptions.useSASL = useSASL();
         m_connectionOptions.useAnonymous = useAnonymous();
-
+        m_connectionOptions.timeout = timeout();
         return m_connectionOptions;
     }
 }//namespace ldapeditor

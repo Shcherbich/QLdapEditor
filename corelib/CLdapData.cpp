@@ -33,12 +33,12 @@ CLdapData::CLdapData(QObject* parent)
 
 CLdapData::~CLdapData()
 {
-    disconnect();
+    resetConnection();
 }
 
 void CLdapData::connect(const tConnectionOptions& connectOptions)
 {
-    disconnect();
+    resetConnection();
 
     QThreadPool::globalInstance()->start(makeSimpleTask([=]
     {
@@ -122,7 +122,7 @@ void CLdapData::build()
     }*/
 }
 
-void CLdapData::disconnect()
+void CLdapData::resetConnection()
 {
     foreach (CLdapEntry* en, m_Entries)
     {
