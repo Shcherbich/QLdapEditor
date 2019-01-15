@@ -116,7 +116,7 @@ void CLdapEntry::prepareAttributes()
             }
 
 
-            if(value == "tesla")
+           /* if(value == "tesla")
             {
                 //CLdapAttribute attr(i->getName().c_str(), "TRUE", AttrType::Boolean);
                 CLdapAttribute attr(i->getName().c_str(), "20171123230558.000", AttrType::GeneralizedTime);
@@ -133,7 +133,7 @@ void CLdapEntry::prepareAttributes()
                 CLdapAttribute attr(i->getName().c_str(), "FFFEAB34", AttrType::Binary);
                 m_attributes.push_back(attr);
             }
-            else
+            else*/
             {
                 auto t = m_pData->schema().GetAttributeInfoByName(i->getName().c_str());
 

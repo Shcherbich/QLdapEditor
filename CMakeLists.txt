@@ -7,7 +7,8 @@ SET(COMPANY "Very Big Company Inc.")
 
 SET(CMAKE_VERSION_MAJOR 0)
 SET(CMAKE_VERSION_MINOR 4)
-SET(CMAKE_VERSION_PATCH 1)
+SET(CMAKE_VERSION_PATCH 5)
+
 
 SET(VERSION "${CMAKE_VERSION_MAJOR}.${CMAKE_VERSION_MINOR}.${CMAKE_VERSION_PATCH}")
 
@@ -66,7 +67,7 @@ LIST(APPEND CPACK_RPM_EXCLUDE_FROM_AUTO_FILELIST "/usr"
     "/etc"
     "/etc/xdg"
     "/etc/xdg/menus"
-    "/etc/xdg/menus/application-merged"
+    "/etc/xdg/menus/applications-merged"
 )
 
 

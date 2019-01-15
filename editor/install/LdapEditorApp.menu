@@ -3,7 +3,7 @@
 <Menu>
     <Name>Applications</Name>
     <Menu>
-        <Name>Ldap Editor</Name>
+        <Name>Very Big Company Inc.</Name>
         <Directory>LdapEditorApp.directory</Directory>
         <Include>
             <Category>LdapEditor</Category>

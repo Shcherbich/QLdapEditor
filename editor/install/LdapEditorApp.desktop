@@ -1,12 +1,12 @@
 [Desktop Entry]
 Encoding=UTF-8
-Name=LDAP Editor utility
-Comment=LDAP Editor utility
+Name=Ldap Editor utility
+Comment=Ldap Editor utility
 Exec=/usr/local/bin/LdapEditorApp
 Icon=LdapEditorApp
 Categories=Utilities;Qt;LdapEditor;
 Terminal=false
 Type=Application
 MimeType=application/x-ldapeditor-item;
-GenericName=LDAP Editor utility
+GenericName=Ldap Editor utility
 

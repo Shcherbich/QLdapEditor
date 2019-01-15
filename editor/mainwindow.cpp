@@ -28,6 +28,7 @@ namespace ldapeditor
         , m_Settings(settings)
         , m_LdapData(ldapData)
     {
+        setWindowTitle(ApplicationName);
         setMinimumSize(800,600);
 
         CreateDockWindows();
