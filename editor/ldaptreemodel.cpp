@@ -98,10 +98,10 @@ namespace ldapeditor
                         return QIcon(":/group");
                     else if(group.contains("person",Qt::CaseInsensitive))
                         return QIcon(":/person");
+                    else if(group.contains("organizationalUnit",Qt::CaseInsensitive))
+                        return QIcon(":/diagram");
                     else
                         return QIcon(":/folder");
-//                    if(group.contains("container",Qt::CaseInsensitive))
-//                        return QIcon(":/folder");
                 }
             }
         }
