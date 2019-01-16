@@ -23,6 +23,7 @@ namespace ldapeditor
 
         connect(ui->cancelButton, &QAbstractButton::clicked, this, &CConnectionDialog::onCancelClicked);
         connect(ui->connectButton, &QAbstractButton::clicked, this, &CConnectionDialog::onConnectClicked);
+         connect(ui->showPasswordCheck, &QAbstractButton::clicked, this, &CConnectionDialog::onShowPasswordClicked);
 
         connect(&m_LdapData,  &ldapcore::CLdapData::OnConnectionCompleted, this, &CConnectionDialog::OnConnectionCompleted);
         connect(ui->hostBox, &QLineEdit::textChanged, this, &CConnectionDialog::enableConnection );
@@ -143,8 +144,6 @@ namespace ldapeditor
         {
             m_WaitTime = 0;
             QMessageBox::critical(this, tr("Connection fails"), errorDescription, QMessageBox::Ok);
-            //setWindowTitle(tr("Connection properties dialog"));
-            //setEnabled(true);
         }
     }
 
@@ -152,5 +151,10 @@ namespace ldapeditor
     {
         bool enableConnection= !ui->hostBox->text().trimmed().isEmpty() && !ui->baseEdit->text().trimmed().isEmpty();
         ui->connectButton->setEnabled(enableConnection);
+    }
+
+    void CConnectionDialog::onShowPasswordClicked()
+    {
+        ui->pwdEdit->setEchoMode(ui->showPasswordCheck->isChecked() ? QLineEdit::Normal: QLineEdit::Password);
     }
 } // namespace ldapeditor

@@ -6,5 +6,6 @@
         <file alias="home">images/home.png</file>
         <file alias="person">images/avatar.png</file>
         <file alias="group">images/group.png</file>
+        <file alias="folder">images/folder.png</file>
     </qresource>
 </RCC>
