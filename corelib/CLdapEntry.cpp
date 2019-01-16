@@ -150,7 +150,8 @@ void CLdapEntry::prepareAttributes()
 
 QVector<CLdapAttribute>* CLdapEntry::attributes()
 {
-    prepareAttributes();
+    if(m_attributes.empty())
+        prepareAttributes();
     return &m_attributes;
 }
 

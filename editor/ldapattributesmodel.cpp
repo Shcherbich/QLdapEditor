@@ -50,10 +50,6 @@ namespace ldapeditor
 
     int CLdapAttributesModel::rowCount(const QModelIndex &parent) const
     {
-//        if (!parent.isValid())
-//            return 0;
-
-        // FIXME: Implement me!
         return m_pAttributes ? m_pAttributes->count() : 0;
     }
 
@@ -133,7 +129,6 @@ namespace ldapeditor
 
     bool CLdapAttributesModel::insertRows(int row, int count, const QModelIndex& parent)
     {
-        QModelIndex idxFrom = index(m_pAttributes->size(),0);
 
         beginInsertRows(parent, row, row + count - 1);
         QVector<ldapcore::CLdapAttribute> attrs = m_entry->availableAttributes();
@@ -144,7 +139,9 @@ namespace ldapeditor
         }
         endInsertRows();
         m_IsChanged = true;
-        QModelIndex idxTo   = index(m_pAttributes->size(), m_SectionsList.size());
+
+        QModelIndex idxFrom = index(row, 0, parent);
+        QModelIndex idxTo   = index(row + count - 1, m_SectionsList.size()-1, parent);
         emit dataChanged(idxFrom, idxTo, QVector<int>() << Qt::DisplayRole);
         return true;
     }

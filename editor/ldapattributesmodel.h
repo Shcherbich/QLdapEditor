@@ -9,9 +9,6 @@
 #include "CLdapEntry.h"
 #include "attributemodelhelper.h"
 
-//namespace ldapcore {
-// class CLdapAttribute;
-//}
 
 namespace ldapeditor
 {
