@@ -64,7 +64,7 @@ void CLdapData::connect(const tConnectionOptions& connectOptions)
                     }
                     else
                     {
-                        localConn->bind(connectOptions.basedn, connectOptions.password);
+                        localConn->bind(connectOptions.username, connectOptions.password);
                     }
                 }
             }

@@ -63,7 +63,7 @@ void CLdapSchema::build(LDAPConnection* lc, std::string& baseDn)
     const LDAPAttributeList* attrs = entry->getAttributes();
     m_impl->oc.reset(new LDAPAttribute(*attrs->getAttributeByName("objectClasses")));
     m_impl->at.reset(new LDAPAttribute(*attrs->getAttributeByName("attributeTypes")));
-    m_impl->mr.reset(new LDAPAttribute(*attrs->getAttributeByName("matchingRules")));
+    //m_impl->mr.reset(new LDAPAttribute(*attrs->getAttributeByName("matchingRules")));
 
     QRegExp rxName1("NAME\\s+'([^']+)'");
     QRegExp rxName2("NAME\\s+\\(([^\\)]+)\\)");
