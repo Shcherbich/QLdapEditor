@@ -145,7 +145,7 @@ namespace ldapeditor
         endInsertRows();
         m_IsChanged = true;
         QModelIndex idxTo   = index(m_pAttributes->size(), m_SectionsList.size());
-        emit dataChanged(idxFrom, idxTo);
+        emit dataChanged(idxFrom, idxTo, QVector<int>() << Qt::DisplayRole);
         return true;
     }
 
