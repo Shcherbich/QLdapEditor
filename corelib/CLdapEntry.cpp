@@ -148,10 +148,21 @@ void CLdapEntry::prepareAttributes()
     }
 }
 
-QVector<CLdapAttribute> *CLdapEntry::attributes()
+QVector<CLdapAttribute>* CLdapEntry::attributes()
 {
     prepareAttributes();
     return &m_attributes;
+}
+
+QVector<CLdapAttribute> CLdapEntry::availableAttributes()
+{
+    QVector<CLdapAttribute> attributes;
+    for(int i=1;i<=10;i++)
+    {
+        CLdapAttribute attr(QString("attr_%1").arg(i), QString("new_value"), AttrType::UnknownText, AttributeState::AttributeReadWrite);
+        attributes.push_back(attr);
+    }
+    return attributes;
 }
 
 }

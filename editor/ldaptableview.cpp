@@ -15,6 +15,7 @@ namespace ldapeditor
     {
         setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
         setAlternatingRowColors(true);
+        setSortingEnabled(false);
 
         connect(m_newAttr, &QAction::triggered, this, &CLdapTableView::onNewAttribute);
         connect(m_delAttr, &QAction::triggered, this, &CLdapTableView::onDeleteAttribute);
@@ -25,11 +26,16 @@ namespace ldapeditor
         connect(this, &QTableView::customContextMenuRequested, this, &CLdapTableView::customContextMenuRequested);
     }
 
+    void CLdapTableView::setLdapEntry(ldapcore::CLdapEntry* entry)
+    {
+        m_ldapDataDelegate.setLdapEntry(entry);
+    }
+
     bool CLdapTableView::edit(const QModelIndex& index, QAbstractItemView::EditTrigger trigger, QEvent* event)
     {
         if(index.column() == 1)
         {
-            setItemDelegate(&m_defaultDelegate);
+            setItemDelegate(&m_ldapDataDelegate);
         }
         else if(index.column() == 2)
         {
@@ -62,8 +68,9 @@ namespace ldapeditor
 
     void CLdapTableView::onNewAttribute()
     {
-        model()->insertRows(model()->rowCount()-1, 1);
+        model()->insertRows(model()->rowCount(), 1);
     }
+
     void CLdapTableView::onDeleteAttribute()
     {
         QAction* a = qobject_cast<QAction*>(sender());

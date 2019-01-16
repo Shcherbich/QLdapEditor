@@ -26,6 +26,7 @@ public:
     CLdapEntry* parent();
     QVector<CLdapEntry*> children();
     QVector<CLdapAttribute>* attributes();
+    QVector<CLdapAttribute> availableAttributes();
 
 public:
     QString dn();

@@ -166,7 +166,8 @@ namespace ldapeditor
         if(currentEntry)
         {
             QVector<ldapcore::CLdapAttribute>* pAttrs = currentEntry->attributes();
-            m_TableModel->setAttributesList(pAttrs);
+            m_TableModel->setLdapEntry(currentEntry);
+            m_AttributesList->setLdapEntry(currentEntry);
         }
     }
 

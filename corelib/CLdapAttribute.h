@@ -89,6 +89,7 @@ public:
 
     explicit CLdapAttribute();
     explicit CLdapAttribute(QString name, QString value, AttrType type, AttributeState editState = AttributeState::AttributeValueReadWrite);
+    explicit CLdapAttribute(const CLdapAttribute& src);
 
 public:
 

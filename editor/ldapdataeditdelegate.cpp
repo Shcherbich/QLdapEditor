@@ -1,6 +1,6 @@
 #include "ldapdataeditdelegate.h"
 #include "ldapeditordefines.h"
-
+#include "CLdapEntry.h"
 
 #include <QLineEdit>
 #include <QComboBox>
@@ -8,6 +8,7 @@
 
 #include <QRegExpValidator>
 #include <QRegExp>
+
 
 namespace ldapeditor
 {
@@ -17,10 +18,27 @@ CLdapDataEditDelegate::CLdapDataEditDelegate(QObject *parent) : QStyledItemDeleg
 
 }
 
+void CLdapDataEditDelegate::setLdapEntry(ldapcore::CLdapEntry* entry)
+{
+    m_entry = entry;
+}
+
 QWidget* CLdapDataEditDelegate::createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
     QWidget* editor{nullptr};
-    if(index.column() == 2)
+    if(index.column() == 1)
+    {
+        QComboBox* e = new QComboBox(parent);
+        int i=0;
+        QVector<ldapcore::CLdapAttribute> attrs = m_entry->availableAttributes();
+        for(int i=0; i< attrs.size();i++)
+        {
+            e->addItem(attrs[i].name());
+        }
+        e->setEditable(false);
+        editor = e;
+    }
+    else if(index.column() == 2)
     {
         m_attrType = static_cast<ldapcore::AttrType>(index.data(ldapeditor::AttrTypeRole).toInt());
         switch(m_attrType)
@@ -121,7 +139,19 @@ QWidget* CLdapDataEditDelegate::createEditor(QWidget *parent, const QStyleOption
 }
 void CLdapDataEditDelegate::setEditorData(QWidget *editor, const QModelIndex &index) const
 {
-    if(index.column() == 2)
+    if(index.column() == 1)
+    {
+        QComboBox *edit = static_cast<QComboBox*>(editor);
+        for(int i=0; i< edit->count();i++)
+        {
+            if(edit->itemText(i) == index.data(Qt::DisplayRole).toString())
+            {
+                edit->setCurrentIndex(i);
+                break;
+            }
+        }
+    }
+    else if(index.column() == 2)
     {
         switch(m_attrType)
         {
@@ -156,7 +186,13 @@ void CLdapDataEditDelegate::setEditorData(QWidget *editor, const QModelIndex &in
 
 void CLdapDataEditDelegate::setModelData(QWidget *editor, QAbstractItemModel *model,const QModelIndex &index) const
 {
-    if(index.column() == 2)
+    if(index.column() == 1)
+    {
+        QComboBox *edit = static_cast<QComboBox*>(editor);
+        int i = edit->currentIndex();
+        model->setData(index, edit->itemText(i), Qt::EditRole);
+    }
+    else if(index.column() == 2)
     {
         switch(m_attrType)
         {

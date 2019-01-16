@@ -2,6 +2,8 @@
 #include "ldapeditordefines.h"
 #include <QDate>
 #include <QTime>
+#include <QtDebug>
+
 namespace ldapeditor
 {
     CLdapAttributesModel::CLdapAttributesModel(QObject *parent)
@@ -11,14 +13,15 @@ namespace ldapeditor
     }
 
 
-    void CLdapAttributesModel::setAttributesList(QVector<ldapcore::CLdapAttribute>* pAttrs)
+    void CLdapAttributesModel::setLdapEntry(ldapcore::CLdapEntry* entry)
     {
         beginResetModel();
         if(m_pAttributes)
             m_pAttributes->clear();
         removeRows(0, rowCount());
 
-        m_pAttributes = pAttrs;
+        m_entry = entry;
+        m_pAttributes = entry->attributes();
         endResetModel();
         emit dataChanged(index(0,0), index(m_pAttributes->size(),m_SectionsList.size()), QVector<int>() << Qt::DisplayRole);
         m_IsChanged = false;
@@ -47,11 +50,11 @@ namespace ldapeditor
 
     int CLdapAttributesModel::rowCount(const QModelIndex &parent) const
     {
-        if (parent.isValid())
-            return 0;
+//        if (!parent.isValid())
+//            return 0;
 
         // FIXME: Implement me!
-        return m_pAttributes ? m_pAttributes->size() : 0;
+        return m_pAttributes ? m_pAttributes->count() : 0;
     }
 
     int CLdapAttributesModel::columnCount(const QModelIndex &parent) const
@@ -67,6 +70,7 @@ namespace ldapeditor
     {
         Q_UNUSED(role);
         if (!index.isValid())  return QVariant();
+        if(index.row()>= m_pAttributes->size()) return QVariant();
 
         // FIXME: Implement me!
         const ldapcore::CLdapAttribute&  attr = (*m_pAttributes)[index.row()];
@@ -110,40 +114,42 @@ namespace ldapeditor
 
         Qt::ItemFlags readonlyFlags{Qt::ItemIsEnabled | Qt::ItemIsSelectable};
         Qt::ItemFlags editFlags{Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsEditable};
-
-        ldapcore::AttributeState editState = (*m_pAttributes)[index.row()].editState();
-        switch(editState)
+        if (index.row() < m_pAttributes->size())
         {
-        case ldapcore::AttributeState::AttributeReadOnly:
-            return readonlyFlags; break;
-        case ldapcore::AttributeState::AttributeReadWrite:
-            return index.column() > 0 && index.column() != 4 ? editFlags:readonlyFlags; break;
-        case ldapcore::AttributeState::AttributeValueReadWrite:
-            return index.column() == 2 ? editFlags:readonlyFlags; break;
-        default: break;
+            ldapcore::AttributeState editState = (*m_pAttributes)[index.row()].editState();
+            switch(editState)
+            {
+            case ldapcore::AttributeState::AttributeReadOnly:
+                return readonlyFlags; break;
+            case ldapcore::AttributeState::AttributeReadWrite:
+                return index.column() > 0 && index.column() != 4 ? editFlags:readonlyFlags; break;
+            case ldapcore::AttributeState::AttributeValueReadWrite:
+                return index.column() == 2 ? editFlags:readonlyFlags; break;
+            default: break;
+            }
         }
         return readonlyFlags;
     }
 
-    bool CLdapAttributesModel::insertRows(int row, int count, const QModelIndex &parent)
+    bool CLdapAttributesModel::insertRows(int row, int count, const QModelIndex& parent)
     {
-//        beginResetModel();
-//        ldapcore::CLdapAttribute attr("newAttr","newValue",ldapcore::AttrType::UnknownText, ldapcore::AttributeState::AttributeReadWrite);
-//        m_pAttributes->push_back(attr);
-//        endResetModel();
-//        emit dataChanged(index(0,0), index(m_pAttributes->size(),m_SectionsList.size()), QVector<int>() << Qt::DisplayRole);
+        QModelIndex idxFrom = index(m_pAttributes->size(),0);
 
         beginInsertRows(parent, row, row + count - 1);
-        // FIXME: Implement me!
-        ldapcore::CLdapAttribute attr("newAttr","newValue",ldapcore::AttrType::UnknownText, ldapcore::AttributeState::AttributeReadWrite);
-        m_pAttributes->push_back(attr);
-        m_IsChanged = true;
+        QVector<ldapcore::CLdapAttribute> attrs = m_entry->availableAttributes();
+        for(int i=0;i<std::min(count, attrs.size());i++)
+        {
+            ldapcore::CLdapAttribute attr(attrs[i].name(),attrs[i].value(),attrs[i].type(), attrs[i].editState());
+            m_pAttributes->append(attr);
+        }
         endInsertRows();
-
-        return false;
+        m_IsChanged = true;
+        QModelIndex idxTo   = index(m_pAttributes->size(), m_SectionsList.size());
+        emit dataChanged(idxFrom, idxTo);
+        return true;
     }
 
-    bool CLdapAttributesModel::insertColumns(int column, int count, const QModelIndex &parent)
+    bool CLdapAttributesModel::insertColumns(int column, int count, const QModelIndex& parent)
     {
         beginInsertColumns(parent, column, column + count - 1);
         // FIXME: Implement me!
@@ -151,16 +157,14 @@ namespace ldapeditor
         return false;
     }
 
-    bool CLdapAttributesModel::removeRows(int row, int count, const QModelIndex &parent)
+    bool CLdapAttributesModel::removeRows(int row, int count, const QModelIndex& parent)
     {
         if(!m_pAttributes) return true;
 
         beginRemoveRows(parent, row, row + count-1);
-        if(row>=0 && row < m_pAttributes->size())
-        {
-            m_pAttributes->remove(row, count);
-        }
+         m_pAttributes->remove(row, count);
         endRemoveRows();
+        m_IsChanged = true;
         return true;
     }
 

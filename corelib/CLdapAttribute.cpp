@@ -17,6 +17,17 @@ CLdapAttribute::CLdapAttribute(QString name, QString value, AttrType type, Attri
         m_isModified = true;
 }
 
+CLdapAttribute::CLdapAttribute(const CLdapAttribute& src)
+{
+    if( this != &src)
+    {
+        m_Name = src.m_Name;
+        m_Value = src.m_Value;
+        m_Type = src.m_Type;
+        m_editState = src.m_editState;
+        m_isModified = src.isModified();
+    }
+}
 
 QString CLdapAttribute::name()const
 {
