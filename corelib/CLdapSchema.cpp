@@ -99,7 +99,7 @@ void CLdapSchema::build(LDAPConnection* lc, std::string& baseDn)
             names = listName[1].replace("'", "").split(" ", QString::SkipEmptyParts);
         }
 
-        QRegExp rx("SYNTAX\\s+([0-9\\.]+)\\.([0-9]+)");
+        QRegExp rx("SYNTAX\\s+'([0-9\\.]+)\\.([0-9]+)'");
         rx.setCaseSensitivity(Qt::CaseInsensitive);
         rx.indexIn(text);
         QStringList list = rx.capturedTexts();
@@ -109,6 +109,8 @@ void CLdapSchema::build(LDAPConnection* lc, std::string& baseDn)
 
         for (const auto& i : names  )
         {
+            qDebug() << name << " " << syntax.c_str() << " " << syntaxIndex << '\n';
+
             m_impl->attr2info[i.toStdString()] = std::tuple<AttrType, bool, std::string>{static_cast<AttrType>(syntaxIndex), isEditable, syntax};
         }
 
@@ -121,6 +123,7 @@ std::tuple<AttrType, bool> CLdapSchema::GetAttributeInfoByName(std::string attrN
     auto f = m_impl->attr2info.find(attrName);
     if (f != m_impl->attr2info.end())
     {
+        qDebug() << "  Found  " << attrName.c_str() << '\n';
         return std::tuple<AttrType, bool>(std::get<0>(f->second), std::get<1>(f->second));
     }
 
