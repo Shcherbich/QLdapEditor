@@ -68,6 +68,7 @@ void CLdapEntry::construct(CLdapData* data, LDAPConnection* conn, QString baseDn
 {
     m_pData = data;
     m_baseDn = baseDn;
+    m_Conn = conn;
     try
     {
         LDAPSearchResults* ls = conn->search(dn().toStdString(), LDAPAsynConnection::SEARCH_ONE);
@@ -98,19 +99,62 @@ QVector<CLdapEntry*> CLdapEntry::children()
 
 void CLdapEntry::prepareAttributes()
 {
-   m_attributes.clear();
-    if(m_pEntry)
+    m_attributes.clear();
+    if(!m_pEntry)
     {
-        const LDAPAttributeList *al = m_pEntry->getAttributes();
-        LDAPAttributeList::const_iterator i = al->begin();
-        for ( ; i != al->end(); i++ )
+        return;
+    }
+    const LDAPAttributeList *al = m_pEntry->getAttributes();
+    LDAPAttributeList::const_iterator i = al->begin();
+    for ( ; i != al->end(); i++ )
+    {
+        auto t = m_pData->schema().GetAttributeInfoByName(i->getName().c_str());
+        auto tp = std::get<0>(t);
+        //auto editable = std::get<1>(t);
+        AttributeState editState = g_supportedTypesForEdit.contains(tp) ? AttributeState::AttributeValueReadWrite : AttributeState::AttributeReadOnly;
+        CLdapAttribute attr(i->getName().c_str(), i->toString().c_str(), tp, editState);
+        m_attributes.push_back(attr);
+    }
+
+    {
+        static StringList systemAttrs;
+        if (systemAttrs.empty())
         {
-            auto t = m_pData->schema().GetAttributeInfoByName(i->getName().c_str());
-            auto tp = std::get<0>(t);
-            //auto editable = std::get<1>(t);
-            AttributeState editState = g_supportedTypesForEdit.contains(tp) ? AttributeState::AttributeValueReadWrite : AttributeState::AttributeReadOnly;
-            CLdapAttribute attr(i->getName().c_str(), i->toString().c_str(), tp, editState);
-            m_attributes.push_back(attr);
+            systemAttrs.add("creatorsname");
+            systemAttrs.add("createtimestamp");
+            systemAttrs.add("modifiersname");
+            systemAttrs.add("structuralObjectClass");
+            systemAttrs.add("entryUUID");
+            systemAttrs.add("modifytimestamp");
+            systemAttrs.add("subschemaSubentry");
+            systemAttrs.add("hasSubordinates");
+            systemAttrs.add("+");
+            try
+            {   LDAPSearchResults* srSystemAttrs = m_Conn->search(dn().toStdString(), LDAPConnection::SEARCH_SUB, "(objectClass=*)", systemAttrs);
+                if (srSystemAttrs != nullptr)
+                {
+                        LDAPEntry* systemEntry = srSystemAttrs->top();
+                        if (systemEntry != nullptr)
+                        {
+                                auto systemAttributes = systemEntry->getAttributes();
+                                for (auto i = systemAttributes->begin(); i != systemAttributes->end(); ++i)
+                                {
+                                    auto t = m_pData->schema().GetAttributeInfoByName(i->getName().c_str());
+                                    auto tp = std::get<0>(t);
+                                    //auto editable = std::get<1>(t);
+                                    AttributeState editState = g_supportedTypesForEdit.contains(tp) ? AttributeState::AttributeValueReadWrite : AttributeState::AttributeReadOnly;
+                                    CLdapAttribute attr(i->getName().c_str(), i->toString().c_str(), tp, editState);
+                                    m_attributes.push_back(attr);
+
+                                }
+                        }
+                }
+
+            }
+            catch(std::exception e)
+            {
+
+            }
         }
     }
 }

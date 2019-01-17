@@ -58,3 +58,7 @@ LDAPEntry* LDAPSearchResults::getNext(){
     return 0;
 }
 
+LDAPEntry* LDAPSearchResults::top()
+{
+    return !entryList.empty() ? const_cast<LDAPEntry*>(&*entryList.begin()) : nullptr;
+}

@@ -42,6 +42,7 @@ private:
 private:
     CLdapEntry*           m_pParent{nullptr};
     LDAPEntry*            m_pEntry{nullptr};
+    LDAPConnection*       m_Conn{nullptr};
     QVector<CLdapEntry*>  m_pEntries;
     QString               m_baseDn;
     QString               m_rDn;
