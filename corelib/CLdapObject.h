@@ -12,29 +12,29 @@ namespace ldapcore
 //class LDAPEDITORCORE_SO_API CLdapObject : public QObject
 class CLdapObject : public QObject
 {
-    Q_OBJECT
+	Q_OBJECT
 public:
-    explicit CLdapObject(QObject *parent = nullptr);
-    explicit CLdapObject(QString id, QObject *parent = nullptr);
+	explicit CLdapObject(QObject* parent = nullptr);
+	explicit CLdapObject(QString id, QObject* parent = nullptr);
 
 
 public:
-    QString GetId();
-    QVector<CLdapObject*> GetChildObjects();
-    QVector<CLdapAttribute*> GetAttributes();
+	QString GetId();
+	QVector<CLdapObject*> GetChildObjects();
+	QVector<CLdapAttribute*> GetAttributes();
 
 signals:
 
-    void OnAttributeAdded(CLdapAttribute* pObject, bool isSucceed, QString errorDescription);
-    void OnAttributeDeleted(CLdapAttribute* pObject, bool isSucceed, QString errorDescription);
+	void OnAttributeAdded(CLdapAttribute* pObject, bool isSucceed, QString errorDescription);
+	void OnAttributeDeleted(CLdapAttribute* pObject, bool isSucceed, QString errorDescription);
 
 public slots:
 
 private:
 
-    QString m_Id;
-    QVector<CLdapObject*> m_Childs;
-    QVector<CLdapAttribute*> m_Attributes;
+	QString m_Id;
+	QVector<CLdapObject*> m_Childs;
+	QVector<CLdapAttribute*> m_Attributes;
 };
 
 }

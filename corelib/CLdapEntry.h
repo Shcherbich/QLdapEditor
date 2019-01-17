@@ -18,39 +18,39 @@ class CLdapData;
 
 class CLdapEntry : public QObject
 {
-    Q_OBJECT
+	Q_OBJECT
 public:
-    explicit CLdapEntry(CLdapEntry* parentLdapEntry, LDAPEntry* le, QObject *parent = nullptr);
-    ~CLdapEntry();
+	explicit CLdapEntry(CLdapEntry* parentLdapEntry, LDAPEntry* le, QObject* parent = nullptr);
+	~CLdapEntry();
 
-    CLdapEntry* parent();
-    QVector<CLdapEntry*> children();
-    QVector<CLdapAttribute>* attributes();
-    QVector<CLdapAttribute> availableAttributes();
+	CLdapEntry* parent();
+	QVector<CLdapEntry*> children();
+	QVector<CLdapAttribute>* attributes();
+	QVector<CLdapAttribute> availableAttributes();
 
 public:
-    QString dn();
-    QString rDn();
+	QString dn();
+	QString rDn();
 
 signals:
 
 public slots:
 
 private:
-    void construct(CLdapData* data, LDAPConnection* conn, QString baseDn);
-    void prepareAttributes();
+	void construct(CLdapData* data, LDAPConnection* conn, QString baseDn);
+	void prepareAttributes();
 private:
-    CLdapEntry*           m_pParent{nullptr};
-    LDAPEntry*            m_pEntry{nullptr};
-    LDAPConnection*       m_Conn{nullptr};
-    QVector<CLdapEntry*>  m_pEntries;
-    QString               m_baseDn;
-    QString               m_rDn;
-    CLdapData*            m_pData;
+	CLdapEntry*           m_pParent{nullptr};
+	LDAPEntry*            m_pEntry{nullptr};
+	LDAPConnection*       m_Conn{nullptr};
+	QVector<CLdapEntry*>  m_pEntries;
+	QString               m_baseDn;
+	QString               m_rDn;
+	CLdapData*            m_pData;
 
-    QVector<CLdapAttribute> m_attributes;
+	QVector<CLdapAttribute> m_attributes;
 
-    friend class CLdapData;
+	friend class CLdapData;
 };
 
 }

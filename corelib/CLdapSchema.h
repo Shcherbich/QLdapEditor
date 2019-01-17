@@ -18,25 +18,25 @@ struct CLdapSchemaImpl;
 class CLdapSchema
 {
 public:
-    CLdapSchema();
-    ~CLdapSchema();
+	CLdapSchema();
+	~CLdapSchema();
 
-    std::tuple<AttrType, bool> GetAttributeInfoByName(std::string attrName);
+	std::tuple<AttrType, bool> GetAttributeInfoByName(std::string attrName);
 
-    bool isNameExist(std::string attributeName) throw (CLdapNameMissedException);
-    void checkBySyntaxName(std::string attributeName, std::string value) throw (CLdapMatchRuleException);
-
-private:
-    void build(LDAPConnection* lc, std::string& baseDn);
-    LDAPSchema* classesSchema();
-    LDAPSchema* attributesSchema();
+	bool isNameExist(std::string attributeName) throw (CLdapNameMissedException);
+	void checkBySyntaxName(std::string attributeName, std::string value) throw (CLdapMatchRuleException);
 
 private:
-    std::unique_ptr<CLdapSchemaImpl> m_impl;
+	void build(LDAPConnection* lc, std::string& baseDn);
+	LDAPSchema* classesSchema();
+	LDAPSchema* attributesSchema();
+
+private:
+	std::unique_ptr<CLdapSchemaImpl> m_impl;
 
 
-    friend class CLdapData;
-    friend class CLdapEntry;
+	friend class CLdapData;
+	friend class CLdapEntry;
 };
 
 }
