@@ -108,7 +108,7 @@ void CLdapSchema::build(LDAPConnection* lc, std::string& baseDn)
             names = listName[1].replace("'", "").split(" ", QString::SkipEmptyParts);
         }
 
-        QRegExp rx("SYNTAX\\s+'([0-9\\.]+)\\.([0-9]+)'");
+        QRegExp rx("SYNTAX\\s+'*([0-9\\.]+)\\.([0-9]+)'*");
         rx.setCaseSensitivity(Qt::CaseInsensitive);
         rx.indexIn(text);
         QStringList list = rx.capturedTexts();
