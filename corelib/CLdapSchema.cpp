@@ -2,10 +2,19 @@
 #include <algorithm>
 #include <functional>
 #include <QRegExp>
+#include <QDebug>
 #include "CLdapSchema.h"
 #include "LDAPAttribute.h"
 #include "LDAPConnection.h"
 #include "LDAPEntry.h"
+#include <string.h>
+#include <string>
+
+struct comp {
+    bool operator() (const std::string& lhs, const std::string& rhs) const {
+        return strcasecmp(lhs.c_str(), rhs.c_str()) < 0;
+    }
+};
 
 using uEntry = std::shared_ptr<LDAPEntry>;
 
@@ -18,7 +27,7 @@ struct CLdapSchemaImpl
     std::unique_ptr<LDAPAttribute> at;
     std::unique_ptr<LDAPAttribute> mr;
 
-    std::map<std::string, std::tuple<AttrType, bool, std::string> > attr2info;
+    std::map<std::string, std::tuple<AttrType, bool, std::string> , comp> attr2info;
 
 };
 
@@ -114,6 +123,9 @@ std::tuple<AttrType, bool> CLdapSchema::GetAttributeInfoByName(std::string attrN
     {
         return std::tuple<AttrType, bool>(std::get<0>(f->second), std::get<1>(f->second));
     }
+
+    qDebug() << attrName.c_str() << '\n';
+
     return std::tuple<AttrType, bool>{AttrType::UnknownText, false};
 
 }

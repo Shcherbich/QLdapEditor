@@ -10,6 +10,7 @@
 
 #include<iostream>
 #include<string>
+#include<vector>
 #include<ldap.h>
 #include<lber.h> 
 
@@ -168,9 +169,14 @@ class LDAPAttribute{
          */
         bool isNotPrintable() const ;
 
+		bool isBinary() const ;
+
+		std::string toString() const;
+
     private :
         std::string m_name;
         StringList m_values;
+		std::vector<char> hexData;
 
     /**
      * This method can be used to dump the data of a LDAPResult-Object.

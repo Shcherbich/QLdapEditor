@@ -105,45 +105,12 @@ void CLdapEntry::prepareAttributes()
         LDAPAttributeList::const_iterator i = al->begin();
         for ( ; i != al->end(); i++ )
         {
-            std::string value;
-            StringList values = i->getValues();
-            StringList::const_iterator j = values.begin();
-            for( ; j != values.end(); j++)
-            {
-                if (!value.empty())
-                    value += ";";
-                value += j->c_str();
-            }
-
-
-           /* if(value == "tesla")
-            {
-                //CLdapAttribute attr(i->getName().c_str(), "TRUE", AttrType::Boolean);
-                CLdapAttribute attr(i->getName().c_str(), "20171123230558.000", AttrType::GeneralizedTime);
-                //CLdapAttribute attr(i->getName().c_str(), "23:05:58", AttrType::Time);
-                m_attributes.push_back(attr);
-            }
-//            else if(value == "88888")
-//            {
-//                CLdapAttribute attr(i->getName().c_str(), value.c_str(), AttrType::Int);
-//                ret.push_back(attr);
-//            }
-            else if(value == "99999")
-            {
-                CLdapAttribute attr(i->getName().c_str(), "FFFEAB34", AttrType::Binary);
-                m_attributes.push_back(attr);
-            }
-            else*/
-            {
-                auto t = m_pData->schema().GetAttributeInfoByName(i->getName().c_str());
-
-                auto tp = std::get<0>(t);
-                //auto editable = std::get<1>(t);
-                AttributeState editState = g_supportedTypesForEdit.contains(tp) ? AttributeState::AttributeValueReadWrite : AttributeState::AttributeReadOnly;
-                CLdapAttribute attr(i->getName().c_str(), value.c_str(), tp, editState);
-                m_attributes.push_back(attr);
-            }
-
+            auto t = m_pData->schema().GetAttributeInfoByName(i->getName().c_str());
+            auto tp = std::get<0>(t);
+            //auto editable = std::get<1>(t);
+            AttributeState editState = g_supportedTypesForEdit.contains(tp) ? AttributeState::AttributeValueReadWrite : AttributeState::AttributeReadOnly;
+            CLdapAttribute attr(i->getName().c_str(), i->toString().c_str(), tp, editState);
+            m_attributes.push_back(attr);
         }
     }
 }
