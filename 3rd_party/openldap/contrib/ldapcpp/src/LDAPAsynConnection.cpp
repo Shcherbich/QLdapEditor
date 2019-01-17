@@ -41,6 +41,8 @@ LDAPAsynConnection::LDAPAsynConnection(const string& url, int port,
     	this->initialize(url);
     }
     this->setConstraints(cons);
+
+
 }
 
 LDAPAsynConnection::~LDAPAsynConnection(){
@@ -68,6 +70,9 @@ void LDAPAsynConnection::init(const string& hostname, int port){
     int opt=3;
     ldap_set_option(cur_session, LDAP_OPT_REFERRALS, LDAP_OPT_OFF);
     ldap_set_option(cur_session, LDAP_OPT_PROTOCOL_VERSION, &opt);
+    timeval tcp = {0};
+    tcp.tv_sec = 10;
+    ldap_set_option(cur_session, LDAP_OPT_NETWORK_TIMEOUT, &tcp);
 }
 
 void LDAPAsynConnection::initialize(const std::string& uri){
@@ -81,6 +86,9 @@ void LDAPAsynConnection::initialize(const std::string& uri){
     int opt=3;
     ldap_set_option(cur_session, LDAP_OPT_REFERRALS, LDAP_OPT_OFF);
     ldap_set_option(cur_session, LDAP_OPT_PROTOCOL_VERSION, &opt);
+    timeval tcp = {0};
+    tcp.tv_sec = 10;
+    ldap_set_option(cur_session, LDAP_OPT_NETWORK_TIMEOUT, &tcp);
 }
 
 void LDAPAsynConnection::start_tls(){
