@@ -23,7 +23,7 @@ namespace ldapeditor
 
         connect(ui->cancelButton, &QAbstractButton::clicked, this, &CConnectionDialog::onCancelClicked);
         connect(ui->connectButton, &QAbstractButton::clicked, this, &CConnectionDialog::onConnectClicked);
-         connect(ui->showPasswordCheck, &QAbstractButton::clicked, this, &CConnectionDialog::onShowPasswordClicked);
+        connect(ui->showPasswordCheck, &QAbstractButton::clicked, this, &CConnectionDialog::onShowPasswordClicked);
 
         connect(&m_LdapData,  &ldapcore::CLdapData::OnConnectionCompleted, this, &CConnectionDialog::OnConnectionCompleted);
         connect(ui->hostBox, &QLineEdit::textChanged, this, &CConnectionDialog::enableConnection );
@@ -33,6 +33,14 @@ namespace ldapeditor
         ui->versionLabel->setVisible(false);
 
         loadSettings();
+
+        // Hide unused controls
+        ui->radioGssAuth->setVisible(false);
+        ui->sslCheck->setVisible(false);
+        ui->tlsCheck->setVisible(false);
+        ui->saslCheck->setVisible(false);
+        ui->radioSimpleAuth->setChecked(true);
+
         onAuthTypeChanged();
         enableConnection();
     }

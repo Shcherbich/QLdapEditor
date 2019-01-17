@@ -11,6 +11,7 @@ int main(int argc, char *argv[])
 {
     ldapcore::CLdapData ldapData;
     QApplication a(argc, argv);
+
     ldapeditor::CLdapSettings settings;
 
     ldapeditor::CConnectionDialog connectionDlg(settings, ldapData);

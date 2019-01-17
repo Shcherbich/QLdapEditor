@@ -9,7 +9,6 @@
 #include "CLdapEntry.h"
 #include "attributemodelhelper.h"
 
-
 namespace ldapeditor
 {
     class CLdapAttributesModel : public QAbstractTableModel
@@ -17,7 +16,7 @@ namespace ldapeditor
         Q_OBJECT
 
     public:
-        explicit CLdapAttributesModel(QObject *parent = nullptr);
+        explicit CLdapAttributesModel(QObject *parent);
 
         void setLdapEntry(ldapcore::CLdapEntry* entry);
         bool IsChanged() const {return m_IsChanged;}

@@ -1,12 +1,13 @@
 #include "ldaptableview.h"
 #include "ldapeditordefines.h"
 #include "CLdapAttribute.h"
-
+#include <QHeaderView>
 //#include <QtDebug>
 
 namespace ldapeditor
 {
-    CLdapTableView::CLdapTableView(QWidget *parent) : QTableView(parent)
+    CLdapTableView::CLdapTableView(QWidget *parent, CLdapSettings& s)
+        : QTableView(parent), m_LdapSettings(s)
     , m_ldapDataDelegate(this)
     , m_defaultDelegate(this)
     , m_contextMenu(this)
@@ -24,11 +25,23 @@ namespace ldapeditor
         m_contextMenu.addAction(m_delAttr);
         setContextMenuPolicy(Qt::CustomContextMenu);
         connect(this, &QTableView::customContextMenuRequested, this, &CLdapTableView::customContextMenuRequested);
+
     }
 
     void CLdapTableView::setLdapEntry(ldapcore::CLdapEntry* entry)
     {
         m_ldapDataDelegate.setLdapEntry(entry);
+    }
+
+    void CLdapTableView::RestoreView()
+    {
+        setColumnWidth(0, m_LdapSettings.columnDn());
+        setColumnWidth(1, m_LdapSettings.columnAttribute());
+        setColumnWidth(2, m_LdapSettings.columnValue());
+        setColumnWidth(3, m_LdapSettings.columnType());
+        setColumnWidth(4, m_LdapSettings.columnSize());
+        hideColumn(4);
+        connect(horizontalHeader(), &QHeaderView::sectionResized, this, &CLdapTableView::OnHeaderChanged);
     }
 
     bool CLdapTableView::edit(const QModelIndex& index, QAbstractItemView::EditTrigger trigger, QEvent* event)
@@ -56,6 +69,16 @@ namespace ldapeditor
             setItemDelegate(&m_ldapDataDelegate);
         }
         return QTableView::edit(index, trigger, event);
+    }
+
+    void CLdapTableView::OnHeaderChanged(int logicalIndex, int oldSize, int newSize)
+    {
+        m_LdapSettings.setColumnDn(columnWidth(0));
+        m_LdapSettings.setColumnAttribute(columnWidth(1));
+        m_LdapSettings.setColumnValue(columnWidth(2));
+        m_LdapSettings.setColumnType(columnWidth(3));
+        m_LdapSettings.setColumnSize(columnWidth(4));
+        m_LdapSettings.sync();
     }
 
     void CLdapTableView::customContextMenuRequested(QPoint pos)

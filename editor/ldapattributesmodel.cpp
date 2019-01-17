@@ -25,6 +25,7 @@ namespace ldapeditor
         endResetModel();
         emit dataChanged(index(0,0), index(m_pAttributes->size(),m_SectionsList.size()), QVector<int>() << Qt::DisplayRole);
         m_IsChanged = false;
+
     }
 
     QVariant CLdapAttributesModel::headerData(int section, Qt::Orientation orientation, int role) const

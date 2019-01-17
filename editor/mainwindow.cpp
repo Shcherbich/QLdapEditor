@@ -39,7 +39,7 @@ namespace ldapeditor
 
         m_TreeModel = new CLdapTreeModel(baseDN, this);
         m_TableModel = new CLdapAttributesModel(this);
-        m_AttributesList = new CLdapTableView(this);
+        m_AttributesList = new CLdapTableView(this, m_Settings);
 
         setCentralWidget(m_AttributesList);
         m_AttributesList->horizontalHeader()->setDefaultSectionSize(100);
@@ -51,6 +51,7 @@ namespace ldapeditor
         m_TableModel->setBaseDN(baseDN);
         m_AttributesList->setModel(m_TableModel);
         m_AttributesList->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+        m_AttributesList->RestoreView();
 
         m_LdapTree->setModel(m_TreeModel);
         m_LdapTree->header()->resizeSection(0,m_LdapTree->header()->width());
