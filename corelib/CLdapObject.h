@@ -22,8 +22,6 @@ public:
     QString GetId();
     QVector<CLdapObject*> GetChildObjects();
     QVector<CLdapAttribute*> GetAttributes();
-    //void AddAttribute(QString name, QString value, AttrType type);
-    //void DeleteAttribute(CLdapAttribute*);
 
 signals:
 

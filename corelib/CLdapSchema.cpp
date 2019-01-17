@@ -7,6 +7,7 @@
 #include "LDAPAttribute.h"
 #include "LDAPConnection.h"
 #include "LDAPEntry.h"
+#include "LDAPSchema.h"
 #include <string.h>
 #include <string>
 
@@ -28,6 +29,9 @@ struct CLdapSchemaImpl
     std::unique_ptr<LDAPAttribute> mr;
 
     std::map<std::string, std::tuple<AttrType, bool, std::string> , comp> attr2info;
+
+    LDAPSchema classesSchema;
+    LDAPSchema attributesSchema;
 
 };
 
@@ -70,8 +74,13 @@ void CLdapSchema::build(LDAPConnection* lc, std::string& baseDn)
         return;
     }
     const LDAPAttributeList* attrs = entry->getAttributes();
-    m_impl->oc.reset(new LDAPAttribute(*attrs->getAttributeByName("objectClasses")));
-    m_impl->at.reset(new LDAPAttribute(*attrs->getAttributeByName("attributeTypes")));
+    auto oc = attrs->getAttributeByName("objectClasses");
+    auto at = attrs->getAttributeByName("attributeTypes");
+    m_impl->oc.reset(new LDAPAttribute(*oc));
+    m_impl->at.reset(new LDAPAttribute(*at));
+
+    m_impl->attributesSchema.setAttributeTypes(at->getValues());
+    m_impl->classesSchema.setObjectClasses(oc->getValues());
     //m_impl->mr.reset(new LDAPAttribute(*attrs->getAttributeByName("matchingRules")));
 
     QRegExp rxName1("NAME\\s+'([^']+)'");
@@ -233,6 +242,17 @@ void CLdapSchema::checkBySyntaxName(std::string attributeName, std::string value
         }
     }
 }
+
+LDAPSchema* CLdapSchema::classesSchema()
+{
+    return &m_impl->classesSchema;
+}
+
+LDAPSchema* CLdapSchema::attributesSchema()
+{
+    return &m_impl->attributesSchema;
+}
+
 
 }
 

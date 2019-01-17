@@ -1,8 +1,69 @@
+#include <string>
+#include <vector>
+#include <tuple>
 #include "CLdapData.h"
 #include "CLdapEntry.h"
 #include "LDAPEntry.h"
 #include "LDAPException.h"
 #include "LDAPConnection.h"
+#include "LDAPSchema.h"
+
+std::vector<std::string> GetObjectClasses(LDAPConnection* le, std::string dn)
+{
+        std::vector<std::string> vRet;
+        try
+        {
+                StringList stringList;
+                stringList.add("objectClass");
+                LDAPSearchResults* finds = le->search(dn, LDAPConnection::SEARCH_BASE, "(objectClass=*)", stringList);
+                if (finds == nullptr)
+                {
+                        return vRet;
+                }
+                LDAPEntry* en = finds->getNext();
+                if (en == nullptr)
+                {
+                        return vRet;
+                }
+                const LDAPAttributeList* attrs = en->getAttributes();
+                if (attrs == nullptr)
+                {
+                        return vRet;
+                }
+                auto objectClasses = attrs->getAttributeByName("objectClass");
+                if (objectClasses == nullptr)
+                {
+                        return vRet;
+                }
+                for (const auto& cl : objectClasses->getValues())
+                {
+                        vRet.push_back(cl);
+                }
+        }
+        catch (std::exception& e)
+        {
+        }
+        return vRet;
+}
+
+
+std::tuple< std::vector<std::string>, std::vector<std::string> >  GetAvailableAttributes(LDAPSchema& classSchema, LDAPConnection* le, std::string dn)
+{
+        std::vector<std::string> classes = GetObjectClasses(le, dn);
+        std::vector<std::string> vMay;
+        std::vector<std::string> vMust;
+        for (const auto& cl : classes)
+        {
+                LDAPObjClass ldapObjClass = classSchema.getObjectClassByName(cl);
+                for (const auto& may : ldapObjClass.getMay())
+                        vMay.push_back(may);
+                for (const auto& must : ldapObjClass.getMust())
+                        vMust.push_back(must);
+        }
+        return std::make_tuple(vMust, vMay);
+}
+
+
 
 namespace ldapcore
 {
@@ -169,9 +230,19 @@ QVector<CLdapAttribute>* CLdapEntry::attributes()
 QVector<CLdapAttribute> CLdapEntry::availableAttributes()
 {
     QVector<CLdapAttribute> attributes;
-    for(int i=1;i<=10;i++)
+    auto av = GetAvailableAttributes(*m_pData->schema().classesSchema(), m_Conn, dn().toStdString());
+    for (const auto& must : std::get<0>(av))
     {
-        CLdapAttribute attr(QString("attr_%1").arg(i), QString("new_value"), AttrType::UnknownText, AttributeState::AttributeReadWrite);
+        auto t = m_pData->schema().GetAttributeInfoByName(must);
+        auto tp = std::get<0>(t);
+        CLdapAttribute attr(must.c_str(), "", tp, AttributeState::AttributeReadWrite);
+        attributes.push_back(attr);
+    }
+    for (const auto& may : std::get<1>(av))
+    {
+        auto t = m_pData->schema().GetAttributeInfoByName(may);
+        auto tp = std::get<0>(t);
+        CLdapAttribute attr(may.c_str(), "", tp, AttributeState::AttributeReadWrite);
         attributes.push_back(attr);
     }
     return attributes;

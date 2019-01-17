@@ -7,6 +7,7 @@
 #include "CLdapAttribute.h"
 #include "CLdapException.h"
 
+class LDAPSchema;
 class LDAPConnection;
 
 namespace ldapcore
@@ -27,12 +28,15 @@ public:
 
 private:
     void build(LDAPConnection* lc, std::string& baseDn);
+    LDAPSchema* classesSchema();
+    LDAPSchema* attributesSchema();
 
 private:
     std::unique_ptr<CLdapSchemaImpl> m_impl;
 
 
     friend class CLdapData;
+    friend class CLdapEntry;
 };
 
 }
