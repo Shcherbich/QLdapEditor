@@ -25,7 +25,7 @@ using namespace std;
 
 bool isCharBinary(int const c)
 {
-	return !(c >= -1 && c <= 255);
+    return !(c >= 2 && c <= 255);
 }
 
 LDAPAttribute::LDAPAttribute(){
