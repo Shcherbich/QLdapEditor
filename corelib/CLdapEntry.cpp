@@ -264,6 +264,9 @@ void CLdapEntry::prepareAttributes()
 			systemAttrs.add("subschemaSubentry");
 			systemAttrs.add("hasSubordinates");
 			systemAttrs.add("+");
+		}
+
+
 			try
 			{
 				LDAPSearchResults* srSystemAttrs = m_Conn->search(dn().toStdString(), LDAPConnection::SEARCH_SUB, "(objectClass=*)", systemAttrs);
@@ -291,7 +294,7 @@ void CLdapEntry::prepareAttributes()
 			{
 
 			}
-		}
+		
 	}
 }
 
