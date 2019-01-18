@@ -1,6 +1,8 @@
 #include <map>
 #include <algorithm>
 #include <functional>
+#include <regex>
+#include <tuple>
 #include <QRegExp>
 #include <QDebug>
 #include "CLdapSchema.h"
@@ -23,6 +25,51 @@ using uEntry = std::shared_ptr<LDAPEntry>;
 
 namespace ldapcore
 {
+
+std::tuple<AttrType, std::string> FromAttributeString(std::string attr)
+{
+    static QRegExp re("SYNTAX\\s+'*([0-9a-zA-Z\\.]+)'*");
+    re.indexIn(attr.c_str());
+    QStringList listName = re.capturedTexts();
+    auto syntax = listName[1].toStdString();
+    if (syntax[2] == '2') // Microsoft specifed
+    {
+        static std::map<std::string, AttrType> microsoftMap
+        {
+            {"1.2.840.113556.1.4.903", AttrType::OctetString},
+            {"1.2.840.113556.1.4.904", AttrType::IA5String},
+            {"1.2.840.113556.1.4.905", AttrType::PrintableString},
+            {"1.2.840.113556.1.4.906", AttrType::Integer},
+            {"1.2.840.113556.1.4.907", AttrType::OctetString},
+        };
+        auto f = microsoftMap.find(syntax);
+        if (f != microsoftMap.end())
+        {
+            return std::tuple<AttrType, std::string>{f->second, syntax};
+        }
+        return std::tuple<AttrType, std::string>{AttrType::UnknownText, ""};
+    }
+
+    // string representation
+    if (!isdigit(syntax[0]))
+    {
+        static std::map<std::string, AttrType> namedMap
+        {
+            {"OctetString", AttrType::OctetString}
+        };
+        auto f = namedMap.find(syntax);
+        if (f != namedMap.end())
+        {
+            return std::tuple<AttrType, std::string>{f->second, syntax};
+        }
+        return std::tuple<AttrType, std::string>{AttrType::UnknownText, ""};
+    }
+
+    std::size_t dot = syntax.find_last_of(".");
+    auto s = syntax.substr(dot + 1, syntax.size());
+    int index = atoi(s.c_str());
+    return std::tuple<AttrType, std::string>{static_cast<AttrType>(index), syntax};
+}
 
 struct CLdapSchemaImpl
 {
@@ -110,23 +157,18 @@ void CLdapSchema::build(LDAPConnection* lc, std::string& baseDn)
 			names = listName[1].replace("'", "").split(" ", QString::SkipEmptyParts);
 		}
 
-		QRegExp rx("SYNTAX\\s+'*([0-9\\.]+)\\.([0-9]+)'*");
-		rx.setCaseSensitivity(Qt::CaseInsensitive);
-		rx.indexIn(text);
-		QStringList list = rx.capturedTexts();
-		bool isEditable = text.indexOf("NO-USER-MODIFICATION") == -1;
-		int syntaxIndex = list.length() == 3 && list[2].length() != 0 ? list[2].toInt() : 0;
-		std::string syntax = list.length() == 3 && list[2].length() != 0 ? list[1].toStdString() + "." + list[2].toStdString() : "";
+        auto r = FromAttributeString(*itr);
+        bool isEditable = text.indexOf("NO-USER-MODIFICATION") == -1;
 
 		for (const auto& i : names)
 		{
-			qDebug() << name << " " << syntax.c_str() << " " << syntaxIndex << '\n';
-
-			m_impl->attr2info[i.toStdString()] = std::tuple<AttrType, bool, std::string> {static_cast<AttrType>(syntaxIndex), isEditable, syntax};
+            qDebug() << name << " " << std::get<1>(r).c_str() <<  '\n';
+            m_impl->attr2info[i.toStdString()] = std::tuple<AttrType, bool, std::string> {std::get<0>(r), isEditable, std::get<1>(r)};
 		}
 
 	}
 
+    qDebug() << "!!!! END " << '\n';
 }
 
 std::tuple<AttrType, bool> CLdapSchema::GetAttributeInfoByName(std::string attrName)

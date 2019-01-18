@@ -6,6 +6,31 @@
 namespace ldapeditor
 {
 
+QString  FromUTCString(QString customDateString)
+{
+    QDateTime timeConvertor;
+
+
+    QString dateTime = customDateString.left(14);
+    int timezoneOffset = customDateString.right(5).left(3).toInt();
+    timeConvertor = QDateTime::fromString(dateTime, "yyyyMMddHHmmss");
+    return timeConvertor.toString();
+
+    /*
+
+    to be .... next period
+    // Mark this QDateTime as one with a certain offset from UTC, and set that
+    // offset.
+    timeConvertor.setTimeSpec(Qt::OffsetFromUTC);
+    timeConvertor.setUtcOffset(timezoneOffset * 3600);
+
+    // Convert this QDateTime to UTC.
+    timeConvertor = timeConvertor.toUTC();
+    return timeConvertor.toString();
+    */
+}
+
+
 CAttributeModelHelper::CAttributeModelHelper()
 {
     m_attrMap[ldapcore::AttrType::UnknownText] = tAttrHelper{"UnknownText"};
@@ -121,7 +146,9 @@ QString CAttributeModelHelper::formatValueByType(const ldapcore::CLdapAttribute&
         }
         break;
     case ldapcore::AttrType::GeneralizedTime:
-        retValue = (QDateTime::fromString(attr.value(), "yyyyMMddHHmmss.zzz")).toString("yyyyMMddHHmmss.zzz");
+        {
+            retValue = FromUTCString(attr.value());
+        }
         break;
     default:
         retValue = attr.value();
