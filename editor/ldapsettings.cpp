@@ -133,7 +133,7 @@ namespace ldapeditor
 
     int CLdapSettings::timeout() const
     {
-        return readInt("timeout", 60);
+        return readInt("timeout", 15);
     }
 
     void CLdapSettings::sync()

@@ -119,7 +119,7 @@ namespace ldapeditor
         saveSettings();        
         setEnabled(false);
         m_WaitTime = m_Settings.timeout();
-        setWindowTitle(QString("Waiting connection %1s").arg(m_WaitTime));
+        setWindowTitle(QString("Connecting ... %1s").arg(0));
 
         m_LdapData.connect(m_Settings.connectionOptions());
         QTimer::singleShot(1000, this, &CConnectionDialog::onTimer );
@@ -129,14 +129,13 @@ namespace ldapeditor
     {
         if(--m_WaitTime > 0)
         {
-            setWindowTitle(QString("Waiting connection %1s").arg(m_WaitTime));
+            setWindowTitle(QString("Connecting ... %1s").arg(m_Settings.timeout() - m_WaitTime));
             QTimer::singleShot(1000, this, &CConnectionDialog::onTimer );
         }
         else
         {
             setWindowTitle(tr("Connection properties dialog"));
             setEnabled(true);
-            //accept();
         }
     }
 
