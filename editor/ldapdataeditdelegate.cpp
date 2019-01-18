@@ -1,6 +1,8 @@
 #include "ldapdataeditdelegate.h"
 #include "ldapeditordefines.h"
 #include "CLdapEntry.h"
+#include "cmustmaymodel.h"
+#include "attributemodelhelper.h"
 
 #include <QLineEdit>
 #include <QComboBox>
@@ -29,12 +31,7 @@ QWidget* CLdapDataEditDelegate::createEditor(QWidget *parent, const QStyleOption
     if(index.column() == 1)
     {
         QComboBox* e = new QComboBox(parent);
-        int i=0;
-        QVector<ldapcore::CLdapAttribute> attrs = m_entry->availableAttributes();
-        for(int i=0; i< attrs.size();i++)
-        {
-            e->addItem(attrs[i].name());
-        }
+        e->setModel(new MustMayModel(e, m_entry));
         e->setEditable(false);
         editor = e;
     }
@@ -189,8 +186,12 @@ void CLdapDataEditDelegate::setModelData(QWidget *editor, QAbstractItemModel *mo
     if(index.column() == 1)
     {
         QComboBox *edit = static_cast<QComboBox*>(editor);
-        int i = edit->currentIndex();
-        model->setData(index, edit->itemText(i), Qt::EditRole);
+        auto text = edit->itemText(edit->currentIndex());
+        model->setData(index, text, Qt::EditRole);
+        auto aNew = m_entry->createEmptyAttribute(text.toStdString());
+        CAttributeModelHelper helper;
+        model->setData(index.sibling(index.row(), 3), QString("%1").arg((int)aNew->type()), Qt::EditRole);
+
     }
     else if(index.column() == 2)
     {

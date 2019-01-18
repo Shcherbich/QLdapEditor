@@ -328,5 +328,41 @@ QVector<CLdapAttribute> CLdapEntry::availableAttributes()
 	return attributes;
 }
 
+QVector<CLdapAttribute> CLdapEntry::availableAttributesMust()
+{
+    QVector<CLdapAttribute> attributes;
+    auto av = GetAvailableAttributes(*m_pData->schema().classesSchema(), m_Conn, dn().toStdString());
+    for (const auto& must : std::get<0>(av))
+    {
+        auto t = m_pData->schema().GetAttributeInfoByName(must);
+        auto tp = std::get<0>(t);
+        CLdapAttribute attr(must.c_str(), "", tp, AttributeState::AttributeReadWrite);
+        attributes.push_back(attr);
+    }
+    return attributes;
+}
+
+QVector<CLdapAttribute> CLdapEntry::availableAttributesMay()
+{
+    QVector<CLdapAttribute> attributes;
+    auto av = GetAvailableAttributes(*m_pData->schema().classesSchema(), m_Conn, dn().toStdString());
+    for (const auto& may : std::get<1>(av))
+    {
+        auto t = m_pData->schema().GetAttributeInfoByName(may);
+        auto tp = std::get<0>(t);
+        CLdapAttribute attr(may.c_str(), "", tp, AttributeState::AttributeReadWrite);
+        attributes.push_back(attr);
+    }
+    return attributes;
+}
+
+std::shared_ptr<CLdapAttribute> CLdapEntry::createEmptyAttribute(std::string attributeName)
+{
+    auto t = m_pData->schema().GetAttributeInfoByName(attributeName);
+    auto tp = std::get<0>(t);
+    std::shared_ptr<CLdapAttribute> p(new CLdapAttribute(attributeName.c_str(), "", tp, AttributeState::AttributeValueReadWrite));
+    return p;
+}
+
 }
 

@@ -27,6 +27,9 @@ public:
 	QVector<CLdapEntry*> children();
 	QVector<CLdapAttribute>* attributes();
 	QVector<CLdapAttribute> availableAttributes();
+    QVector<CLdapAttribute> availableAttributesMay();
+    QVector<CLdapAttribute> availableAttributesMust();
+    std::shared_ptr<CLdapAttribute> createEmptyAttribute(std::string attributeName);
 
 public:
 	QString dn();

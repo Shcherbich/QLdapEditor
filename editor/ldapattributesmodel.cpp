@@ -8,7 +8,7 @@ namespace ldapeditor
 {
     CLdapAttributesModel::CLdapAttributesModel(QObject *parent)
         : QAbstractTableModel(parent)
-        , m_SectionsList{ tr("Dn"), tr("Attribute"), tr("Value"), tr("Type"), tr("Size") }
+        , m_SectionsList{ tr("Name"), tr("Attribute"), tr("Value"), tr("Type"), tr("Size") }
     {
     }
 
@@ -113,15 +113,16 @@ namespace ldapeditor
         Qt::ItemFlags editFlags{Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsEditable};
         if (index.row() < m_pAttributes->size())
         {
+            int col = index.column();
             ldapcore::AttributeState editState = (*m_pAttributes)[index.row()].editState();
             switch(editState)
             {
             case ldapcore::AttributeState::AttributeReadOnly:
                 return readonlyFlags; break;
             case ldapcore::AttributeState::AttributeReadWrite:
-                return index.column() > 0 && index.column() != 4 ? editFlags:readonlyFlags; break;
+                return col == 1 || col == 2 ? editFlags : readonlyFlags; break;
             case ldapcore::AttributeState::AttributeValueReadWrite:
-                return index.column() == 2 ? editFlags:readonlyFlags; break;
+                return col == 2 ? editFlags : readonlyFlags; break;
             default: break;
             }
         }

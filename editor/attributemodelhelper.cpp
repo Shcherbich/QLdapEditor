@@ -228,10 +228,10 @@ QVariant CAttributeModelHelper::foregroundRoleData(const ldapcore::CLdapAttribut
             return QBrush(Qt::darkGray);
         case ldapcore::AttributeState::AttributeReadWrite:
             if(index.column() > 0 && index.column() != 4)
-                return attr.isModified() ? QBrush(Qt::red) : QBrush(Qt::black);
+                return attr.isModified() ? QBrush(Qt::blue) : QBrush(Qt::black);
         case ldapcore::AttributeState::AttributeValueReadWrite:
             if(index.column() == 2)
-                return attr.isModified() ? QBrush(Qt::red) : QBrush(Qt::black);
+                return attr.isModified() ? QBrush(Qt::blue) : QBrush(Qt::black);
         default:break;
     }
     return QBrush(Qt::darkGray);

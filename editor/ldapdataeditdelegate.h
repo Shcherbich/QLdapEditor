@@ -29,6 +29,7 @@ protected:
     mutable ldapcore::CLdapEntry* m_entry{nullptr};
 };
 
+
 } //namespace ldapeditor
 
 #endif // LDAPDATAEDITDELEGATE_H
