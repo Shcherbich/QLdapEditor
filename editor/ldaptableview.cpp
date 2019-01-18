@@ -40,6 +40,7 @@ namespace ldapeditor
         setColumnWidth(2, m_LdapSettings.columnValue());
         setColumnWidth(3, m_LdapSettings.columnType());
         setColumnWidth(4, m_LdapSettings.columnSize());
+        hideColumn(0);
         hideColumn(4);
         connect(horizontalHeader(), &QHeaderView::sectionResized, this, &CLdapTableView::OnHeaderChanged);
     }
