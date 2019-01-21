@@ -30,6 +30,7 @@ Task<F>* makeSimpleTask(F f)
 	return new Task<F>(f);
 }
 
+
 }
 
 #endif // qfunctional 

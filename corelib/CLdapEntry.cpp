@@ -2,6 +2,7 @@
 #include <vector>
 #include <tuple>
 #include <algorithm>
+#include <QThread>
 #include "CLdapData.h"
 #include "CLdapEntry.h"
 #include "LDAPEntry.h"
@@ -95,7 +96,7 @@ std::string AddAttributeToServer(LDAPConnection* conn, LDAPEntry* le, std::strin
 		conn->modify(le->getDN(), mod);
 		return "";
 	}
-	catch (const std::exception ex)
+    catch (const std::exception& ex)
 	{
 		return ex.what();
 	}
@@ -115,7 +116,7 @@ std::string DeleteAttributeFromServer(LDAPConnection* conn, LDAPEntry* le, std::
 		conn->modify(le->getDN(), mod);
 		return "";
 	}
-	catch (const std::exception ex)
+    catch (const std::exception& ex)
 	{
 		return ex.what();
 	}
@@ -397,7 +398,41 @@ void CLdapEntry::addAttribute(CLdapAttribute& newOb) throw(CLdapServerException)
     {
         throw CLdapServerException(ret.c_str());
     }
+}
 
+void CLdapEntry::deleteAttribute(CLdapAttribute& object) throw(CLdapServerException)
+{
+    auto ret = DeleteAttributeFromServer(m_Conn, m_pEntry, object.name().toStdString());
+    if (ret.size())
+    {
+        throw CLdapServerException(ret.c_str());
+    }
+}
+
+void CLdapEntry::loadWithoutCachedRecords(CLdapAttribute* attributeMustBeExist)
+{
+    if (attributeMustBeExist == nullptr)
+    {
+        return;
+    }
+    int repeatCount = 5;
+    do
+    {
+        QVector<CLdapAttribute> v;
+        loadAttributes(v);
+        auto f = std::find_if(v.begin(), v.end(), [&](const ldapcore::CLdapAttribute& o)
+        {
+           return attributeMustBeExist->name() == o.name();
+        });
+        if (f != v.end())
+        {
+            return;
+        }
+
+        QThread::currentThread()->usleep(500000);
+
+    }
+    while (repeatCount--);
 }
 
 }

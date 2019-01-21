@@ -1,6 +1,7 @@
 #include "ldapattributesmodel.h"
 #include "ldapeditordefines.h"
 #include <QDate>
+#include <QApplication>
 #include <QTime>
 #include <QtDebug>
 #include <QMessageBox>
@@ -176,6 +177,9 @@ namespace ldapeditor
         {
             return;
         }
+
+        std::shared_ptr<ldapcore::CLdapAttribute> mustBePresentOnServer;
+
         QVector<ldapcore::CLdapAttribute> reallyAttributes;
         m_entry->loadAttributes(reallyAttributes);
 
@@ -194,6 +198,7 @@ namespace ldapeditor
                     ldapcore::CLdapAttribute temp(a);
                     m_entry->validateAttribute(temp);
                     m_entry->addAttribute(temp);
+                    mustBePresentOnServer.reset(new ldapcore::CLdapAttribute(temp));
                 }
                 catch(const std::exception& e)
                 {
@@ -201,9 +206,37 @@ namespace ldapeditor
                 }
 
             }
-
         }
 
+
+        // second - delete attributes
+        for (auto& r : reallyAttributes)
+        {
+            auto f = std::find_if(m_pAttributes->begin(), m_pAttributes->end(), [&](const ldapcore::CLdapAttribute& o)
+            {
+               return r.name() == o.name();
+            });
+            if (f == m_pAttributes->end())
+            {
+                // delete attribute
+                try
+                {
+                    ldapcore::CLdapAttribute temp(r);
+                    m_entry->deleteAttribute(temp);
+                    mustBePresentOnServer.reset(new ldapcore::CLdapAttribute(temp));
+                }
+                catch(const std::exception& e)
+                {
+                    QMessageBox::critical(nullptr, "Error", e.what(), QMessageBox::Ok);
+                }
+
+            }
+        }
+
+        QApplication::setOverrideCursor(Qt::WaitCursor);
+        m_entry->loadWithoutCachedRecords(mustBePresentOnServer.get());
+        QApplication::restoreOverrideCursor();
+        setLdapEntry(m_entry);
     }
 
 } //namespace ldapeditor

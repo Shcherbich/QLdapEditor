@@ -35,6 +35,8 @@ public:
     void                    loadAttributes(QVector<CLdapAttribute>& );
 
     void                    addAttribute(CLdapAttribute& newOb) throw(CLdapServerException);
+    void                    deleteAttribute(CLdapAttribute& newOb) throw(CLdapServerException);
+    void                    loadWithoutCachedRecords(CLdapAttribute* attributeMustBeExist);
 
 public:
 	QString dn();
