@@ -14,7 +14,7 @@ class MustMayModel : public QAbstractListModel
 {
    Q_OBJECT
 public:
-   MustMayModel(QObject* parent, ldapcore::CLdapEntry* entry);
+   MustMayModel(QObject* parent, ldapcore::CLdapEntry* entry, QVector<ldapcore::CLdapAttribute>* existAttributes);
 
    int rowCount(const QModelIndex &parent = QModelIndex()) const;
    QVariant data(const QModelIndex &index, int role) const;

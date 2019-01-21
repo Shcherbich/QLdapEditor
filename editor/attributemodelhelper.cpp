@@ -2,6 +2,7 @@
 #include "ldapeditordefines.h"
 #include <QDateTime>
 #include <QBrush>
+#include <QFont>
 
 namespace ldapeditor
 {
@@ -9,8 +10,6 @@ namespace ldapeditor
 QString  FromUTCString(QString customDateString)
 {
     QDateTime timeConvertor;
-
-
     QString dateTime = customDateString.left(14);
     int timezoneOffset = customDateString.right(5).left(3).toInt();
     timeConvertor = QDateTime::fromString(dateTime, "yyyyMMddHHmmss");
@@ -106,6 +105,8 @@ QVariant CAttributeModelHelper::data(const ldapcore::CLdapAttribute&  attr, cons
         return tooltipRoleData(attr,index);
     case Qt::ForegroundRole:
         return foregroundRoleData(attr,index);
+    case Qt::FontRole:
+        return fontRoleData(attr,index);
     case ldapeditor::AttrTypeRole:
         return static_cast<int>(attr.type());
     default: break;
@@ -123,6 +124,18 @@ bool CAttributeModelHelper::setData(ldapcore::CLdapAttribute&  attr, const QMode
     }
     return false;
 }
+
+QVariant CAttributeModelHelper::fontRoleData(const ldapcore::CLdapAttribute &attr, const QModelIndex &index)const
+{
+    if (attr.isModified())
+    {
+        QFont font;
+        font.setBold(true);
+        return font;
+    }
+    return QVariant();
+}
+
 
 QString CAttributeModelHelper::attributeType2String(ldapcore::AttrType type) const
 {
@@ -222,6 +235,10 @@ QVariant CAttributeModelHelper::tooltipRoleData(const ldapcore::CLdapAttribute &
 
 QVariant CAttributeModelHelper::foregroundRoleData(const ldapcore::CLdapAttribute &attr, const QModelIndex &index)const
 {
+    if (attr.isMust())
+    {
+        return QColor(Qt::blue);
+    }
     switch(attr.editState())
     {
         case ldapcore::AttributeState::AttributeReadOnly:

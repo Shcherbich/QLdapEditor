@@ -88,8 +88,12 @@ public:
 	//explicit CLdapAttribute(QString name, QString value, AttrType type, QObject *parent = nullptr);
 
 	explicit CLdapAttribute();
-	explicit CLdapAttribute(QString name, QString value, AttrType type, AttributeState editState = AttributeState::AttributeValueReadWrite);
-	explicit CLdapAttribute(const CLdapAttribute& src);
+    explicit CLdapAttribute(QString name, QString value, AttrType type, bool isMust, AttributeState editState = AttributeState::AttributeValueReadWrite);
+    CLdapAttribute(const CLdapAttribute& src);
+    CLdapAttribute(CLdapAttribute&& temp);
+
+    CLdapAttribute& operator = (const CLdapAttribute& o);
+    CLdapAttribute& operator = (CLdapAttribute&& o);
 
 public:
 
@@ -98,19 +102,39 @@ public:
 	AttrType type() const;
 	AttributeState editState() const;
 	bool isModified() const;
+    bool isMust() const;
 
 
 	void setName(const QString& name);
 	void setValue(const QString& value);
 	void setType(AttrType type);
 
+    /*
+    bool operator < (CLdapAttribute& o) const
+    {
+        if (isMust() != o.isMust())
+            return isMust() > o.isMust();
+        return name() < o.name();
+    }
+
+    bool operator ()(const ldapcore::CLdapAttribute& l, const ldapcore::CLdapAttribute& r) const
+    {
+        if (l.isMust() != r.isMust())
+            return l.isMust() > r.isMust();
+        return l.name() < r.name();
+    }
+    */
+
 private:
 	QString m_Name;
 	QString m_Value;
 	AttrType m_Type{AttrType::UnknownText};
 	AttributeState    m_editState;
+    bool    m_isMust{false};
 	bool    m_isModified{false};
 
+
+private:
 	bool validateValue(const QString& value);
 
 signals:

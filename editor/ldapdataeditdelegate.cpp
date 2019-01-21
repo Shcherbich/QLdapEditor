@@ -31,7 +31,7 @@ QWidget* CLdapDataEditDelegate::createEditor(QWidget *parent, const QStyleOption
     if(index.column() == 1)
     {
         QComboBox* e = new QComboBox(parent);
-        e->setModel(new MustMayModel(e, m_entry));
+        e->setModel(new MustMayModel(e, m_entry, m_entry->attributes()));
         e->setEditable(false);
         editor = e;
     }

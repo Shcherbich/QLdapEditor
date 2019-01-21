@@ -31,6 +31,7 @@ private:
     QVariant editRoleData(const ldapcore::CLdapAttribute &attr, const QModelIndex &index)const;
     QVariant tooltipRoleData(const ldapcore::CLdapAttribute &attr, const QModelIndex &index)const;
     QVariant foregroundRoleData(const ldapcore::CLdapAttribute &attr, const QModelIndex &index)const;
+    QVariant fontRoleData(const ldapcore::CLdapAttribute &attr, const QModelIndex &index)const;
 
     bool setEditRoleData(ldapcore::CLdapAttribute &attr, const QVariant& value, const QModelIndex &index);
 };

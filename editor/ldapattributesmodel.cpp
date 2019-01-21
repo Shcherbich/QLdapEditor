@@ -131,7 +131,8 @@ namespace ldapeditor
 
     bool CLdapAttributesModel::insertRows(int row, int count, const QModelIndex& parent)
     {
-
+        beginInsertRows(parent, row, row + count - 1);
+/*
         beginInsertRows(parent, row, row + count - 1);
         QVector<ldapcore::CLdapAttribute> attrs = m_entry->availableAttributes();
         for(int i=0;i<std::min(count, attrs.size());i++)
@@ -139,6 +140,8 @@ namespace ldapeditor
             ldapcore::CLdapAttribute attr(attrs[i].name(),attrs[i].value(),attrs[i].type(), attrs[i].editState());
             m_pAttributes->append(attr);
         }
+        */
+
         endInsertRows();
         m_IsChanged = true;
 

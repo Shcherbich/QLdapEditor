@@ -1,14 +1,26 @@
+#include <algorithm>
 #include <QColor>
 #include "cmustmaymodel.h"
 
 namespace ldapeditor
 {
 
-   MustMayModel::MustMayModel(QObject* parent, ldapcore::CLdapEntry* entry)
+   MustMayModel::MustMayModel(QObject* parent, ldapcore::CLdapEntry* entry, QVector<ldapcore::CLdapAttribute>* existAttributes)
        : QAbstractListModel(parent)
    {
-       must = entry->availableAttributesMust();
-       may = entry->availableAttributesMay();
+       auto allMays = entry->availableAttributesMay();
+       for (const auto& m : allMays)
+       {
+           auto f = std::find_if(existAttributes->begin(), existAttributes->end(), [&](const ldapcore::CLdapAttribute& a)
+           {
+              return a.name() == m.name();
+           });
+           if (f == existAttributes->end())
+           {
+               may.push_back(m);
+           }
+       }
+       //must = entry->availableAttributesMust();
    }
 
    int MustMayModel::rowCount(const QModelIndex &parent) const

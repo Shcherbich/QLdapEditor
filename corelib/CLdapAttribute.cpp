@@ -10,8 +10,8 @@ CLdapAttribute::CLdapAttribute()
 
 }
 
-CLdapAttribute::CLdapAttribute(QString name, QString value, AttrType type, AttributeState editState)
-	: m_Name(name), m_Value(value), m_Type(type), m_editState(editState)
+CLdapAttribute::CLdapAttribute(QString name, QString value, AttrType type, bool isMust, AttributeState editState)
+    : m_Name(name), m_Value(value), m_Type(type), m_editState(editState), m_isMust(isMust)
 {
 	if (m_editState == AttributeState::AttributeReadWrite)
 	{
@@ -28,7 +28,39 @@ CLdapAttribute::CLdapAttribute(const CLdapAttribute& src)
 		m_Type = src.m_Type;
 		m_editState = src.m_editState;
 		m_isModified = src.isModified();
+        m_isMust = src.m_isMust;
 	}
+}
+
+CLdapAttribute::CLdapAttribute(CLdapAttribute&& temp)
+ : m_Name(std::move(temp.m_Name)), m_Value(std::move(temp.m_Value)),
+   m_Type(temp.m_Type), m_editState(temp.m_editState), m_isMust(temp.m_isMust)
+{
+
+}
+
+CLdapAttribute& CLdapAttribute::operator = (const CLdapAttribute& src)
+{
+    if (this == &src)
+        return *this;
+    m_Name = src.m_Name;
+    m_Value = src.m_Value;
+    m_Type = src.m_Type;
+    m_editState = src.m_editState;
+    m_isModified = src.isModified();
+    m_isMust = src.m_isMust;
+    return * this;
+}
+
+CLdapAttribute& CLdapAttribute::operator = (CLdapAttribute&& src)
+{
+    m_Name = std::move(src.m_Name);
+    m_Value = std::move(src.m_Value);
+    m_Type = src.m_Type;
+    m_editState = src.m_editState;
+    m_isModified = src.isModified();
+    m_isMust = src.m_isMust;
+    return * this;
 }
 
 QString CLdapAttribute::name()const
@@ -54,6 +86,11 @@ AttributeState CLdapAttribute::editState()const
 bool CLdapAttribute::isModified() const
 {
 	return m_isModified;
+}
+
+bool CLdapAttribute::isMust() const
+{
+    return m_isMust;
 }
 
 void CLdapAttribute::setName(const QString& name)
