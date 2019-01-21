@@ -21,7 +21,6 @@ namespace ldapeditor
         if(m_pAttributes)
             m_pAttributes->clear();
         removeRows(0, rowCount());
-
         m_entry = entry;
         m_pAttributes = entry->attributes();
         endResetModel();
@@ -178,8 +177,6 @@ namespace ldapeditor
             return;
         }
 
-        std::shared_ptr<ldapcore::CLdapAttribute> mustBePresentOnServer;
-
         QVector<ldapcore::CLdapAttribute> reallyAttributes;
         m_entry->loadAttributes(reallyAttributes);
 
@@ -198,7 +195,6 @@ namespace ldapeditor
                     ldapcore::CLdapAttribute temp(a);
                     m_entry->validateAttribute(temp);
                     m_entry->addAttribute(temp);
-                    mustBePresentOnServer.reset(new ldapcore::CLdapAttribute(temp));
                 }
                 catch(const std::exception& e)
                 {
@@ -223,7 +219,6 @@ namespace ldapeditor
                 {
                     ldapcore::CLdapAttribute temp(r);
                     m_entry->deleteAttribute(temp);
-                    mustBePresentOnServer.reset(new ldapcore::CLdapAttribute(temp));
                 }
                 catch(const std::exception& e)
                 {
@@ -234,7 +229,7 @@ namespace ldapeditor
         }
 
         QApplication::setOverrideCursor(Qt::WaitCursor);
-        m_entry->loadWithoutCachedRecords(mustBePresentOnServer.get());
+        m_entry->flushAttributeCache();
         QApplication::restoreOverrideCursor();
         setLdapEntry(m_entry);
     }

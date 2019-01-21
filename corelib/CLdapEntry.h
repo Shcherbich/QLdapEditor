@@ -36,7 +36,7 @@ public:
 
     void                    addAttribute(CLdapAttribute& newOb) throw(CLdapServerException);
     void                    deleteAttribute(CLdapAttribute& newOb) throw(CLdapServerException);
-    void                    loadWithoutCachedRecords(CLdapAttribute* attributeMustBeExist);
+    void                    flushAttributeCache();
 
 public:
 	QString dn();

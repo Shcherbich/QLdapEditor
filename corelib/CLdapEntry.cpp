@@ -10,7 +10,7 @@
 #include "LDAPConnection.h"
 #include "LDAPModification.h"
 #include "LDAPSchema.h"
-
+#include "LDAPMessage.h"
 
 struct comp
 {
@@ -93,7 +93,7 @@ std::string AddAttributeToServer(LDAPConnection* conn, LDAPEntry* le, std::strin
 
 		auto q = conn->search(le->getDN(), LDAPAsynConnection::SEARCH_SUB, "objectClass=*", StringList());
 		auto en = q->getNext();
-		conn->modify(le->getDN(), mod);
+        conn->modify_s(le->getDN(), mod);
 		return "";
 	}
     catch (const std::exception& ex)
@@ -113,7 +113,7 @@ std::string DeleteAttributeFromServer(LDAPConnection* conn, LDAPEntry* le, std::
 
 		auto q = conn->search(le->getDN(), LDAPAsynConnection::SEARCH_SUB, "objectClass=*", StringList());
 		auto en = q->getNext();
-		conn->modify(le->getDN(), mod);
+        conn->modify_s(le->getDN(), mod);
 		return "";
 	}
     catch (const std::exception& ex)
@@ -139,7 +139,7 @@ std::string ReplaceAttributeOnServer(LDAPConnection* conn, LDAPEntry* le, std::s
 		newList.add(value);
 		const_cast<LDAPAttribute*>(find)->setValues(newList);
 		mod->addModification(LDAPModification(*find, op));
-		conn->modify(le->getDN(), mod);
+        conn->modify_s(le->getDN(), mod);
 		return "";
 	}
 	catch (const std::exception ex)
@@ -409,30 +409,17 @@ void CLdapEntry::deleteAttribute(CLdapAttribute& object) throw(CLdapServerExcept
     }
 }
 
-void CLdapEntry::loadWithoutCachedRecords(CLdapAttribute* attributeMustBeExist)
+void CLdapEntry::flushAttributeCache()
 {
-    if (attributeMustBeExist == nullptr)
+    auto sr = m_Conn->search(m_pEntry->getDN(), LDAPConnection::SEARCH_BASE, "(objectClass=*)");
+    if (sr)
     {
-        return;
-    }
-    int repeatCount = 5;
-    do
-    {
-        QVector<CLdapAttribute> v;
-        loadAttributes(v);
-        auto f = std::find_if(v.begin(), v.end(), [&](const ldapcore::CLdapAttribute& o)
+        std::shared_ptr<LDAPEntry> entry(sr->getNext());
+        if (entry.get() != nullptr)
         {
-           return attributeMustBeExist->name() == o.name();
-        });
-        if (f != v.end())
-        {
-            return;
+            *m_pEntry = *entry.get();
         }
-
-        QThread::currentThread()->usleep(500000);
-
     }
-    while (repeatCount--);
 }
 
 }

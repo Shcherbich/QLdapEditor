@@ -380,3 +380,9 @@ const LDAPConstraints* LDAPConnection::getConstraints() const{
 TlsOptions LDAPConnection::getTlsOptions() const {
     return LDAPAsynConnection::getTlsOptions();
 }
+
+void LDAPConnection::modify_s(const std::string& dn, LDAPModList *mod)
+{
+    LDAPAsynConnection::modify_s(dn, mod);
+
+}

@@ -372,3 +372,18 @@ LDAPAsynConnection* LDAPAsynConnection::referralConnect(
     return 0;
 }
 
+
+
+void  LDAPAsynConnection::modify_s(const string& dn, LDAPModList *mod)
+{
+    DEBUG(LDAP_DEBUG_TRACE,"LDAPAsynConnection::modify()" << endl);
+    DEBUG(LDAP_DEBUG_TRACE | LDAP_DEBUG_PARAMETER,"   dn:" << dn << endl);
+
+    LDAPMod** tmpMods = mod->toLDAPModArray();
+    int err = ldap_modify_ext_s(getSessionHandle(), dn.c_str(),
+            tmpMods, nullptr, nullptr);
+    ldap_mods_free(tmpMods, 1);
+    if(err != LDAP_SUCCESS){
+        throw LDAPException(err);
+    }
+}
