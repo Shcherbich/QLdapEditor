@@ -276,7 +276,12 @@ std::map<std::string, std::function< std::string(std::string)> > syntaxNumber2to
 
 void CLdapSchema::checkBySyntaxName(std::string attributeName, std::string value) throw (CLdapMatchRuleException)
 {
-	auto f = syntaxNumber2toCheckFunction.find(attributeName);
+    auto info = m_impl->attr2info.find(attributeName);
+    if (info == m_impl->attr2info.end())
+    {
+        return;
+    }
+    auto f = syntaxNumber2toCheckFunction.find(std::get<2>(info->second));
 	if (f != syntaxNumber2toCheckFunction.end())
 	{
 		auto checkReturn = f->second(value);

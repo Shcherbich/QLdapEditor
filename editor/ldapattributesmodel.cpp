@@ -3,6 +3,7 @@
 #include <QDate>
 #include <QTime>
 #include <QtDebug>
+#include <QMessageBox>
 
 namespace ldapeditor
 {
@@ -87,12 +88,18 @@ namespace ldapeditor
                 bool bRet{true};
                 try
                 {
+                    if (index.column() == 2)// changing value
+                    {
+                        ldapcore::CLdapAttribute temp(attr);
+                        temp.setValue(value.toString());
+                        m_entry->validateAttribute(temp);
+                    }
                     bRet = m_attrHelper.setData(attr, index, value, role);
                     emit dataChanged(index, index, QVector<int>() << role << Qt::DisplayRole);
                 }
-                catch(std::exception& e)
+                catch(const std::exception& e)
                 {
-                    Q_UNUSED(e)
+                    QMessageBox::critical(nullptr, "Error", e.what(), QMessageBox::Ok);
                     bRet = false;
                 }
                 return bRet;
@@ -132,16 +139,9 @@ namespace ldapeditor
     bool CLdapAttributesModel::insertRows(int row, int count, const QModelIndex& parent)
     {
         beginInsertRows(parent, row, row + count - 1);
-/*
-        beginInsertRows(parent, row, row + count - 1);
-        QVector<ldapcore::CLdapAttribute> attrs = m_entry->availableAttributes();
-        for(int i=0;i<std::min(count, attrs.size());i++)
-        {
-            ldapcore::CLdapAttribute attr(attrs[i].name(),attrs[i].value(),attrs[i].type(), attrs[i].editState());
-            m_pAttributes->append(attr);
-        }
-        */
-
+        auto aNew = m_entry->createEmptyAttribute("name");
+        aNew->setValue("");
+        m_pAttributes->append(*aNew);
         endInsertRows();
         m_IsChanged = true;
 
@@ -168,6 +168,42 @@ namespace ldapeditor
         endRemoveRows();
         m_IsChanged = true;
         return true;
+    }
+
+    void CLdapAttributesModel::SaveToServer()
+    {
+        if (m_pAttributes == nullptr)
+        {
+            return;
+        }
+        QVector<ldapcore::CLdapAttribute> reallyAttributes;
+        m_entry->loadAttributes(reallyAttributes);
+
+        // first - save new attributes
+        for (auto& a : *m_pAttributes)
+        {
+            auto f = std::find_if(reallyAttributes.begin(), reallyAttributes.end(), [&](const ldapcore::CLdapAttribute& o)
+            {
+               return a.name() == o.name();
+            });
+            if (f == reallyAttributes.end() && a.isModified())
+            {
+                // add new attribute
+                try
+                {
+                    ldapcore::CLdapAttribute temp(a);
+                    m_entry->validateAttribute(temp);
+                    m_entry->addAttribute(temp);
+                }
+                catch(const std::exception& e)
+                {
+                    QMessageBox::critical(nullptr, "Error", e.what(), QMessageBox::Ok);
+                }
+
+            }
+
+        }
+
     }
 
 } //namespace ldapeditor

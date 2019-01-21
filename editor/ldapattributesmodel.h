@@ -47,6 +47,9 @@ namespace ldapeditor
         // Delete Data
         bool removeRows(int row, int count, const QModelIndex &parent = QModelIndex()) ;
 
+        // save data to server
+        void SaveToServer();
+
     private:
         QStringList m_SectionsList;
         bool m_IsChanged{false};

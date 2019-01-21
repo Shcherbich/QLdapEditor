@@ -59,7 +59,6 @@ std::vector<std::string> GetObjectClasses(LDAPConnection* le, std::string dn)
 	return vRet;
 }
 
-
 std::tuple< std::vector<std::string>, std::vector<std::string> >  GetAvailableAttributes(LDAPSchema& classSchema, LDAPConnection* le, std::string dn)
 {
 	std::vector<std::string> classes = GetObjectClasses(le, dn);
@@ -147,7 +146,6 @@ std::string ReplaceAttributeOnServer(LDAPConnection* conn, LDAPEntry* le, std::s
 		return ex.what();
 	}
 }
-
 
 
 namespace ldapcore
@@ -246,15 +244,20 @@ QVector<CLdapEntry*> CLdapEntry::children()
 
 void CLdapEntry::prepareAttributes()
 {
-	m_attributes.clear();
-	if (!m_pEntry)
-	{
-		return;
-	}
+    m_attributes.clear();
+    if (!m_pEntry)
+    {
+        return;
+    }
 
-    availableAttributesMustImpl();
     availableAttributesMayImpl();
+    availableAttributesMustImpl();
 
+    loadAttributes(m_attributes);
+
+}
+void CLdapEntry::loadAttributes(QVector<CLdapAttribute>& vRet)
+{
 	const LDAPAttributeList* al = m_pEntry->getAttributes();
 	LDAPAttributeList::const_iterator i = al->begin();
 	for (; i != al->end(); i++)
@@ -265,7 +268,7 @@ void CLdapEntry::prepareAttributes()
 		AttributeState editState = g_supportedTypesForEdit.contains(tp) ? AttributeState::AttributeValueReadWrite : AttributeState::AttributeReadOnly;
         auto name = i->getName();
         CLdapAttribute attr(name.c_str(), i->toString().c_str(), tp, isMust(name), editState);
-		m_attributes.push_back(attr);
+        vRet.push_back(attr);
 	}
 
 	{
@@ -300,7 +303,7 @@ void CLdapEntry::prepareAttributes()
                         AttributeState editState = g_supportedTypesForEdit.contains(tp) ? AttributeState::AttributeValueReadWrite : AttributeState::AttributeReadOnly;
                         auto name = i->getName();
                         CLdapAttribute attr(name.c_str(), i->toString().c_str(), tp, true, editState);
-                        m_attributes.push_back(attr);
+                        vRet.push_back(attr);
                         m_Must.push_back(attr);
                     }
                 }
@@ -314,16 +317,7 @@ void CLdapEntry::prepareAttributes()
 		
 	}
 
-    //qSort(m_attributes);
-    std::sort(m_attributes.begin(), m_attributes.end(), comp());
-    /*
-    std::sort(m_attributes.begin(), m_attributes.end(), [=](CLdapAttribute& l, CLdapAttribute& r) -> bool
-    {
-        if (l.isMust() != r.isMust())
-            return l.isMust() > r.isMust();
-        return l.name() < r.name();
-    });
-*/
+    std::sort(vRet.begin(), vRet.end(), comp());
 
 }
 
@@ -336,28 +330,6 @@ QVector<CLdapAttribute>* CLdapEntry::attributes()
 	return &m_attributes;
 }
 
-/*
-QVector<CLdapAttribute> CLdapEntry::availableAttributes()
-{
-	QVector<CLdapAttribute> attributes;
-	auto av = GetAvailableAttributes(*m_pData->schema().classesSchema(), m_Conn, dn().toStdString());
-	for (const auto& must : std::get<0>(av))
-	{
-		auto t = m_pData->schema().GetAttributeInfoByName(must);
-		auto tp = std::get<0>(t);
-		CLdapAttribute attr(must.c_str(), "", tp, AttributeState::AttributeReadWrite);
-		attributes.push_back(attr);
-	}
-	for (const auto& may : std::get<1>(av))
-	{
-		auto t = m_pData->schema().GetAttributeInfoByName(may);
-		auto tp = std::get<0>(t);
-		CLdapAttribute attr(may.c_str(), "", tp, AttributeState::AttributeReadWrite);
-		attributes.push_back(attr);
-	}
-	return attributes;
-}
-*/
 QVector<CLdapAttribute> CLdapEntry::availableAttributesMust()
 {
     return m_Must;
@@ -371,6 +343,7 @@ QVector<CLdapAttribute> CLdapEntry::availableAttributesMay()
 
 void CLdapEntry::availableAttributesMustImpl()
 {
+    m_Must.clear();
    auto av = GetAvailableAttributes(*m_pData->schema().classesSchema(), m_Conn, dn().toStdString());
    for (const auto& must : std::get<0>(av))
    {
@@ -383,6 +356,7 @@ void CLdapEntry::availableAttributesMustImpl()
 
 void CLdapEntry::availableAttributesMayImpl()
 {
+    m_May.clear();
    auto av = GetAvailableAttributes(*m_pData->schema().classesSchema(), m_Conn, dn().toStdString());
    for (const auto& may : std::get<1>(av))
    {
@@ -397,7 +371,7 @@ std::shared_ptr<CLdapAttribute> CLdapEntry::createEmptyAttribute(std::string att
 {
     auto t = m_pData->schema().GetAttributeInfoByName(attributeName);
     auto tp = std::get<0>(t);
-    std::shared_ptr<CLdapAttribute> p(new CLdapAttribute(attributeName.c_str(), "", tp, isMust(attributeName), AttributeState::AttributeValueReadWrite));
+    std::shared_ptr<CLdapAttribute> p(new CLdapAttribute(attributeName.c_str(), "", tp, isMust(attributeName), AttributeState::AttributeReadWrite));
     return p;
 }
 
@@ -408,6 +382,22 @@ bool CLdapEntry::isMust(std::string attributeName)
        return a.name() == attributeName.c_str();
     });
     return f != m_Must.end();
+}
+
+void CLdapEntry::validateAttribute(CLdapAttribute& attr)
+{
+    m_pData->schema().isNameExist(attr.name().toStdString());
+    m_pData->schema().checkBySyntaxName(attr.name().toStdString(), attr.value().toStdString());
+}
+
+void CLdapEntry::addAttribute(CLdapAttribute& newOb) throw(CLdapServerException)
+{
+    auto ret = AddAttributeToServer(m_Conn, m_pEntry, newOb.name().toStdString(), newOb.value().toStdString());
+    if (ret.size())
+    {
+        throw CLdapServerException(ret.c_str());
+    }
+
 }
 
 }

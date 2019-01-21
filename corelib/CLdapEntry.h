@@ -6,7 +6,7 @@
 #include <QVector>
 #include <memory>
 #include "CLdapAttribute.h"
-
+#include "CLdapException.h"
 
 class LDAPEntry;
 class LDAPConnection;
@@ -26,11 +26,15 @@ public:
 	CLdapEntry* parent();
 	QVector<CLdapEntry*> children();
 	QVector<CLdapAttribute>* attributes();
-    //QVector<CLdapAttribute> availableAttributes();
     QVector<CLdapAttribute> availableAttributesMay();
     QVector<CLdapAttribute> availableAttributesMust();
     bool                    isMust(std::string attributeName);
     std::shared_ptr<CLdapAttribute> createEmptyAttribute(std::string attributeName);
+
+    void                    validateAttribute(CLdapAttribute& attr);
+    void                    loadAttributes(QVector<CLdapAttribute>& );
+
+    void                    addAttribute(CLdapAttribute& newOb) throw(CLdapServerException);
 
 public:
 	QString dn();
@@ -60,6 +64,7 @@ private:
     QVector<CLdapAttribute> m_May;
 
 	friend class CLdapData;
+    friend class CLdapAttributesModel;
 };
 
 }

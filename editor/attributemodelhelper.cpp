@@ -16,7 +16,6 @@ QString  FromUTCString(QString customDateString)
     return timeConvertor.toString();
 
     /*
-
     to be .... next period
     // Mark this QDateTime as one with a certain offset from UTC, and set that
     // offset.
@@ -244,14 +243,20 @@ QVariant CAttributeModelHelper::foregroundRoleData(const ldapcore::CLdapAttribut
         case ldapcore::AttributeState::AttributeReadOnly:
             return QBrush(Qt::darkGray);
         case ldapcore::AttributeState::AttributeReadWrite:
+            break;
             if(index.column() > 0 && index.column() != 4)
+            {
                 return attr.isModified() ? QBrush(Qt::blue) : QBrush(Qt::black);
+            }
         case ldapcore::AttributeState::AttributeValueReadWrite:
+            break;
             if(index.column() == 2)
+            {
                 return attr.isModified() ? QBrush(Qt::blue) : QBrush(Qt::black);
+            }
         default:break;
     }
-    return QBrush(Qt::darkGray);
+    return QBrush(Qt::black);
 }
 
 bool CAttributeModelHelper::setEditRoleData(ldapcore::CLdapAttribute &attr, const QVariant& value, const QModelIndex &index)
