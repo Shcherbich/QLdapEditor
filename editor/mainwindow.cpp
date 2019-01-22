@@ -167,7 +167,7 @@ namespace ldapeditor
             bool hasChanges = !(!newRows.size() && !deleteRows.size() && !updateRows.size());
             if (hasChanges)
             {
-                auto ret = QMessageBox::question(this, "Question", "You have changes in attributes.\nDo you want to save these chenges to server?", QMessageBox::Yes|QMessageBox::No);
+                auto ret = QMessageBox::question(this, "Question", "You have changes in attributes.\nDo you want to save these changes to server?", QMessageBox::Yes|QMessageBox::No);
                 if (ret == QMessageBox::Yes)
                 {
                     m_TableModel->SaveToServer();
