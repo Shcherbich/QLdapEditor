@@ -276,6 +276,9 @@ std::map<std::string, std::function< std::string(std::string)> > syntaxNumber2to
 
 void CLdapSchema::checkBySyntaxName(std::string attributeName, std::string value) throw (CLdapMatchRuleException)
 {
+    // for testing need to test behevior on server, so do nothing
+    return;
+
     auto info = m_impl->attr2info.find(attributeName);
     if (info == m_impl->attr2info.end())
     {
