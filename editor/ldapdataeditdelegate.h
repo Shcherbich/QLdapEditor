@@ -21,12 +21,14 @@ public:
     void setModelData(QWidget *editor, QAbstractItemModel *model,const QModelIndex &index) const override;
     void updateEditorGeometry(QWidget *editor,const QStyleOptionViewItem &option, const QModelIndex &index) const override;
     bool canDeleteRow(const QModelIndex &index) const;
+    void expandEditor() const;
 signals:
 
 public slots:
 protected:
     mutable ldapcore::AttrType m_attrType;
     mutable ldapcore::CLdapEntry* m_entry{nullptr};
+    mutable QWidget* editor{nullptr};
 };
 
 

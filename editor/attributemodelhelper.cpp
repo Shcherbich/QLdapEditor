@@ -1,3 +1,4 @@
+#include "const.h"
 #include "attributemodelhelper.h"
 #include "ldapeditordefines.h"
 #include <QDateTime>
@@ -12,8 +13,8 @@ QString  FromUTCString(QString customDateString)
     QDateTime timeConvertor;
     QString dateTime = customDateString.left(14);
     int timezoneOffset = customDateString.right(5).left(3).toInt();
-    timeConvertor = QDateTime::fromString(dateTime, "yyyyMMddHHmmss");
-    return timeConvertor.toString();
+    timeConvertor = QDateTime::fromString(dateTime, LDAP_EDITOR_SERVER_DATETIME_FORMAT);
+    return timeConvertor.toString(LDAP_EDITOR_UI_DATETIME_FORMAT);
 
     /*
     to be .... next period
@@ -203,7 +204,7 @@ QVariant CAttributeModelHelper::editRoleData(const ldapcore::CLdapAttribute &att
     case ldapcore::AttrType::GeneralizedTime:
         {
             v = v.trimmed().toLower();
-            return QDateTime::fromString(v, "yyyyMMddHHmmss.zzz");
+            return QDateTime::fromString(v, LDAP_EDITOR_UI_DATETIME_FORMAT);
         }
     case ldapcore::AttrType::UtcTime:
     {
@@ -281,10 +282,10 @@ bool CAttributeModelHelper::setEditRoleData(ldapcore::CLdapAttribute &attr, cons
              attr.setValue(QString::number(value.toInt()));
              break;
         case ldapcore::AttrType::GeneralizedTime:
-            attr.setValue(value.toDateTime().toString("yyyyMMddHHmmss.zzz"));
+            attr.setValue(value.toDateTime().toString(LDAP_EDITOR_SERVER_DATETIME_FORMAT) + LDAP_EDITOR_SERVER_POSTFIX);
             break;
         case ldapcore::AttrType::UtcTime:
-             attr.setValue(value.toDateTime().toUTC().toString("yyyyMMddHHmmss.zzz"));
+             attr.setValue(value.toDateTime().toUTC().toString(LDAP_EDITOR_SERVER_DATETIME_FORMAT) + LDAP_EDITOR_SERVER_POSTFIX);
             break;
         default:
             attr.setValue(value.toString());

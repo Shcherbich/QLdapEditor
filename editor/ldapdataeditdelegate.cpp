@@ -1,3 +1,4 @@
+#include "const.h"
 #include "ldapdataeditdelegate.h"
 #include "ldapeditordefines.h"
 #include "CLdapEntry.h"
@@ -27,7 +28,7 @@ void CLdapDataEditDelegate::setLdapEntry(ldapcore::CLdapEntry* entry)
 
 QWidget* CLdapDataEditDelegate::createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
-    QWidget* editor{nullptr};
+    editor = nullptr;
     if(index.column() == 1)
     {
         QComboBox* e = new QComboBox(parent);
@@ -57,7 +58,7 @@ QWidget* CLdapDataEditDelegate::createEditor(QWidget *parent, const QStyleOption
             case ldapcore::AttrType::GeneralizedTime:
             {
                 QDateTimeEdit* e  = new QDateTimeEdit(parent);
-                e->setDisplayFormat("yyyy.MM.dd HH:mm:ss.zzz");
+                e->setDisplayFormat(LDAP_EDITOR_UI_DATETIME_FORMAT);
                 editor = e;
             }
             break;
@@ -155,7 +156,8 @@ void CLdapDataEditDelegate::setEditorData(QWidget *editor, const QModelIndex &in
         case ldapcore::AttrType::GeneralizedTime:
             {
                 QDateTimeEdit *edit = static_cast<QDateTimeEdit*>(editor);
-                edit->setDateTime(index.model()->data(index, Qt::EditRole).toDateTime());
+                auto d = index.model()->data(index, Qt::EditRole).toDateTime();
+                edit->setDateTime(d);
             }
             break;
         default:
@@ -230,6 +232,16 @@ bool CLdapDataEditDelegate::canDeleteRow(const QModelIndex &index) const
     bool b1 = index.isValid() && m_entry && m_entry->attributes() != nullptr;
     bool canDelete = b1 && m_entry->attributes()->size() > row && !(*m_entry->attributes())[row].isMust();
     return canDelete;
+}
+
+void CLdapDataEditDelegate::expandEditor() const
+{
+    QComboBox* qe = qobject_cast<QComboBox*>(editor);
+    if (qe == nullptr)
+    {
+        return;
+    }
+    qe->showPopup();
 }
 
 }//namespace ldapeditor

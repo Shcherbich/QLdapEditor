@@ -14,7 +14,12 @@ namespace ldapeditor
         ui->setupUi(this);
         ui->searchDnEdit->setText(ldapData.baseDN());
         ui->filterEdit->setText("objectClass=*");
-        ui->radioOneLevel->setChecked(true);
+
+        ui->radioSubTree->setChecked(true);
+        ui->label_4->setVisible(false);
+        ui->radioOneLevel->setVisible(false);
+        ui->radioSubTree->setVisible(false);
+
         connect(ui->closeButton, &QAbstractButton::clicked, this, &CLDapSearchDialog::onCloseClicked);
         connect(ui->searchButton, &QAbstractButton::clicked, this, &CLDapSearchDialog::onSearchClicked);
 

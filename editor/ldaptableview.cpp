@@ -92,7 +92,12 @@ namespace ldapeditor
 
     void CLdapTableView::onNewAttribute()
     {
-        model()->insertRows(model()->rowCount(), 1);
+        int row = model()->rowCount();
+        model()->insertRows(row, 1);
+        auto index = model()->index(row, 1);
+        QAbstractItemView* abstractItemView = this;
+        abstractItemView->edit(index);
+        m_ldapDataDelegate.expandEditor();
     }
 
     void CLdapTableView::onDeleteAttribute()

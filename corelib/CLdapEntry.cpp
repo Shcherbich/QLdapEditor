@@ -142,7 +142,7 @@ std::string ReplaceAttributeOnServer(LDAPConnection* conn, LDAPEntry* le, std::s
         conn->modify_s(le->getDN(), mod);
 		return "";
 	}
-	catch (const std::exception ex)
+    catch (const std::exception& ex)
 	{
 		return ex.what();
 	}
