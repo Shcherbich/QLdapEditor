@@ -259,6 +259,10 @@ void CLdapEntry::prepareAttributes()
 }
 void CLdapEntry::loadAttributes(QVector<CLdapAttribute>& vRet)
 {
+    if (m_pEntry == nullptr)
+    {
+        return;
+    }
 	const LDAPAttributeList* al = m_pEntry->getAttributes();
 	LDAPAttributeList::const_iterator i = al->begin();
 	for (; i != al->end(); i++)
@@ -396,7 +400,8 @@ void CLdapEntry::addAttribute(CLdapAttribute& newOb) throw(CLdapServerException)
     auto ret = AddAttributeToServer(m_Conn, m_pEntry, newOb.name().toStdString(), newOb.value().toStdString());
     if (ret.size())
     {
-        throw CLdapServerException(ret.c_str());
+        auto err = QString("Add new attribute '%1': %2").arg(newOb.name()).arg(ret.c_str());
+        throw CLdapServerException(err.toStdString().c_str());
     }
 }
 
@@ -405,7 +410,18 @@ void CLdapEntry::deleteAttribute(CLdapAttribute& object) throw(CLdapServerExcept
     auto ret = DeleteAttributeFromServer(m_Conn, m_pEntry, object.name().toStdString());
     if (ret.size())
     {
-        throw CLdapServerException(ret.c_str());
+        auto err = QString("Delete attribute '%1': %2").arg(object.name()).arg(ret.c_str());
+        throw CLdapServerException(err.toStdString().c_str());
+    }
+}
+
+void CLdapEntry::updateAttribute(CLdapAttribute& object) throw(CLdapServerException)
+{
+    auto ret = ReplaceAttributeOnServer(m_Conn, m_pEntry, object.name().toStdString(), object.value().toStdString());
+    if (ret.size())
+    {
+        auto err = QString("Update attribute '%1': %2").arg(object.name()).arg(ret.c_str());
+        throw CLdapServerException(err.toStdString().c_str());
     }
 }
 

@@ -155,17 +155,25 @@ namespace ldapeditor
 
     void MainWindow::onTreeItemChanged(const QModelIndex& current, const QModelIndex& previous)
     {
-//        if(previous.isValid() && m_TableModel->IsChanged())
-//        {
-//            QStringList l = m_TableModel->attributesList();
-//            QString dn = l.join(", ");
-//            m_TreeModel->setData(previous, l, ldapeditor::AttributesListRole);
-//            m_TreeModel->setData(previous, dn, Qt::DisplayRole);
-//        }
-//         m_TableModel->setAttributesList(current.data(ldapeditor::AttributesListRole).toStringList());
+        if(!current.isValid())
+        {
+            return;
+        }
 
-
-        if(!current.isValid()) return ;
+        if(previous.isValid())
+        {
+            QVector<ldapcore::CLdapAttribute> newRows, deleteRows, updateRows;
+            m_TableModel->GetChangedRows(newRows, deleteRows, updateRows);
+            bool hasChanges = !(!newRows.size() && !deleteRows.size() && !updateRows.size());
+            if (hasChanges)
+            {
+                auto ret = QMessageBox::question(this, "Question", "You have changes in attributes.\nDo you want to save these chenges to server?", QMessageBox::Yes|QMessageBox::No);
+                if (ret == QMessageBox::Yes)
+                {
+                    m_TableModel->SaveToServer();
+                }
+            }
+        }
 
         ldapcore::CLdapEntry* currentEntry = static_cast<ldapcore::CLdapEntry*>(current.internalPointer());
         if(currentEntry)

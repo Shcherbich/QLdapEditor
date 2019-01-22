@@ -170,13 +170,14 @@ namespace ldapeditor
         return true;
     }
 
-    void CLdapAttributesModel::SaveToServer()
+    void CLdapAttributesModel::GetChangedRows(QVector<ldapcore::CLdapAttribute>& newRows,
+                                              QVector<ldapcore::CLdapAttribute>& deleteRows,
+                                              QVector<ldapcore::CLdapAttribute>& updateRows)
     {
         if (m_pAttributes == nullptr)
         {
             return;
         }
-
         QVector<ldapcore::CLdapAttribute> reallyAttributes;
         m_entry->loadAttributes(reallyAttributes);
 
@@ -189,18 +190,7 @@ namespace ldapeditor
             });
             if (f == reallyAttributes.end() && a.isModified())
             {
-                // add new attribute
-                try
-                {
-                    ldapcore::CLdapAttribute temp(a);
-                    m_entry->validateAttribute(temp);
-                    m_entry->addAttribute(temp);
-                }
-                catch(const std::exception& e)
-                {
-                    QMessageBox::critical(nullptr, "Error", e.what(), QMessageBox::Ok);
-                }
-
+                newRows.push_back(a);
             }
         }
 
@@ -214,17 +204,64 @@ namespace ldapeditor
             });
             if (f == m_pAttributes->end())
             {
-                // delete attribute
-                try
-                {
-                    ldapcore::CLdapAttribute temp(r);
-                    m_entry->deleteAttribute(temp);
-                }
-                catch(const std::exception& e)
-                {
-                    QMessageBox::critical(nullptr, "Error", e.what(), QMessageBox::Ok);
-                }
+                deleteRows.push_back(r);
+            }
+        }
 
+        // second - update attributes
+        for (auto& r : reallyAttributes)
+        {
+            auto f = std::find_if(m_pAttributes->begin(), m_pAttributes->end(), [&](const ldapcore::CLdapAttribute& o)
+            {
+               return r.name() == o.name();
+            });
+            if (f != m_pAttributes->end() && f->isModified())
+            {
+                updateRows.push_back(*f);
+            }
+        }
+
+    }
+
+    void CLdapAttributesModel::SaveToServer()
+    {
+        QVector<ldapcore::CLdapAttribute> newRows, deleteRows, updateRows;
+        GetChangedRows(newRows, deleteRows, updateRows);
+        if (!newRows.size() && !deleteRows.size() && !updateRows.size())
+        {
+            return;
+        }
+        for (auto& n : newRows)
+        {
+            try
+            {
+                m_entry->addAttribute(n);
+            }
+            catch(const std::exception& e)
+            {
+                QMessageBox::critical(nullptr, "Error", e.what(), QMessageBox::Ok);
+            }
+        }
+        for (auto& d : deleteRows)
+        {
+            try
+            {
+                m_entry->deleteAttribute(d);
+            }
+            catch(const std::exception& e)
+            {
+                QMessageBox::critical(nullptr, "Error", e.what(), QMessageBox::Ok);
+            }
+        }
+        for (auto& u : updateRows)
+        {
+            try
+            {
+                m_entry->updateAttribute(u);
+            }
+            catch(const std::exception& e)
+            {
+                QMessageBox::critical(nullptr, "Error", e.what(), QMessageBox::Ok);
             }
         }
 

@@ -36,6 +36,7 @@ public:
 
     void                    addAttribute(CLdapAttribute& newOb) throw(CLdapServerException);
     void                    deleteAttribute(CLdapAttribute& newOb) throw(CLdapServerException);
+    void                    updateAttribute(CLdapAttribute& newOb) throw(CLdapServerException);
     void                    flushAttributeCache();
 
 public:

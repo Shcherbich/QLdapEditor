@@ -86,7 +86,7 @@ namespace ldapeditor
     {
         QModelIndex index = indexAt(pos);
         m_delAttr->setData(index);
-        m_delAttr->setEnabled(index.isValid());
+        m_delAttr->setEnabled(index.isValid() && m_ldapDataDelegate.canDeleteRow(index));
         m_contextMenu.popup(viewport()->mapToGlobal(pos));
     }
 

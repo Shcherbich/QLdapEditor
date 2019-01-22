@@ -223,4 +223,13 @@ void CLdapDataEditDelegate::updateEditorGeometry(QWidget *editor,const QStyleOpt
 {
     editor->setGeometry(option.rect);
 }
+
+bool CLdapDataEditDelegate::canDeleteRow(const QModelIndex &index) const
+{
+    int row = index.row();
+    bool b1 = index.isValid() && m_entry && m_entry->attributes() != nullptr;
+    bool canDelete = b1 && m_entry->attributes()->size() > row && !(*m_entry->attributes())[row].isMust();
+    return canDelete;
+}
+
 }//namespace ldapeditor
