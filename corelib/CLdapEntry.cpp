@@ -283,8 +283,8 @@ void CLdapEntry::loadAttributes(QVector<CLdapAttribute>& vRet)
 			systemAttrs.add("creatorsname");
 			systemAttrs.add("createtimestamp");
 			systemAttrs.add("modifiersname");
-			systemAttrs.add("structuralObjectClass");
-			systemAttrs.add("entryUUID");
+            systemAttrs.add("objectClasses");
+            systemAttrs.add("entryUUID");
 			systemAttrs.add("modifytimestamp");
 			systemAttrs.add("subschemaSubentry");
 			systemAttrs.add("hasSubordinates");

@@ -228,8 +228,8 @@ std::string LDAPAttribute::toString() const
 		StringList::const_iterator j = values.begin();
 		for( ; j != values.end(); j++)
 		{
-			//if (!value.empty())
-				//value += ";";
+            if (!value.empty())
+                value += ";";
 			value += j->c_str();
 		}
 		return value;

@@ -35,6 +35,7 @@ namespace ldapeditor
         void onTreeItemChanged(const QModelIndex& current, const QModelIndex& previous);
         void onLdapSearch();
         void onSaveData();
+        void onQuit();
         void onReload();
 
     protected:

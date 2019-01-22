@@ -88,9 +88,9 @@ namespace ldapeditor
         dataMenu->setStatusTip(tr("Save data"));
         dataMenu->addAction(saveDataAction);
 
-//        QAction *reloadAction = dataMenu->addAction(tr("&Re-connect to server"), this, &MainWindow::onReload);
-//        reloadAction->setStatusTip(tr("Reconnect to server and reload data"));
-//        dataMenu->addAction(reloadAction);
+        QAction* quitAction = dataMenu->addAction(tr("&Quit"), this, &MainWindow::onQuit);
+        dataMenu->setStatusTip(tr("Quit"));
+        dataMenu->addAction(quitAction);
 
         QMenu *helpMenu = menuBar()->addMenu(tr("&Help"));
         QAction *aboutAction = helpMenu->addAction(tr("About &App"), this, &MainWindow::onAboutApp);
@@ -194,6 +194,12 @@ namespace ldapeditor
     {
         m_TableModel->SaveToServer();
     }
+
+    void MainWindow::onQuit()
+    {
+        close();
+    }
+
 
     void MainWindow::onReload()
     {
