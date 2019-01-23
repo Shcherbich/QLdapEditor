@@ -267,6 +267,7 @@ bool CAttributeModelHelper::setEditRoleData(ldapcore::CLdapAttribute &attr, cons
     if(index.column() == 1) // title
     {
         attr.setName(value.toString());
+        attr.setEditState(ldapcore::AttributeState::AttributeValueReadWrite);
     }
     else if(index.column() == 2) //value
     {
