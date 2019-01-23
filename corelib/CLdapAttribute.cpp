@@ -121,6 +121,11 @@ void CLdapAttribute::setType(AttrType type)
 	m_isModified = true;
 }
 
+void CLdapAttribute::setEditState(AttributeState state)
+{
+    m_editState = state;
+}
+
 bool CLdapAttribute::validateValue(const QString& value)
 {
 	return true;

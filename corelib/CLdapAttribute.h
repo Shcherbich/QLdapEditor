@@ -108,6 +108,7 @@ public:
 	void setName(const QString& name);
 	void setValue(const QString& value);
 	void setType(AttrType type);
+    void setEditState(AttributeState state);
 
     /*
     bool operator < (CLdapAttribute& o) const

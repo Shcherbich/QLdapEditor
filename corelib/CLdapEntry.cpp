@@ -269,8 +269,8 @@ void CLdapEntry::loadAttributes(QVector<CLdapAttribute>& vRet)
 	{
 		auto t = m_pData->schema().GetAttributeInfoByName(i->getName().c_str());
 		auto tp = std::get<0>(t);
-		//auto editable = std::get<1>(t);
-		AttributeState editState = g_supportedTypesForEdit.contains(tp) ? AttributeState::AttributeValueReadWrite : AttributeState::AttributeReadOnly;
+        auto editable = std::get<1>(t);
+        AttributeState editState = editable ? AttributeState::AttributeValueReadWrite : AttributeState::AttributeReadOnly;
         auto name = i->getName();
         CLdapAttribute attr(name.c_str(), i->toString().c_str(), tp, isMust(name), editState);
         vRet.push_back(attr);
@@ -304,8 +304,9 @@ void CLdapEntry::loadAttributes(QVector<CLdapAttribute>& vRet)
                     {
                         auto t = m_pData->schema().GetAttributeInfoByName(i->getName().c_str());
                         auto tp = std::get<0>(t);
-                        //auto editable = std::get<1>(t);
-                        AttributeState editState = g_supportedTypesForEdit.contains(tp) ? AttributeState::AttributeValueReadWrite : AttributeState::AttributeReadOnly;
+                        auto editable = std::get<1>(t);
+                        AttributeState editState = AttributeState::AttributeReadOnly;
+                        //AttributeState editState = editable ? AttributeState::AttributeValueReadWrite : AttributeState::AttributeReadOnly;
                         auto name = i->getName();
                         CLdapAttribute attr(name.c_str(), i->toString().c_str(), tp, true, editState);
                         vRet.push_back(attr);

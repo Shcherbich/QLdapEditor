@@ -167,7 +167,7 @@ void CLdapDataEditDelegate::setEditorData(QWidget *editor, const QModelIndex &in
             }
         }
     }
-    else if(index.column() == 3)
+    /*else if(index.column() == 3)
     {
         QComboBox *edit = static_cast<QComboBox*>(editor);
         for(int i=0; i< edit->count();i++)
@@ -179,6 +179,7 @@ void CLdapDataEditDelegate::setEditorData(QWidget *editor, const QModelIndex &in
             }
         }
     }
+    */
 
 
 }
