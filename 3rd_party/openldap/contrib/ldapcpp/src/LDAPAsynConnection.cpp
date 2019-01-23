@@ -41,6 +41,8 @@ LDAPAsynConnection::LDAPAsynConnection(const string& url, int port,
     	this->initialize(url);
     }
     this->setConstraints(cons);
+
+
 }
 
 LDAPAsynConnection::~LDAPAsynConnection(){
@@ -68,6 +70,9 @@ void LDAPAsynConnection::init(const string& hostname, int port){
     int opt=3;
     ldap_set_option(cur_session, LDAP_OPT_REFERRALS, LDAP_OPT_OFF);
     ldap_set_option(cur_session, LDAP_OPT_PROTOCOL_VERSION, &opt);
+    timeval tcp = {0};
+    tcp.tv_sec = 10;
+    ldap_set_option(cur_session, LDAP_OPT_NETWORK_TIMEOUT, &tcp);
 }
 
 void LDAPAsynConnection::initialize(const std::string& uri){
@@ -81,6 +86,9 @@ void LDAPAsynConnection::initialize(const std::string& uri){
     int opt=3;
     ldap_set_option(cur_session, LDAP_OPT_REFERRALS, LDAP_OPT_OFF);
     ldap_set_option(cur_session, LDAP_OPT_PROTOCOL_VERSION, &opt);
+    timeval tcp = {0};
+    tcp.tv_sec = 10;
+    ldap_set_option(cur_session, LDAP_OPT_NETWORK_TIMEOUT, &tcp);
 }
 
 void LDAPAsynConnection::start_tls(){
@@ -364,3 +372,18 @@ LDAPAsynConnection* LDAPAsynConnection::referralConnect(
     return 0;
 }
 
+
+
+void  LDAPAsynConnection::modify_s(const string& dn, LDAPModList *mod)
+{
+    DEBUG(LDAP_DEBUG_TRACE,"LDAPAsynConnection::modify()" << endl);
+    DEBUG(LDAP_DEBUG_TRACE | LDAP_DEBUG_PARAMETER,"   dn:" << dn << endl);
+
+    LDAPMod** tmpMods = mod->toLDAPModArray();
+    int err = ldap_modify_ext_s(getSessionHandle(), dn.c_str(),
+            tmpMods, nullptr, nullptr);
+    ldap_mods_free(tmpMods, 1);
+    if(err != LDAP_SUCCESS){
+        throw LDAPException(err);
+    }
+}

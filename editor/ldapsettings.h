@@ -49,6 +49,21 @@ namespace ldapeditor
         bool useAnonymous() const;
         void setUseAnonymous(bool anonymous);
 
+        int columnDn() const;
+        void setColumnDn(int w);
+
+        int columnAttribute() const;
+        void setColumnAttribute(int w);
+
+        int columnValue() const;
+        void setColumnValue(int w);
+
+        int columnType() const;
+        void setColumnType(int w);
+
+        int columnSize() const;
+        void setColumnSize(int w);
+
         int timeout() const;
 
         void sync();

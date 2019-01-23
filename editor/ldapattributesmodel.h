@@ -6,11 +6,8 @@
 #include <QStringList>
 #include <QVector>
 #include "CLdapAttribute.h"
+#include "CLdapEntry.h"
 #include "attributemodelhelper.h"
-
-//namespace ldapcore {
-// class CLdapAttribute;
-//}
 
 namespace ldapeditor
 {
@@ -19,9 +16,9 @@ namespace ldapeditor
         Q_OBJECT
 
     public:
-        explicit CLdapAttributesModel(QObject *parent = nullptr);
+        explicit CLdapAttributesModel(QObject *parent);
 
-        void setAttributesList(QVector<ldapcore::CLdapAttribute>* pAttrs);
+        void setLdapEntry(ldapcore::CLdapEntry* entry);
         bool IsChanged() const {return m_IsChanged;}
         void setBaseDN(const QString& baseDN){m_baseDN = baseDN.toLower();}
 
@@ -49,19 +46,18 @@ namespace ldapeditor
 
         // Delete Data
         bool removeRows(int row, int count, const QModelIndex &parent = QModelIndex()) ;
+
+        // save data to server
+        void GetChangedRows(QVector<ldapcore::CLdapAttribute>& newRows, QVector<ldapcore::CLdapAttribute>& deleteRows, QVector<ldapcore::CLdapAttribute>& updateRows);
+        void SaveToServer();
+
     private:
-
-
-
         QStringList m_SectionsList;
         bool m_IsChanged{false};
         QString m_baseDN;
+        ldapcore::CLdapEntry* m_entry{nullptr};
         QVector<ldapcore::CLdapAttribute>* m_pAttributes{nullptr};
-
         CAttributeModelHelper m_attrHelper;
-
-
-
     };
 } //namespace ldapeditor
 

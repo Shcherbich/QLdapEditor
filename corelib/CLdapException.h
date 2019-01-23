@@ -11,7 +11,7 @@ class CLdapNameMissedException : public std::exception
 {
 public:
 	CLdapNameMissedException(char const* lpText);
-    virtual char const* what() const _GLIBCXX_USE_NOEXCEPT;
+	virtual char const* what() const _GLIBCXX_USE_NOEXCEPT;
 
 private:
 	std::string m_what;
@@ -23,11 +23,23 @@ class CLdapMatchRuleException : public std::exception
 {
 public:
 	CLdapMatchRuleException(char const* lpText);
-    virtual char const* what() const _GLIBCXX_USE_NOEXCEPT;
+	virtual char const* what() const _GLIBCXX_USE_NOEXCEPT;
 
 private:
 	std::string m_what;
 };
+
+
+class CLdapServerException : public std::exception
+{
+public:
+    CLdapServerException(char const* lpText);
+    virtual char const* what() const _GLIBCXX_USE_NOEXCEPT;
+
+private:
+    std::string m_what;
+};
+
 
 }
 

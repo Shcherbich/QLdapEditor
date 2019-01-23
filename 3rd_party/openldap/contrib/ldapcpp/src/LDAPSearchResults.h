@@ -44,6 +44,7 @@ class LDAPSearchResults{
          * @returns A LDAPEntry-object as a result of a SEARCH-Operation or
          *          0 if no more entries are there to return.
          */
+        LDAPEntry* top();
         LDAPEntry* getNext();
     private :
         LDAPEntryList entryList;

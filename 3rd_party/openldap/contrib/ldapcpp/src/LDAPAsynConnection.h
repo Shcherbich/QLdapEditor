@@ -206,6 +206,8 @@ class LDAPAsynConnection{
                 const LDAPModList *modlist,
                 const LDAPConstraints *cons=0);
 
+        void modify_s(const std::string& dn, LDAPModList *mod);
+
         /** modify the DN of an entry
          *
          * @throws LDAPException If the Request could not be sent to the

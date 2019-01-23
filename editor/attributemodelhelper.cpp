@@ -1,10 +1,34 @@
+#include "const.h"
 #include "attributemodelhelper.h"
 #include "ldapeditordefines.h"
 #include <QDateTime>
 #include <QBrush>
+#include <QFont>
 
 namespace ldapeditor
 {
+
+QString  FromUTCString(QString customDateString)
+{
+    QDateTime timeConvertor;
+    QString dateTime = customDateString.left(14);
+    int timezoneOffset = customDateString.right(5).left(3).toInt();
+    timeConvertor = QDateTime::fromString(dateTime, LDAP_EDITOR_SERVER_DATETIME_FORMAT);
+    return timeConvertor.toString(LDAP_EDITOR_UI_DATETIME_FORMAT);
+
+    /*
+    to be .... next period
+    // Mark this QDateTime as one with a certain offset from UTC, and set that
+    // offset.
+    timeConvertor.setTimeSpec(Qt::OffsetFromUTC);
+    timeConvertor.setUtcOffset(timezoneOffset * 3600);
+
+    // Convert this QDateTime to UTC.
+    timeConvertor = timeConvertor.toUTC();
+    return timeConvertor.toString();
+    */
+}
+
 
 CAttributeModelHelper::CAttributeModelHelper()
 {
@@ -81,6 +105,8 @@ QVariant CAttributeModelHelper::data(const ldapcore::CLdapAttribute&  attr, cons
         return tooltipRoleData(attr,index);
     case Qt::ForegroundRole:
         return foregroundRoleData(attr,index);
+    case Qt::FontRole:
+        return fontRoleData(attr,index);
     case ldapeditor::AttrTypeRole:
         return static_cast<int>(attr.type());
     default: break;
@@ -98,6 +124,18 @@ bool CAttributeModelHelper::setData(ldapcore::CLdapAttribute&  attr, const QMode
     }
     return false;
 }
+
+QVariant CAttributeModelHelper::fontRoleData(const ldapcore::CLdapAttribute &attr, const QModelIndex &index)const
+{
+    if (attr.isModified())
+    {
+        QFont font;
+        font.setBold(true);
+        return font;
+    }
+    return QVariant();
+}
+
 
 QString CAttributeModelHelper::attributeType2String(ldapcore::AttrType type) const
 {
@@ -121,7 +159,9 @@ QString CAttributeModelHelper::formatValueByType(const ldapcore::CLdapAttribute&
         }
         break;
     case ldapcore::AttrType::GeneralizedTime:
-        retValue = (QDateTime::fromString(attr.value(), "yyyyMMddHHmmss.zzz")).toString("yyyyMMddHHmmss.zzz");
+        {
+            retValue = FromUTCString(attr.value());
+        }
         break;
     default:
         retValue = attr.value();
@@ -164,7 +204,7 @@ QVariant CAttributeModelHelper::editRoleData(const ldapcore::CLdapAttribute &att
     case ldapcore::AttrType::GeneralizedTime:
         {
             v = v.trimmed().toLower();
-            return QDateTime::fromString(v, "yyyyMMddHHmmss.zzz");
+            return QDateTime::fromString(v, LDAP_EDITOR_UI_DATETIME_FORMAT);
         }
     case ldapcore::AttrType::UtcTime:
     {
@@ -195,19 +235,29 @@ QVariant CAttributeModelHelper::tooltipRoleData(const ldapcore::CLdapAttribute &
 
 QVariant CAttributeModelHelper::foregroundRoleData(const ldapcore::CLdapAttribute &attr, const QModelIndex &index)const
 {
+    if (attr.isMust())
+    {
+        return QColor(Qt::blue);
+    }
     switch(attr.editState())
     {
         case ldapcore::AttributeState::AttributeReadOnly:
             return QBrush(Qt::darkGray);
         case ldapcore::AttributeState::AttributeReadWrite:
+            break;
             if(index.column() > 0 && index.column() != 4)
-                return attr.isModified() ? QBrush(Qt::red) : QBrush(Qt::black);
+            {
+                return attr.isModified() ? QBrush(Qt::blue) : QBrush(Qt::black);
+            }
         case ldapcore::AttributeState::AttributeValueReadWrite:
+            break;
             if(index.column() == 2)
-                return attr.isModified() ? QBrush(Qt::red) : QBrush(Qt::black);
+            {
+                return attr.isModified() ? QBrush(Qt::blue) : QBrush(Qt::black);
+            }
         default:break;
     }
-    return QBrush(Qt::darkGray);
+    return QBrush(Qt::black);
 }
 
 bool CAttributeModelHelper::setEditRoleData(ldapcore::CLdapAttribute &attr, const QVariant& value, const QModelIndex &index)
@@ -232,10 +282,10 @@ bool CAttributeModelHelper::setEditRoleData(ldapcore::CLdapAttribute &attr, cons
              attr.setValue(QString::number(value.toInt()));
              break;
         case ldapcore::AttrType::GeneralizedTime:
-            attr.setValue(value.toDateTime().toString("yyyyMMddHHmmss.zzz"));
+            attr.setValue(value.toDateTime().toString(LDAP_EDITOR_SERVER_DATETIME_FORMAT) + LDAP_EDITOR_SERVER_POSTFIX);
             break;
         case ldapcore::AttrType::UtcTime:
-             attr.setValue(value.toDateTime().toUTC().toString("yyyyMMddHHmmss.zzz"));
+             attr.setValue(value.toDateTime().toUTC().toString(LDAP_EDITOR_SERVER_DATETIME_FORMAT) + LDAP_EDITOR_SERVER_POSTFIX);
             break;
         default:
             attr.setValue(value.toString());

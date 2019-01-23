@@ -91,10 +91,18 @@ namespace ldapeditor
             if(!item->parent()) return QIcon(":/home");
             for(auto& a: *item->attributes())
             {
-                if(a.value().contains("groupOfUniqueNames;"))
-                    return QIcon(":/group");
-                if(a.value().contains("inetOrgPerson;organizationalPerson;person;"))
-                           return QIcon(":/person");
+                QStringList group = a.value().split(";");
+                if(group.contains("top",Qt::CaseInsensitive))
+                {
+                    if(group.contains("group",Qt::CaseInsensitive))
+                        return QIcon(":/group");
+                    else if(group.contains("person",Qt::CaseInsensitive))
+                        return QIcon(":/person");
+                    else if(group.contains("organizationalUnit",Qt::CaseInsensitive))
+                        return QIcon(":/diagram");
+                    else
+                        return QIcon(":/folder");
+                }
             }
         }
 

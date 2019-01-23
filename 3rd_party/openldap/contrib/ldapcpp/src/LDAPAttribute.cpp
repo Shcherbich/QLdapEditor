@@ -19,8 +19,14 @@
 #include "StringList.h"
 
 #include "LDAPAttribute.h"
+#include <sstream>      // std::stringstream
 
 using namespace std;
+
+bool isCharBinary(int const c)
+{
+    return !(c >= 2 && c <= 255);
+}
 
 LDAPAttribute::LDAPAttribute(){
     DEBUG(LDAP_DEBUG_CONSTRUCT, "LDAPAttribute::LDAPAttribute( )" << endl);
@@ -33,6 +39,7 @@ LDAPAttribute::LDAPAttribute(const LDAPAttribute& attr){
             "   attr:" << attr << endl);
 	m_name=attr.m_name;
     m_values=StringList(attr.m_values);
+	hexData = attr.hexData;
 }
 
 LDAPAttribute::LDAPAttribute(const string& name, const string& value){
@@ -81,8 +88,36 @@ void LDAPAttribute::addValue(const string& value){
 
 int LDAPAttribute::addValue(const BerValue *value){
     DEBUG(LDAP_DEBUG_TRACE,"LDAPAttribute::addValue()" << endl);
-	if(value!=0){
-		this->addValue(string(value->bv_val, value->bv_len));
+	if(value!=0)
+	{
+		if (hexData.empty())
+		{
+			bool hasBinaryValue = false;
+			for (size_t i = 0; i < value->bv_len; i++)
+			{
+				if (isCharBinary(value->bv_val[i]))
+				{
+					hasBinaryValue = true;
+					break;
+				}
+			}
+
+			if (hasBinaryValue)
+			{
+				std::string val = toString();
+				hexData.insert(hexData.begin(), val.begin(), val.end());
+				hexData.insert(hexData.end(), value->bv_val, value->bv_val + value->bv_len);
+				m_values = StringList();
+			}
+			else
+			{
+				this->addValue(string(value->bv_val, value->bv_len));
+			}
+		}
+		else 
+		{
+			hexData.insert(hexData.end(), value->bv_val, value->bv_val + value->bv_len);
+		}
 		return 0;
 	}
 	return -1;
@@ -172,22 +207,55 @@ LDAPMod* LDAPAttribute::toLDAPMod() const {
     return ret;
 }
 
+bool LDAPAttribute::isBinary() const 
+{
+	return hexData.size() > 0;
+}
+
+std::string LDAPAttribute::toString() const
+{
+	if (!hexData.empty())
+	{
+		std::stringstream ss;
+		for(int i = 0; i < hexData.size(); ++i)
+			ss << std::hex << (int)hexData[i];
+		return ss.str();
+	}
+	else
+	{
+		std::string value;
+		StringList values = getValues();
+		StringList::const_iterator j = values.begin();
+		for( ; j != values.end(); j++)
+		{
+            if (!value.empty())
+                value += ";";
+			value += j->c_str();
+		}
+		return value;
+	}
+}
+
 bool LDAPAttribute::isNotPrintable() const {
     StringList::const_iterator i;
     for(i=m_values.begin(); i!=m_values.end(); i++){
 	size_t len = i->size();
-	for(size_t j=0; j<len; j++){
-	    if (! isprint( (i->data())[j] ) ){
-		return true;
+	for(size_t j=0; j<len; j++)
+	{
+	    if (! isCharBinary( (i->data())[j] ) )
+		{
+			return true;
 	    }
 	}
     }
     return false;
 }
 
-ostream& operator << (ostream& s, const LDAPAttribute& attr){
-    s << attr.m_name << "=";
-    StringList::const_iterator i;
+ostream& operator << (ostream& s, const LDAPAttribute& attr)
+{
+    s << attr.m_name << "=" << attr.toString() << '\n';
+	return s;
+    /*StringList::const_iterator i;
     if (attr.isNotPrintable()){
 	    s << "NOT_PRINTABLE" ;
     }else{
@@ -195,5 +263,5 @@ ostream& operator << (ostream& s, const LDAPAttribute& attr){
 	    s << *i << " ";
 	}
     }
-	return s;
+	return s;*/
 }

@@ -18,41 +18,41 @@ namespace ldapcore
 //class LDAPEDITORCORE_SO_API CLdapData :  public QObject
 class CLdapData :  public QObject
 {
-    Q_OBJECT
+	Q_OBJECT
 
 public:
-    explicit CLdapData(QObject* parent = nullptr);
-    ~CLdapData();
+	explicit CLdapData(QObject* parent = nullptr);
+	~CLdapData();
 public:
 
-    void connect(const tConnectionOptions& connectOptions);
-    void resetConnection();
-    QVector<CLdapEntry*> topList();
-    void addObject(QString id);
-    void deleteObject(CLdapObject*);
+	void connect(const tConnectionOptions& connectOptions);
+	void resetConnection();
+	QVector<CLdapEntry*> topList();
+	void addObject(QString id);
+	void deleteObject(CLdapObject*);
 
-    QStringList search(const tSearchOptions& searchOptions);
+	QStringList search(const tSearchOptions& searchOptions);
 
-    CLdapSchema& schema();
-    QString host();
-    int port();
-    QString baseDN();
+	CLdapSchema& schema();
+	QString host();
+	int port();
+	QString baseDN();
 
 signals:
-    void OnConnectionCompleted(CLdapData* pThis, bool isSucceed, QString errorDescription);
-    void OnObjectAdded(CLdapObject* p, bool isSucceed, QString errorDescription);
-    void OnObjectDeleted(CLdapObject* p, bool isSucceed, QString errorDescription);
+	void OnConnectionCompleted(CLdapData* pThis, bool isSucceed, QString errorDescription);
+	void OnObjectAdded(CLdapObject* p, bool isSucceed, QString errorDescription);
+	void OnObjectDeleted(CLdapObject* p, bool isSucceed, QString errorDescription);
 
 public:
 
 private:
-    void build();
+	void build();
 
 private:
-    QVector<CLdapEntry*> m_Entries;
-    std::unique_ptr<LDAPConnection> m_Connection;
-    CLdapSchema m_Schema;
-    std::string m_baseDN;
+	QVector<CLdapEntry*> m_Entries;
+	std::unique_ptr<LDAPConnection> m_Connection;
+	CLdapSchema m_Schema;
+	std::string m_baseDN;
 };
 
 }

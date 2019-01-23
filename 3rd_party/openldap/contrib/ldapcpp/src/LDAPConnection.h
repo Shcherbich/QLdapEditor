@@ -18,7 +18,7 @@
  * LDAP-Operations. All the methods for the LDAP-operations block until
  * all results for the operation are received or until an error occurs
  */
-class LDAPConnection : private LDAPAsynConnection {
+class LDAPConnection : public LDAPAsynConnection {
 
     public :
         /** 
@@ -159,6 +159,8 @@ class LDAPConnection : private LDAPAsynConnection {
          */
         void modify(const std::string& dn, const LDAPModList* mods, 
                 const LDAPConstraints* cons=0); 
+
+        void modify_s(const std::string& dn, LDAPModList *mod);
 
         /**
          * This method performs the ModDN-operation.

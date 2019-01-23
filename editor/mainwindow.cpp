@@ -39,7 +39,7 @@ namespace ldapeditor
 
         m_TreeModel = new CLdapTreeModel(baseDN, this);
         m_TableModel = new CLdapAttributesModel(this);
-        m_AttributesList = new CLdapTableView(this);
+        m_AttributesList = new CLdapTableView(this, m_Settings);
 
         setCentralWidget(m_AttributesList);
         m_AttributesList->horizontalHeader()->setDefaultSectionSize(100);
@@ -51,6 +51,7 @@ namespace ldapeditor
         m_TableModel->setBaseDN(baseDN);
         m_AttributesList->setModel(m_TableModel);
         m_AttributesList->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+        m_AttributesList->RestoreView();
 
         m_LdapTree->setModel(m_TreeModel);
         m_LdapTree->header()->resizeSection(0,m_LdapTree->header()->width());
@@ -83,9 +84,13 @@ namespace ldapeditor
         dataMenu->setStatusTip(tr("Ldap search"));
         dataMenu->addAction(searchAction);
 
-//        QAction *reloadAction = dataMenu->addAction(tr("&Re-connect to server"), this, &MainWindow::onReload);
-//        reloadAction->setStatusTip(tr("Reconnect to server and reload data"));
-//        dataMenu->addAction(reloadAction);
+        QAction *saveDataAction = dataMenu->addAction(tr("&Save data"), this, &MainWindow::onSaveData);
+        dataMenu->setStatusTip(tr("Save data"));
+        dataMenu->addAction(saveDataAction);
+
+        QAction* quitAction = dataMenu->addAction(tr("&Quit"), this, &MainWindow::onQuit);
+        dataMenu->setStatusTip(tr("Quit"));
+        dataMenu->addAction(quitAction);
 
         QMenu *helpMenu = menuBar()->addMenu(tr("&Help"));
         QAction *aboutAction = helpMenu->addAction(tr("About &App"), this, &MainWindow::onAboutApp);
@@ -150,23 +155,32 @@ namespace ldapeditor
 
     void MainWindow::onTreeItemChanged(const QModelIndex& current, const QModelIndex& previous)
     {
-//        if(previous.isValid() && m_TableModel->IsChanged())
-//        {
-//            QStringList l = m_TableModel->attributesList();
-//            QString dn = l.join(", ");
-//            m_TreeModel->setData(previous, l, ldapeditor::AttributesListRole);
-//            m_TreeModel->setData(previous, dn, Qt::DisplayRole);
-//        }
-//         m_TableModel->setAttributesList(current.data(ldapeditor::AttributesListRole).toStringList());
+        if(!current.isValid())
+        {
+            return;
+        }
 
-
-        if(!current.isValid()) return ;
+        if(previous.isValid())
+        {
+            QVector<ldapcore::CLdapAttribute> newRows, deleteRows, updateRows;
+            m_TableModel->GetChangedRows(newRows, deleteRows, updateRows);
+            bool hasChanges = !(!newRows.size() && !deleteRows.size() && !updateRows.size());
+            if (hasChanges)
+            {
+                auto ret = QMessageBox::question(this, "Question", "You have changes in attributes.\nDo you want to save these changes to server?", QMessageBox::Yes|QMessageBox::No);
+                if (ret == QMessageBox::Yes)
+                {
+                    m_TableModel->SaveToServer();
+                }
+            }
+        }
 
         ldapcore::CLdapEntry* currentEntry = static_cast<ldapcore::CLdapEntry*>(current.internalPointer());
         if(currentEntry)
         {
             QVector<ldapcore::CLdapAttribute>* pAttrs = currentEntry->attributes();
-            m_TableModel->setAttributesList(pAttrs);
+            m_TableModel->setLdapEntry(currentEntry);
+            m_AttributesList->setLdapEntry(currentEntry);
         }
     }
 
@@ -176,8 +190,20 @@ namespace ldapeditor
         searchDlg.exec();
     }
 
+    void MainWindow::onSaveData()
+    {
+        m_TableModel->SaveToServer();
+    }
+
+    void MainWindow::onQuit()
+    {
+        close();
+    }
+
+
     void MainWindow::onReload()
     {
 
     }
 }// namespace ldapeditor
+

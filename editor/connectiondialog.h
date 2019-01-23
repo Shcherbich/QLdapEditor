@@ -30,6 +30,7 @@ namespace ldapeditor
 
         void OnConnectionCompleted(ldapcore::CLdapData* pThis, bool isSucceed, QString errorDescription);
         void enableConnection();
+        void onShowPasswordClicked();
 
     private:
         void loadSettings();

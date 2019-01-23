@@ -133,14 +133,57 @@ namespace ldapeditor
 
     int CLdapSettings::timeout() const
     {
-        return readInt("timeout", 60);
+        return readInt("timeout", 15);
     }
 
     void CLdapSettings::sync()
     {
         QSettings::sync();
     }
+    int CLdapSettings::columnDn() const
+    {
+        return readInt("columnDn", 60);
+    }
+    void CLdapSettings::setColumnDn(int w)
+    {
+        return writeInt("columnDn", w);
+    }
 
+    int CLdapSettings::columnAttribute() const
+    {
+        return readInt("columnAttribute", 60);
+    }
+    void CLdapSettings::setColumnAttribute(int w)
+    {
+        return writeInt("columnAttribute", w);
+    }
+
+    int CLdapSettings::columnValue() const
+    {
+        return readInt("columnValue", 60);
+    }
+    void CLdapSettings::setColumnValue(int w)
+    {
+        return writeInt("columnValue", w);
+    }
+
+    int CLdapSettings::columnType() const
+    {
+        return readInt("columnType", 60);
+    }
+    void CLdapSettings::setColumnType(int w)
+    {
+        return writeInt("columnType", w);
+    }
+
+    int CLdapSettings::columnSize() const
+    {
+        return readInt("columnSize", 60);
+    }
+    void CLdapSettings::setColumnSize(int w)
+    {
+        return writeInt("columnSize", w);
+    }
 
     QString CLdapSettings::makeKey(const QString& key) const
     {
