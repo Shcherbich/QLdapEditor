@@ -25,6 +25,8 @@ INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR})
 # Populate a CMake variable with the sources
 SET(ldapeditor_SOURCES
     resources.qrc
+    TableModel.h
+    ModelDataAdapter.h
     const.h
     cmustmaymodel.h
     cmustmaymodel.cpp
