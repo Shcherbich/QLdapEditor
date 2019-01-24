@@ -439,5 +439,10 @@ void CLdapEntry::flushAttributeCache()
     }
 }
 
+QVector<QString> CLdapEntry::availableClasses()
+{
+    return m_pData->schema().classes();
+}
+
 }
 

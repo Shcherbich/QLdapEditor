@@ -305,6 +305,15 @@ LDAPSchema* CLdapSchema::attributesSchema()
 	return &m_impl->attributesSchema;
 }
 
+QVector<QString> CLdapSchema::classes()
+{
+    QVector<QString> r;
+    for (auto& c : m_impl->classesSchema.object_classes)
+    {
+        r << c.second.getName().c_str();
+    }
+    return r;
+}
 
 }
 

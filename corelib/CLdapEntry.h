@@ -30,6 +30,7 @@ public:
     QVector<CLdapAttribute> availableAttributesMust();
     bool                    isMust(std::string attributeName);
     std::shared_ptr<CLdapAttribute> createEmptyAttribute(std::string attributeName);
+    QVector<QString>        availableClasses();
 
     void                    validateAttribute(CLdapAttribute& attr);
     void                    loadAttributes(QVector<CLdapAttribute>& );

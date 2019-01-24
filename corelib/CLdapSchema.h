@@ -6,6 +6,8 @@
 #include <tuple>
 #include "CLdapAttribute.h"
 #include "CLdapException.h"
+#include <QVector>
+#include <QString>
 
 class LDAPSchema;
 class LDAPConnection;
@@ -25,6 +27,7 @@ public:
 
 	bool isNameExist(std::string attributeName) throw (CLdapNameMissedException);
 	void checkBySyntaxName(std::string attributeName, std::string value) throw (CLdapMatchRuleException);
+    QVector<QString> classes();
 
 private:
 	void build(LDAPConnection* lc, std::string& baseDn);

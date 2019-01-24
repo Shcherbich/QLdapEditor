@@ -4,6 +4,8 @@
 
 #include <QTreeView>
 #include <QSortFilterProxyModel>
+#include <QMenu>
+
 namespace ldapeditor
 {
 
@@ -17,6 +19,12 @@ namespace ldapeditor
 
     protected:
         virtual void currentChanged(const QModelIndex &current, const QModelIndex &previous) override;
+        void customContextMenuRequested(QPoint pos);
+        void onNewEntry();
+
+    private:
+        QMenu       m_contextMenu;
+        QAction*    m_newEntry{nullptr};
 
     };
 } //namespace ldapeditor

@@ -17,7 +17,7 @@
  * Represents the LDAP schema
  */
 class LDAPSchema{
-    private :
+    public :
 	/**
 	 * map of object classes: index is name, value is LDAPObjClass object
 	 */
