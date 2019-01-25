@@ -166,6 +166,19 @@ static QVector<ldapcore::AttrType> g_supportedTypesForEdit(
 	ldapcore::AttrType::TelephoneNumber
 });
 
+CLdapEntry::CLdapEntry(CLdapEntry* parentLdapEntry, QString rdn, QString parentDn, QVector<QString>& classes, QObject* parent)
+    : QObject(parent)
+    , m_pParent(parentLdapEntry)
+{
+    m_rDn = rdn;
+    QString s = rdn;
+    s += ",";
+    s += parentDn;
+    m_pEntry = new LDAPEntry(s.toStdString());
+    m_classes.swap(classes);
+    m_isNew = true;
+}
+
 CLdapEntry::CLdapEntry(CLdapEntry* parentLdapEntry, LDAPEntry* le, QObject* parent)
 	: QObject(parent)
 	, m_pParent(parentLdapEntry), m_pEntry(le)
@@ -174,7 +187,7 @@ CLdapEntry::CLdapEntry(CLdapEntry* parentLdapEntry, LDAPEntry* le, QObject* pare
 CLdapEntry::~CLdapEntry()
 {
 	delete m_pEntry;
-	foreach (CLdapEntry* en, m_pEntries)
+	foreach (CLdapEntry* en, m_pChildren)
 	{
 		delete en;
 	}
@@ -222,8 +235,8 @@ void CLdapEntry::construct(CLdapData* data, LDAPConnection* conn, QString baseDn
 		{
 			for (LDAPEntry* le = ls->getNext(); le != nullptr; le = ls->getNext())
 			{
-				m_pEntries.push_back(new CLdapEntry(this, le, nullptr));
-				m_pEntries.back()->construct(data, conn, baseDn);
+				m_pChildren.push_back(new CLdapEntry(this, le, nullptr));
+				m_pChildren.back()->construct(data, conn, baseDn);
 			}
 		}
 	}
@@ -240,11 +253,16 @@ CLdapEntry* CLdapEntry::parent()
 
 QVector<CLdapEntry*> CLdapEntry::children()
 {
-	return m_pEntries;
+	return m_pChildren;
 }
 
 void CLdapEntry::prepareAttributes()
 {
+    if (m_isNew)
+    {
+        return;
+    }
+
     m_attributes.clear();
     if (!m_pEntry)
     {
@@ -259,7 +277,7 @@ void CLdapEntry::prepareAttributes()
 }
 void CLdapEntry::loadAttributes(QVector<CLdapAttribute>& vRet)
 {
-    if (m_pEntry == nullptr)
+    if (m_pEntry == nullptr || m_isNew)
     {
         return;
     }
@@ -390,6 +408,11 @@ bool CLdapEntry::isMust(std::string attributeName)
     return f != m_Must.end();
 }
 
+bool CLdapEntry::isNew() const
+{
+    return m_isNew;
+}
+
 void CLdapEntry::validateAttribute(CLdapAttribute& attr)
 {
     m_pData->schema().isNameExist(attr.name().toStdString());
@@ -442,6 +465,61 @@ void CLdapEntry::flushAttributeCache()
 QVector<QString> CLdapEntry::availableClasses()
 {
     return m_pData->schema().classes();
+}
+
+void CLdapEntry::addNewChild(CLdapEntry* child)
+{
+    m_pChildren << child;
+    child->construct(m_pData, m_Conn, m_baseDn);
+}
+
+void CLdapEntry::removeChild(CLdapEntry* child)
+{
+    for (int i = 0; i < m_pChildren.size(); ++i)
+    {
+        if (m_pChildren[i] == child)
+        {
+            m_pChildren.remove(i);
+            return;
+        }
+    }
+}
+
+
+void CLdapEntry::addAttributes(QVector<CLdapAttribute>& attrs)
+{
+    m_attributes << attrs;
+    std::sort(m_attributes.begin(), m_attributes.end(), comp());
+}
+
+void CLdapEntry::saveNewChildren() throw(CLdapServerException)
+{
+    for (auto& child: m_pChildren)
+    {
+        if (!child->isNew())
+        {
+            continue;
+        }
+        LDAPAttributeList* attrs = new LDAPAttributeList();
+        StringList values;
+        for(auto& c: child->m_classes)
+            values.add(c.toStdString());
+        attrs->addAttribute(LDAPAttribute("objectClass", values));
+        for(auto& a: child->m_attributes)
+        {
+            auto value = a.value().toStdString();
+            if (value.size())
+            {
+                attrs->addAttribute(LDAPAttribute(a.name().toStdString(), value));
+            }
+        }
+        LDAPEntry* entry = new LDAPEntry(child->m_pEntry->getDN(), attrs);
+        auto q = m_Conn->search(m_pEntry->getDN(), LDAPAsynConnection::SEARCH_SUB, "objectClass=*", StringList());
+        m_Conn->add(entry);
+        LDAPModification::mod_op op = LDAPModification::OP_ADD;
+        LDAPModList* mod = new LDAPModList();
+        m_Conn->modify(m_pEntry->getDN(), mod);
+    }
 }
 
 }

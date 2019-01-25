@@ -6,6 +6,11 @@
 #include <QSortFilterProxyModel>
 #include <QMenu>
 
+namespace ldapcore {
+class CLdapData;
+}
+
+
 namespace ldapeditor
 {
 
@@ -13,7 +18,7 @@ namespace ldapeditor
     {
         Q_OBJECT
     public:
-        CLdapTreeView(QWidget *parent = nullptr);
+        CLdapTreeView(QWidget *parent, ldapcore::CLdapData&);
     signals:
         void treeItemChanged(const QModelIndex &current, const QModelIndex &previous);
 
@@ -25,6 +30,7 @@ namespace ldapeditor
     private:
         QMenu       m_contextMenu;
         QAction*    m_newEntry{nullptr};
+        ldapcore::CLdapData& m_LdapData;
 
     };
 } //namespace ldapeditor

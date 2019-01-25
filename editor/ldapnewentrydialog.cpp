@@ -1,7 +1,34 @@
+#include <vector>
+#include <string>
 #include "ldapnewentrydialog.h"
 #include "ui_ldapnewentrydialog.h"
 #include <QListWidgetItem>
 #include <QMessageBox>
+
+std::vector<std::string> split(const std::string& str, const std::string& delim)
+{
+    using namespace std;
+
+    vector<string> tokens;
+    size_t prev = 0, pos = 0;
+    do
+    {
+        pos = str.find(delim, prev);
+        if (pos == string::npos)
+        {
+            pos = str.length();
+        }
+        string token = str.substr(prev, pos - prev);
+        if (!token.empty())
+        {
+            tokens.push_back(token);
+        }
+        prev = pos + delim.length();
+    }
+    while (pos < str.length() && prev < str.length());
+    return tokens;
+}
+
 
 namespace ldapeditor
 {
@@ -32,6 +59,8 @@ namespace ldapeditor
         {
             ui->listAll->addItem(c);
         }
+
+        ui->rdnEdit->setFocus();
     }
 
     CLdapNewEntryDialog::~CLdapNewEntryDialog()
@@ -53,6 +82,15 @@ namespace ldapeditor
             ui->rdnEdit->setFocus();
             return;
         }
+
+        std::string delim = "=";
+        auto v = split(m_rdn.toStdString(), delim);
+        if (v.size() != 2)
+        {
+            QMessageBox::critical(this, "Error", "The RDN has invalid format!. Format must be like as 'cn=SomaValue'!", QMessageBox::Ok);
+            return;
+        }
+
         if (ui->listNeeded->count() == 0)
         {
             QMessageBox::critical(this, "Error", "The selected classes are empty!\nPlease, Choose items.", QMessageBox::Ok);

@@ -2,11 +2,14 @@
 #include "ldapeditordefines.h"
 #include "ldapnewentrydialog.h"
 #include "CLdapEntry.h"
+#include "CLdapData.h"
+
+extern std::vector<std::string> split(const std::string& str, const std::string& delim);
 
 namespace ldapeditor
 {
-    CLdapTreeView::CLdapTreeView(QWidget *parent)
-        :QTreeView(parent)
+    CLdapTreeView::CLdapTreeView(QWidget *parent, ldapcore::CLdapData& data)
+        :QTreeView(parent), m_LdapData(data)
         , m_newEntry(new QAction("New entry", this))
     {
         m_contextMenu.addAction(m_newEntry);
@@ -22,13 +25,15 @@ namespace ldapeditor
 
     void CLdapTreeView::onNewEntry()
     {
+        using namespace ldapcore;
+
         auto index = currentIndex();
         if (!index.isValid())
         {
             return;
         }
-        //QVariant data = model()->data(index);
-        ldapcore::CLdapEntry* currentEntry = static_cast<ldapcore::CLdapEntry*>(index.internalPointer());
+
+        CLdapEntry* currentEntry = static_cast<CLdapEntry*>(index.internalPointer());
         if(!currentEntry)
         {
             return;
@@ -40,10 +45,31 @@ namespace ldapeditor
         {
            return;
         }
-
-        auto selected = dialog.selectedClasses();
         auto rdn = dialog.rdn();
+        std::string delim = "=";
+        auto v = split(rdn.toStdString(), delim);
 
+        std::map<std::string, std::string> a2v;
+        if (v.size() > 1)
+            a2v[v[0]] = v[1];
+
+        auto classes = dialog.selectedClasses();
+        auto attributes = m_LdapData.schema().attributeByClasses(classes, a2v);
+
+        CLdapEntry* addEntry = new CLdapEntry(currentEntry, rdn, dn, classes, nullptr);
+        addEntry->addAttributes(attributes);
+        currentEntry->addNewChild(addEntry);
+        model()->dataChanged(index, index);
+        setExpanded(index, true);
+
+        QModelIndexList Items = model()->match(index, Qt::DisplayRole, QVariant::fromValue(rdn), 2, Qt::MatchRecursive);
+        if (Items.count() == 0)
+        {
+            return;
+        }
+
+        QModelIndex addIndex = Items.first();
+        setCurrentIndex(addIndex);
 
     }
 

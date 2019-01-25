@@ -78,14 +78,9 @@ enum  class AttributeState
 	AttributeValueReadWrite
 };
 
-//class LDAPEDITORCORE_SO_API CLdapAttribute : public QObject
-//class CLdapAttribute : public QObject
 class CLdapAttribute
 {
-	//Q_OBJECT
 public:
-	//explicit CLdapAttribute(QObject *parent = nullptr);
-	//explicit CLdapAttribute(QString name, QString value, AttrType type, QObject *parent = nullptr);
 
 	explicit CLdapAttribute();
     explicit CLdapAttribute(QString name, QString value, AttrType type, bool isMust, AttributeState editState = AttributeState::AttributeValueReadWrite);

@@ -1,3 +1,4 @@
+#include <algorithm>
 #include "mainwindow.h"
 #include "ldapeditordefines.h"
 #include "ldapsearchdialog.h"
@@ -69,7 +70,7 @@ namespace ldapeditor
       {
           QDockWidget *dock = new QDockWidget(tr("LDAP Tree"), this);
           dock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
-          m_LdapTree = new CLdapTreeView(dock);
+          m_LdapTree = new CLdapTreeView(dock, m_LdapData);
           connect(m_LdapTree,&CLdapTreeView::treeItemChanged, this, &MainWindow::onTreeItemChanged);
 
           m_LdapTree->setHeaderHidden(true);
@@ -162,15 +163,45 @@ namespace ldapeditor
 
         if(previous.isValid())
         {
-            QVector<ldapcore::CLdapAttribute> newRows, deleteRows, updateRows;
-            m_TableModel->GetChangedRows(newRows, deleteRows, updateRows);
-            bool hasChanges = !(!newRows.size() && !deleteRows.size() && !updateRows.size());
-            if (hasChanges)
+            if (m_TableModel->isNew())
             {
-                auto ret = QMessageBox::question(this, "Question", "You have changes in attributes.\nDo you want to save these changes to server?", QMessageBox::Yes|QMessageBox::No);
-                if (ret == QMessageBox::Yes)
+                auto ret = QMessageBox::question(this, "Question", "The new entry was added.\nDo you want to save new entry to server?", QMessageBox::Yes|QMessageBox::No);
+                if (ret != QMessageBox::Yes)
                 {
-                    m_TableModel->SaveToServer();
+                    ldapcore::CLdapEntry* prevEntry = static_cast<ldapcore::CLdapEntry*>(previous.internalPointer());
+                    if (prevEntry != nullptr)
+                    {
+                        auto parent = prevEntry->parent();
+                        if (parent)
+                        {
+                            parent->removeChild(prevEntry);
+                            m_TreeModel->dataChanged(previous, previous);
+                        }
+                    }
+                }
+                else
+                {
+                    bool b = m_TableModel->Save();
+                    if (!b)
+                    {
+                        m_LdapTree->setCurrentIndex(previous);
+                        return;
+                    }
+                }
+
+            }
+            else
+            {
+                QVector<ldapcore::CLdapAttribute> newRows, deleteRows, updateRows;
+                m_TableModel->GetChangedRows(newRows, deleteRows, updateRows);
+                bool hasChanges = !(!newRows.size() && !deleteRows.size() && !updateRows.size());
+                if (hasChanges)
+                {
+                    auto ret = QMessageBox::question(this, "Question", "You have changes in attributes.\nDo you want to save these changes to server?", QMessageBox::Yes|QMessageBox::No);
+                    if (ret == QMessageBox::Yes)
+                    {
+                        m_TableModel->Save();
+                    }
                 }
             }
         }
@@ -192,7 +223,7 @@ namespace ldapeditor
 
     void MainWindow::onSaveData()
     {
-        m_TableModel->SaveToServer();
+        m_TableModel->Save();
     }
 
     void MainWindow::onQuit()
