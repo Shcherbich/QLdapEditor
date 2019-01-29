@@ -316,6 +316,37 @@ QVector<QString> CLdapSchema::classes()
     return r;
 }
 
+QVector<QString> CLdapSchema::structuralClasses()
+{
+    QVector<QString> r;
+    for (auto& c : m_impl->classesSchema.object_classes)
+    {
+        if (c.second.getKind() == 1)
+        {
+            r << c.second.getName().c_str();
+        }
+    }
+    return r;
+}
+
+QVector<QString> CLdapSchema::auxiliaryClassesBySup(QString sup)
+{
+    QVector<QString> r;
+    for (auto& c : m_impl->classesSchema.object_classes)
+    {
+        if (c.second.getKind() != 2)
+        {
+            continue;
+        }
+        if (c.second.getSup().contains(sup.toStdString()))
+        {
+            r << c.second.getName().c_str();
+        }
+    }
+    return r;
+}
+
+
 QVector<CLdapAttribute> CLdapSchema::attributeByClasses(QVector<QString>& classes, std::map<std::string, std::string>& a2v)
 {
     std::set<std::string> uniqueAttributes;

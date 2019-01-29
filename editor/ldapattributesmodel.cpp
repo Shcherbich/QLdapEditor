@@ -167,7 +167,7 @@ namespace ldapeditor
         if(!m_pAttributes) return true;
 
         beginRemoveRows(parent, row, row + count-1);
-         m_pAttributes->remove(row, count);
+        m_pAttributes->remove(row, count);
         endRemoveRows();
         m_IsChanged = true;
         return true;
@@ -246,6 +246,7 @@ namespace ldapeditor
 
     bool  CLdapAttributesModel::SaveNewEntry()
     {
+        // check
         for (auto& a: *m_pAttributes)
         {
             if (a.isMust() && a.value().size() == 0)
@@ -255,10 +256,14 @@ namespace ldapeditor
             }
         }
 
-
+        // save to database
         try
         {
-            throw ldapcore::CLdapServerException("Not implemented yet!");
+            auto parent = m_entry->parent();
+            if (parent != nullptr)
+            {
+                parent->saveNewChildren();
+            }
         }
         catch (std::exception& e)
         {

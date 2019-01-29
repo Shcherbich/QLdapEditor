@@ -501,10 +501,10 @@ void CLdapEntry::saveNewChildren() throw(CLdapServerException)
             continue;
         }
         LDAPAttributeList* attrs = new LDAPAttributeList();
-        StringList values;
+        StringList objectClasses;
         for(auto& c: child->m_classes)
-            values.add(c.toStdString());
-        attrs->addAttribute(LDAPAttribute("objectClass", values));
+            objectClasses.add(c.toStdString());
+        attrs->addAttribute(LDAPAttribute("objectClass", objectClasses));
         for(auto& a: child->m_attributes)
         {
             auto value = a.value().toStdString();
