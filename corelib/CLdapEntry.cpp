@@ -492,14 +492,19 @@ void CLdapEntry::addAttributes(QVector<CLdapAttribute>& attrs)
     std::sort(m_attributes.begin(), m_attributes.end(), comp());
 }
 
-void CLdapEntry::saveNewChildren() throw(CLdapServerException)
+void CLdapEntry::saveNewChild() throw(CLdapServerException)
 {
-    for (auto& child: m_pChildren)
+    auto f = std::find_if(m_pChildren.begin(), m_pChildren.end(),
+                          [&](const ldapcore::CLdapEntry* a)
     {
-        if (!child->isNew())
-        {
-            continue;
-        }
+       return a->isNew();
+    });
+    if (m_pChildren.end() == f)
+    {
+        return;
+    }
+    auto& child = *f;
+    try {
         LDAPAttributeList* attrs = new LDAPAttributeList();
         StringList objectClasses;
         for(auto& c: child->m_classes)
@@ -514,11 +519,17 @@ void CLdapEntry::saveNewChildren() throw(CLdapServerException)
             }
         }
         LDAPEntry* entry = new LDAPEntry(child->m_pEntry->getDN(), attrs);
-        auto q = m_Conn->search(m_pEntry->getDN(), LDAPAsynConnection::SEARCH_SUB, "objectClass=*", StringList());
+        auto dn = m_pEntry->getDN();
+        auto q = m_Conn->search(dn, LDAPAsynConnection::SEARCH_SUB, "objectClass=*", StringList());
         m_Conn->add(entry);
         LDAPModification::mod_op op = LDAPModification::OP_ADD;
         LDAPModList* mod = new LDAPModList();
         m_Conn->modify(m_pEntry->getDN(), mod);
+        child->m_isNew = false;
+
+    } catch (std::exception& ) {
+        //m_pChildren.erase(f);
+        throw;
     }
 }
 

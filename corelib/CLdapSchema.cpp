@@ -394,5 +394,17 @@ QVector<CLdapAttribute> CLdapSchema::attributeByClasses(QVector<QString>& classe
 
 }
 
+QString CLdapSchema::supByClass(QString c)
+{
+    const auto& f = classesSchema()->getObjectClassByName(c.toStdString());
+    return f.getSup().size() ? f.getSup().begin()->c_str() : "";
+}
+
+QString CLdapSchema::startRdn(QString c)
+{
+    const auto& f = classesSchema()->getObjectClassByName(c.toStdString());
+    auto must = std::move(f.getMust());
+    return must.size() ? must.begin()->c_str() : "";}
+
 }
 

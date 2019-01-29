@@ -19,6 +19,8 @@ namespace ldapeditor
         Q_OBJECT
     public:
         CLdapTreeView(QWidget *parent, ldapcore::CLdapData&);
+        QModelIndexList selected();
+
     signals:
         void treeItemChanged(const QModelIndex &current, const QModelIndex &previous);
 

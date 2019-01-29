@@ -51,6 +51,7 @@ namespace ldapeditor
         void GetChangedRows(QVector<ldapcore::CLdapAttribute>& newRows, QVector<ldapcore::CLdapAttribute>& deleteRows, QVector<ldapcore::CLdapAttribute>& updateRows);
         bool Save();
         bool isNew() const;
+        QString dn() const;
 
     protected:
         bool  SaveAttributes();

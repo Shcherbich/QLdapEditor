@@ -139,19 +139,9 @@ namespace ldapeditor
     bool CLdapTreeModel::setTopItems(QVector<ldapcore::CLdapEntry*> topItems)
     {
         m_topItems = topItems;
-        //ldapcore::CLdapEntry* item = new tLdapItem(QString(),entry->getDn());
-        //m_rootItem->addSubItem(item);
         emit dataChanged(createIndex(0,0), createIndex(m_topItems.size(), 0));
         return true;
     }
-
-    //bool CLdapTreeModel::insertRows(int row, int count, const QModelIndex &parent)
-    // {
-    //      tLdapItem* parentItem = static_cast<tLdapItem*>(parent.internalPointer());
-    //      beginInsertRows(parent, row, row + count - 1);
-    //          parentItem->addSubItem(itemType, itemTitle);
-    //      endInsertRows();
-    // }
 
 } //namespace ldapeditor
 

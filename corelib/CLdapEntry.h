@@ -44,7 +44,7 @@ public:
     void                    addNewChild(CLdapEntry* child);
     void                    removeChild(CLdapEntry* child);
     void                    addAttributes(QVector<CLdapAttribute>&);
-    void                    saveNewChildren() throw(CLdapServerException);;
+    void                    saveNewChild() throw(CLdapServerException);
 
 
 public:

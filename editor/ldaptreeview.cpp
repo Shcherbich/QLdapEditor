@@ -40,7 +40,7 @@ namespace ldapeditor
         }
 
         auto dn = currentEntry->dn();
-        ldapeditor::CLdapNewEntryDialog dialog(nullptr, dn, currentEntry->availableClasses());
+        ldapeditor::CLdapNewEntryDialog dialog(nullptr, dn, m_LdapData);
         if (dialog.exec() == QDialog::Rejected)
         {
            return;
@@ -77,6 +77,11 @@ namespace ldapeditor
     {
         QModelIndex index = indexAt(pos);
         m_contextMenu.popup(viewport()->mapToGlobal(pos));
+    }
+
+    QModelIndexList CLdapTreeView::selected()
+    {
+        return QTreeView::selectedIndexes();
     }
 
 }//namespace ldapeditor

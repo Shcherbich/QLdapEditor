@@ -231,6 +231,11 @@ namespace ldapeditor
         return m_entry ? m_entry->isNew() : false;
     }
 
+    QString CLdapAttributesModel::dn() const
+    {
+        return m_entry && m_entry->parent() ? m_entry->parent()->dn() : "";
+    }
+
     bool CLdapAttributesModel::Save()
     {
         if (false == isNew())
@@ -262,12 +267,13 @@ namespace ldapeditor
             auto parent = m_entry->parent();
             if (parent != nullptr)
             {
-                parent->saveNewChildren();
+                parent->saveNewChild();
             }
         }
         catch (std::exception& e)
         {
             QMessageBox::critical(nullptr, "Error", e.what(), QMessageBox::Ok);
+            return false;
         }
         return true;
     }
@@ -318,7 +324,6 @@ namespace ldapeditor
         m_entry->flushAttributeCache();
         QApplication::restoreOverrideCursor();
         setLdapEntry(m_entry);
-
         return true;
     }
 

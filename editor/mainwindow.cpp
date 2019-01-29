@@ -21,6 +21,7 @@
 #include <QStandardItem>
 #include <QDate>
 #include <QLabel>
+#include <QTreeView>
 
 namespace ldapeditor
 {
@@ -223,7 +224,38 @@ namespace ldapeditor
 
     void MainWindow::onSaveData()
     {
-        m_TableModel->Save();
+        auto selectedIndexes = m_LdapTree->selected();
+        bool isNew =  m_TableModel->isNew();
+        bool isSaved = m_TableModel->Save();
+        if (false == isSaved || !isNew)
+        {
+            return;
+        }
+        auto parentDn = m_TableModel->dn();
+        QTreeView& tv (*m_LdapTree);
+        QModelIndex modelIndex = tv.indexAt(tv.rect().topLeft());
+        while (modelIndex.isValid())
+        {
+            modelIndex = tv.indexBelow(modelIndex);
+            if (!modelIndex.isValid())
+            {
+                continue;
+            }
+            ldapcore::CLdapEntry* prevEntry = static_cast<ldapcore::CLdapEntry*>(modelIndex.internalPointer());
+            if (prevEntry == nullptr)
+            {
+                continue;
+            }
+            if (parentDn == prevEntry->dn())
+            {
+                m_TableModel->setLdapEntry(prevEntry);
+                m_LdapTree->collapse(modelIndex);
+                m_LdapTree->expand(modelIndex);
+                modelIndex = modelIndex.child(prevEntry->children().count() - 1, 0);
+                m_LdapTree->setCurrentIndex(modelIndex);
+                m_TableModel->setLdapEntry(prevEntry->children().back());
+            }
+        }
     }
 
     void MainWindow::onQuit()

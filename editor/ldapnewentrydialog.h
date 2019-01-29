@@ -4,6 +4,7 @@
 #include <QString>
 #include <QVector>
 #include <QDialog>
+#include <CLdapData.h>
 
 namespace Ui {
 class CLdapNewEntryDialog;
@@ -16,8 +17,7 @@ namespace ldapeditor
         Q_OBJECT
 
     public:
-        explicit CLdapNewEntryDialog(QWidget *parent = nullptr);
-        explicit CLdapNewEntryDialog(QWidget *parent, QString parentDn, QVector<QString> vAllClasses);
+        explicit CLdapNewEntryDialog(QWidget *parent, QString parentDn, ldapcore::CLdapData& ldapData);
         ~CLdapNewEntryDialog();
 
         QString rdn() const;
@@ -28,12 +28,13 @@ namespace ldapeditor
         void onOkClicked();
         void onAddClicked();
         void onRemoveClicked();
+        void onStructuralComboChanged(const QString&);
 
     private:
         Ui::CLdapNewEntryDialog* ui;
-        QVector<QString> vAllClasses;
         QString          m_rdn;
         QVector<QString> vSelectedClasses;
+        ldapcore::CLdapData& m_LdapData;
     };
 }//namespace ldapeditor
 
