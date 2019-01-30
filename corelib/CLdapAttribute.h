@@ -99,27 +99,10 @@ public:
 	bool isModified() const;
     bool isMust() const;
 
-
 	void setName(const QString& name);
 	void setValue(const QString& value);
 	void setType(AttrType type);
     void setEditState(AttributeState state);
-
-    /*
-    bool operator < (CLdapAttribute& o) const
-    {
-        if (isMust() != o.isMust())
-            return isMust() > o.isMust();
-        return name() < o.name();
-    }
-
-    bool operator ()(const ldapcore::CLdapAttribute& l, const ldapcore::CLdapAttribute& r) const
-    {
-        if (l.isMust() != r.isMust())
-            return l.isMust() > r.isMust();
-        return l.name() < r.name();
-    }
-    */
 
 private:
 	QString m_Name;

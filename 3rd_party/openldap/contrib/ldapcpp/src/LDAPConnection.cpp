@@ -281,7 +281,7 @@ void LDAPConnection::rename(const string& dn, const string& newRDN,
     }
 }
 
-LDAPSearchResults* LDAPConnection::search(const string& base, int scope,
+std::shared_ptr<LDAPSearchResults> LDAPConnection::search(const string& base, int scope,
         const string& filter, const StringList& attrs, bool attrsOnly, 
         const LDAPConstraints* cons){
     DEBUG(LDAP_DEBUG_TRACE,"LDAPConnection::search" << endl);
@@ -303,9 +303,12 @@ LDAPSearchResults* LDAPConnection::search(const string& base, int scope,
         int resCode=res->getResultCode();
         switch (resCode){
             case LDAPResult::SUCCESS :
+        {
                 delete res; 
                 delete msgq;
-                return results;
+                std::shared_ptr<LDAPSearchResults> r(results);
+                return r;
+        }
             break;
             case LDAPResult::REFERRAL :
             {
@@ -323,8 +326,9 @@ LDAPSearchResults* LDAPConnection::search(const string& base, int scope,
                 delete msgq;
                 throw LDAPException(resCode, srvMsg);
         }
-    }        
-    return 0;
+    }
+    std::shared_ptr<LDAPSearchResults> n;
+    return n;
 }
 
 LDAPExtResult* LDAPConnection::extOperation(const string& oid, 

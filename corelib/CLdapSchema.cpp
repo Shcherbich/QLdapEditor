@@ -100,7 +100,7 @@ void CLdapSchema::build(LDAPConnection* lc, std::string& baseDn)
 {
 	StringList tmp;
 	tmp.add("subschemasubentry");
-	LDAPSearchResults* entries = lc->search("", LDAPConnection::SEARCH_BASE, "(objectClass=*)", tmp);
+    auto entries = lc->search("", LDAPConnection::SEARCH_BASE, "(objectClass=*)", tmp);
 	uEntry rootDse(entries->getNext());
 	std::string schemabase = "cn=subschema";
 	if (rootDse)

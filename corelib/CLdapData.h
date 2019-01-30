@@ -36,8 +36,8 @@ public:
 	int port();
 	QString baseDN();
 
-signals:
-	void OnConnectionCompleted(CLdapData* pThis, bool isSucceed, QString errorDescription);
+Q_SIGNALS:
+    void onConnectionCompleted(bool isSucceed, QString errorDescription);
 
 private:
 	void build();

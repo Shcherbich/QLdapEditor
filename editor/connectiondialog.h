@@ -28,7 +28,7 @@ namespace ldapeditor
         void onConnectClicked();
         void onTimer();
 
-        void OnConnectionCompleted(ldapcore::CLdapData* pThis, bool isSucceed, QString errorDescription);
+        void onConnectionCompleted(bool isSucceed, QString errorDescription);
         void enableConnection();
         void onShowPasswordClicked();
 

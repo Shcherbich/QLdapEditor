@@ -31,7 +31,7 @@ std::vector<std::string> GetObjectClasses(LDAPConnection* le, std::string dn)
 	{
 		StringList stringList;
 		stringList.add("objectClass");
-		LDAPSearchResults* finds = le->search(dn, LDAPConnection::SEARCH_BASE, "(objectClass=*)", stringList);
+        auto finds = le->search(dn, LDAPConnection::SEARCH_BASE, "(objectClass=*)", stringList);
 		if (finds == nullptr)
 		{
 			return vRet;
@@ -232,7 +232,7 @@ void CLdapEntry::construct(CLdapData* data, LDAPConnection* conn, QString baseDn
 	m_Conn = conn;
 	try
 	{
-		LDAPSearchResults* ls = conn->search(dn().toStdString(), LDAPAsynConnection::SEARCH_ONE);
+        auto ls = conn->search(dn().toStdString(), LDAPAsynConnection::SEARCH_ONE);
 		if (ls != nullptr)
 		{
 			for (LDAPEntry* le = ls->getNext(); le != nullptr; le = ls->getNext())
@@ -313,7 +313,7 @@ void CLdapEntry::loadAttributes(QVector<CLdapAttribute>& vRet)
 
 		try
 		{
-			LDAPSearchResults* srSystemAttrs = m_Conn->search(dn().toStdString(), LDAPConnection::SEARCH_SUB, "(objectClass=*)", systemAttrs);
+            auto srSystemAttrs = m_Conn->search(dn().toStdString(), LDAPConnection::SEARCH_SUB, "(objectClass=*)", systemAttrs);
 			if (srSystemAttrs != nullptr)
 			{
 				LDAPEntry* systemEntry = srSystemAttrs->top();

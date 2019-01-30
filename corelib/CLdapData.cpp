@@ -9,6 +9,7 @@ namespace ldapcore
 {
 
 using namespace std;
+
 vector<string> split(const string& str, const string& delim)
 {
 	vector<string> tokens;
@@ -45,7 +46,7 @@ CLdapData::~CLdapData()
 void CLdapData::connect(const tConnectionOptions& connectOptions)
 {
 	resetConnection();
-    auto func = [=]()
+    auto func = [&]()
     {
         try
         {
@@ -82,19 +83,14 @@ void CLdapData::connect(const tConnectionOptions& connectOptions)
             m_Connection = std::move(localConn);
             m_Schema.build(m_Connection.get(), m_baseDN);
             build();
-            emit OnConnectionCompleted(this, true, "");
+            emit this->onConnectionCompleted(true, "");
         }
         catch (const LDAPException& e)
         {
-            emit OnConnectionCompleted(this, false, QString(e.what()));
+            emit this->onConnectionCompleted(false, e.what());
         }
     };
-
-    QThreadPool::globalInstance()->start(makeSimpleTask([=]()
-    {
-        func();
-    }));
-
+    QThreadPool::globalInstance()->start(makeSimpleTask(func));
 }
 
 void CLdapData::rebuild()
@@ -131,7 +127,6 @@ void CLdapData::build()
 	}
 
 	m_baseDN = baseDn;
-
 	m_Entries.push_back(new CLdapEntry(nullptr, nullptr, nullptr));
 	m_Entries.back()->construct(this, m_Connection.get(), m_baseDN.c_str());
 }
@@ -184,8 +179,8 @@ QStringList CLdapData::search(const _tSearchOptions& searchOptions)
 			attrList.add(a.toStdString());
 		}
 
-		LDAPSearchResults* results =  m_Connection->search(searchOptions.basedn, searchOptions.scope, searchOptions.filter, attrList);
-		if (results)
+        auto results = m_Connection->search(searchOptions.basedn, searchOptions.scope, searchOptions.filter, attrList);
+        if (results != nullptr)
 		{
 			LDAPEntry* entry{nullptr};
 			while ((entry = results->getNext()) != nullptr)
