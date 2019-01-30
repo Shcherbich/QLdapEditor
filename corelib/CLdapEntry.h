@@ -20,31 +20,31 @@ class CLdapEntry : public QObject
 {
 	Q_OBJECT
 public:
-    explicit CLdapEntry(CLdapEntry* parentLdapEntry, LDAPEntry* le, QObject* parentDn = nullptr);
-    explicit CLdapEntry(CLdapEntry* parentLdapEntry, QString rdn, QString parent, QVector<QString>& classes, QObject* parentDn);
+	explicit CLdapEntry(CLdapEntry* parentLdapEntry, LDAPEntry* le, QObject* parentDn = nullptr);
+	explicit CLdapEntry(CLdapEntry* parentLdapEntry, QString rdn, QString parent, QVector<QString>& classes, QObject* parentDn);
 	~CLdapEntry();
 
-    CLdapEntry*             parent();
-    QVector<CLdapEntry*>    children();
-    QVector<CLdapAttribute>*attributes();
-    QVector<CLdapAttribute> availableAttributesMay();
-    QVector<CLdapAttribute> availableAttributesMust();
-    bool                    isMust(std::string attributeName);
-    bool                    isNew() const;
-    std::shared_ptr<CLdapAttribute> createEmptyAttribute(std::string attributeName);
-    QVector<QString>        availableClasses();
+	CLdapEntry*             parent();
+	QVector<CLdapEntry*>    children();
+	QVector<CLdapAttribute>* attributes();
+	QVector<CLdapAttribute> availableAttributesMay();
+	QVector<CLdapAttribute> availableAttributesMust();
+	bool                    isMust(std::string attributeName);
+	bool                    isNew() const;
+	std::shared_ptr<CLdapAttribute> createEmptyAttribute(std::string attributeName);
+	QVector<QString>        availableClasses();
 
-    void                    validateAttribute(CLdapAttribute& attr);
-    void                    loadAttributes(QVector<CLdapAttribute>& );
+	void                    validateAttribute(CLdapAttribute& attr);
+	void                    loadAttributes(QVector<CLdapAttribute>&);
 
-    void                    addAttribute(CLdapAttribute& newOb) throw(CLdapServerException);
-    void                    deleteAttribute(CLdapAttribute& newOb) throw(CLdapServerException);
-    void                    updateAttribute(CLdapAttribute& newOb) throw(CLdapServerException);
-    void                    flushAttributeCache();
-    void                    addNewChild(CLdapEntry* child);
-    void                    removeChild(CLdapEntry* child);
-    void                    addAttributes(QVector<CLdapAttribute>&);
-    void                    saveNewChild() throw(CLdapServerException);
+	void                    addAttribute(CLdapAttribute& newOb) throw(CLdapServerException);
+	void                    deleteAttribute(CLdapAttribute& newOb) throw(CLdapServerException);
+	void                    updateAttribute(CLdapAttribute& newOb) throw(CLdapServerException);
+	void                    flushAttributeCache();
+	void                    addNewChild(CLdapEntry* child);
+	void                    removeChild(CLdapEntry* child);
+	void                    addAttributes(QVector<CLdapAttribute>&);
+	void                    saveNewChild() throw(CLdapServerException);
 
 
 public:
@@ -58,8 +58,8 @@ public slots:
 private:
 	void construct(CLdapData* data, LDAPConnection* conn, QString baseDn);
 	void prepareAttributes();
-    void availableAttributesMayImpl();
-    void availableAttributesMustImpl();
+	void availableAttributesMayImpl();
+	void availableAttributesMustImpl();
 
 private:
 	CLdapEntry*           m_pParent{nullptr};
@@ -69,16 +69,16 @@ private:
 	QString               m_baseDn;
 	QString               m_rDn;
 	CLdapData*            m_pData;
-    bool                  m_isNew{false};
+	bool                  m_isNew{false};
 
 	QVector<CLdapAttribute> m_attributes;
-    QVector<CLdapAttribute> m_Must;
-    QVector<CLdapAttribute> m_May;
-    QVector<QString>        m_classes;
+	QVector<CLdapAttribute> m_Must;
+	QVector<CLdapAttribute> m_May;
+	QVector<QString>        m_classes;
 
 	friend class CLdapData;
-    friend class CLdapAttributesModel;
-    friend class CLdapTreeView;
+	friend class CLdapAttributesModel;
+	friend class CLdapTreeView;
 };
 
 }

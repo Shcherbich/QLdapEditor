@@ -270,7 +270,7 @@ namespace ldapeditor
                 parent->saveNewChild();
             }
         }
-        catch (std::exception& e)
+        catch (const std::exception& e)
         {
             QMessageBox::critical(nullptr, "Error", e.what(), QMessageBox::Ok);
             return false;

@@ -44,9 +44,8 @@ CLdapData::~CLdapData()
 
 void CLdapData::connect(const tConnectionOptions& connectOptions)
 {
-    resetConnection();
-
-    QThreadPool::globalInstance()->start(makeSimpleTask([=]()
+	resetConnection();
+    auto func = [=]()
     {
         try
         {
@@ -83,24 +82,29 @@ void CLdapData::connect(const tConnectionOptions& connectOptions)
             m_Connection = std::move(localConn);
             m_Schema.build(m_Connection.get(), m_baseDN);
             build();
-			emit OnConnectionCompleted(this, true, "");
+            // emit OnConnectionCompleted(this, true, "");
         }
         catch (const LDAPException& e)
         {
             emit OnConnectionCompleted(this, false, QString(e.what()));
         }
+    };
+
+    QThreadPool::globalInstance()->start(makeSimpleTask([=]()
+    {
+        func();
     }));
 
 }
 
 void CLdapData::rebuild()
 {
-    foreach (CLdapEntry* en, m_Entries)
-    {
-        delete en;
-    }
-    m_Entries.clear();
-    build();
+	foreach (CLdapEntry* en, m_Entries)
+	{
+		delete en;
+	}
+	m_Entries.clear();
+	build();
 }
 
 void CLdapData::build()
