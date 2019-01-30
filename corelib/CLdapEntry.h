@@ -30,7 +30,7 @@ public:
 	QVector<CLdapAttribute> availableAttributesMay();
 	QVector<CLdapAttribute> availableAttributesMust();
 	bool                    isMust(std::string attributeName);
-	bool                    isNew() const;
+    bool                    isNew();
 	std::shared_ptr<CLdapAttribute> createEmptyAttribute(std::string attributeName);
 	QVector<QString>        availableClasses();
 
@@ -45,6 +45,8 @@ public:
 	void                    removeChild(CLdapEntry* child);
 	void                    addAttributes(QVector<CLdapAttribute>&);
 	void                    saveNewChild() throw(CLdapServerException);
+    void                    availableAttributesMayImpl();
+    void                    availableAttributesMustImpl();
 
 
 public:
@@ -58,8 +60,6 @@ public slots:
 private:
 	void construct(CLdapData* data, LDAPConnection* conn, QString baseDn);
 	void prepareAttributes();
-	void availableAttributesMayImpl();
-	void availableAttributesMustImpl();
 
 private:
 	CLdapEntry*           m_pParent{nullptr};

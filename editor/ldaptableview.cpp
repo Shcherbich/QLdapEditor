@@ -84,12 +84,6 @@ namespace ldapeditor
 
     void CLdapTableView::customContextMenuRequested(QPoint pos)
     {
-        CLdapAttributesModel* thisModel = qobject_cast<CLdapAttributesModel*>(model());
-        if (thisModel && thisModel->isNew())
-        {
-            return;
-        }
-
         QModelIndex index = indexAt(pos);
         m_delAttr->setData(index);
         m_delAttr->setEnabled(index.isValid() && m_ldapDataDelegate.canDeleteRow(index));

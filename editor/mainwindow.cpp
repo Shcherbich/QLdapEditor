@@ -174,34 +174,47 @@ QString MainWindow::normilizeDN(const QString& dn)
 	return dn.trimmed();
 };
 
-void MainWindow::onTreeItemChanged(const QModelIndex& current, const QModelIndex& previous)
+void MainWindow::onTreeItemChanged(const QModelIndex& current, const QModelIndex& mainPrev)
 {
 	if (!current.isValid())
 	{
 		return;
 	}
 
-	if (previous.isValid())
+    if (mainPrev.isValid())
 	{
-		if (m_TableModel->isNew())
+        if (m_TableModel->isNew() && m_LdapTree->updatesEnabled())
 		{
-			auto ret = QMessageBox::question(this, "Question", "The new entry was added.\nDo you want to save new entry to server?", QMessageBox::Yes | QMessageBox::No);
+            auto ret = QMessageBox::question(this, "Question",
+                                             "The new entry was added.\nDo you want to save new entry to server?", QMessageBox::Yes | QMessageBox::No);
 			if (ret != QMessageBox::Yes)
 			{
-				ldapcore::CLdapEntry* prevEntry = static_cast<ldapcore::CLdapEntry*>(previous.internalPointer());
+                ldapcore::CLdapEntry* prevEntry = static_cast<ldapcore::CLdapEntry*>(mainPrev.internalPointer());
 				if (prevEntry != nullptr)
 				{
 					auto parent = prevEntry->parent();
 					if (parent)
 					{
-						parent->removeChild(prevEntry);
-						m_TreeModel->dataChanged(previous, previous);
+                        QtUiLocker locker(m_LdapTree);
+                        auto previous = mainPrev.parent();
+                        parent->removeChild(prevEntry);
+                        m_LdapTree->collapse(previous);
+                        m_LdapTree->expand(previous);
+                        m_LdapTree->setCurrentIndex(previous);
+                        m_TableModel->setLdapEntry(parent);
+                        m_AttributesList->setLdapEntry(parent);
+                        return;
 					}
 				}
 			}
 			else
 			{
-                onSaveData();
+                if (!m_TableModel->Save())
+                {
+
+                    //m_LdapTree->setCurrentIndex(previous);
+                    return;
+                }
 			}
 		}
 		else
@@ -237,6 +250,9 @@ void MainWindow::onLdapSearch()
 
 void MainWindow::onSaveData()
 {
+    m_TableModel->Save();
+    return;
+/*
 	bool isNew =  m_TableModel->isNew();
 	bool isSaved = m_TableModel->Save();
 	auto parentDn = m_TableModel->dn();
@@ -275,6 +291,7 @@ void MainWindow::onSaveData()
 	index = index.child(entry->children().count() - 1, 0);
 	m_LdapTree->setCurrentIndex(index);
 	m_TableModel->setLdapEntry(entry->children().back());
+    */
 }
 
 void MainWindow::onQuit()

@@ -410,7 +410,7 @@ bool CLdapEntry::isMust(std::string attributeName)
 	return f != m_Must.end();
 }
 
-bool CLdapEntry::isNew() const
+bool CLdapEntry::isNew()
 {
 	return m_isNew;
 }
@@ -481,7 +481,7 @@ void CLdapEntry::removeChild(CLdapEntry* child)
 	{
 		if (m_pChildren[i] == child)
 		{
-            delete child;
+            //Known issue: delete child;
 			m_pChildren.remove(i);
 			return;
 		}
@@ -498,7 +498,7 @@ void CLdapEntry::addAttributes(QVector<CLdapAttribute>& attrs)
 void CLdapEntry::saveNewChild() throw(CLdapServerException)
 {
 	auto f = std::find_if(m_pChildren.begin(), m_pChildren.end(),
-	                      [&](const ldapcore::CLdapEntry * a)
+                          [&](ldapcore::CLdapEntry * a)
 	{
 		return a->isNew();
 	});
@@ -509,7 +509,6 @@ void CLdapEntry::saveNewChild() throw(CLdapServerException)
 	auto& child = *f;
 	try
 	{
-        child->m_isNew = false;
 		std::shared_ptr<LDAPAttributeList> attrs(new LDAPAttributeList());
 		StringList objectClasses;
 		for (auto& c : child->m_classes)
@@ -530,10 +529,10 @@ void CLdapEntry::saveNewChild() throw(CLdapServerException)
 		m_Conn->add(entry.get());
 		LDAPModList* mod = new LDAPModList();
 		m_Conn->modify(m_pEntry->getDN(), mod);
+        child->m_isNew = false;
 	}
 	catch (const std::exception& ex)
 	{
-        m_pChildren.erase(f);
 		throw CLdapServerException(ex.what());
 	}
 }
