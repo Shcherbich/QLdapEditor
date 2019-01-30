@@ -27,11 +27,10 @@ namespace ldapeditor
         void onCancelClicked();
         void onConnectClicked();
         void onTimer();
-
-        void onConnectionCompleted(bool isSucceed, QString errorDescription);
         void enableConnection();
         void onShowPasswordClicked();
-
+    private slots:
+        void onConnectionCompleted(bool isSucceed, QString errorDescription);
     private:
         void loadSettings();
         void saveSettings();

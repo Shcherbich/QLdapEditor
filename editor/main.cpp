@@ -8,10 +8,10 @@
 
 int main(int argc, char *argv[])
 {
-    ldapcore::CLdapData ldapData;
     QApplication a(argc, argv);
 
     ldapeditor::CLdapSettings settings;
+    ldapcore::CLdapData ldapData;
     ldapeditor::CConnectionDialog connectionDlg(settings, ldapData);
     if(connectionDlg.exec() == QDialog::Rejected)
     {

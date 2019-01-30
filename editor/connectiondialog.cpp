@@ -25,7 +25,7 @@ namespace ldapeditor
         connect(ui->connectButton, &QAbstractButton::clicked, this, &CConnectionDialog::onConnectClicked);
         connect(ui->showPasswordCheck, &QAbstractButton::clicked, this, &CConnectionDialog::onShowPasswordClicked);
 
-        connect(&m_LdapData,  &ldapcore::CLdapData::onConnectionCompleted, this, &CConnectionDialog::onConnectionCompleted);
+        connect(&m_LdapData,  SIGNAL(onConnectionCompleted(bool, QString)), this, SLOT(onConnectionCompleted(bool, QString)));
         connect(ui->hostBox, &QLineEdit::textChanged, this, &CConnectionDialog::enableConnection );
         connect(ui->baseEdit, &QLineEdit::textChanged, this, &CConnectionDialog::enableConnection );
 
@@ -123,7 +123,6 @@ namespace ldapeditor
 
         m_LdapData.connect(m_Settings.connectionOptions());
         QTimer::singleShot(1000, this, &CConnectionDialog::onTimer );
-        //accept();
     }
 
     void CConnectionDialog::onTimer()

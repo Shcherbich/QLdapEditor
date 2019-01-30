@@ -90,7 +90,9 @@ void CLdapData::connect(const tConnectionOptions& connectOptions)
             emit this->onConnectionCompleted(false, e.what());
         }
     };
-    QThreadPool::globalInstance()->start(makeSimpleTask(func));
+    auto task = makeSimpleTask(func);
+    task->setAutoDelete(false);
+    QThreadPool::globalInstance()->start(task);
 }
 
 void CLdapData::rebuild()
