@@ -43,6 +43,9 @@ namespace ldapeditor
 
         onAuthTypeChanged();
         enableConnection();
+
+        ui->connectButton->activateWindow();
+        ui->connectButton->setFocus();
     }
 
     CConnectionDialog::~CConnectionDialog()

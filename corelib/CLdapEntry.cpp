@@ -481,6 +481,7 @@ void CLdapEntry::removeChild(CLdapEntry* child)
 	{
 		if (m_pChildren[i] == child)
 		{
+            delete child;
 			m_pChildren.remove(i);
 			return;
 		}
@@ -534,6 +535,7 @@ void CLdapEntry::saveNewChild() throw(CLdapServerException)
 	catch (const std::exception& ex)
 	{
 		child->m_isNew = false;
+        delete child;
 		m_pChildren.erase(f);
 		throw CLdapServerException(ex.what());
 	}

@@ -111,24 +111,7 @@ void CLdapData::build()
 	{
 		return;
 	}
-
-	auto v = split(m_baseDN, ",");
-	std::string baseDn;
-	for (auto itr = v.begin(); itr != v.end(); ++itr)
-	{
-		auto str = *itr;
-		str.erase(std::remove(str.begin(), str.end(), ' '), str.end());
-		if (str.find("dc=") == 0)
-		{
-			if (baseDn.size())
-			{
-				baseDn += ",";
-			}
-			baseDn += str;
-		}
-	}
-
-	m_baseDN = baseDn;
+    m_baseDN = QString(m_baseDN.c_str()).trimmed().toStdString();
 	m_Entries.push_back(new CLdapEntry(nullptr, nullptr, nullptr));
 	m_Entries.back()->construct(this, m_Connection.get(), m_baseDN.c_str());
 }
