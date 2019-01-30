@@ -25,6 +25,25 @@
 
 namespace ldapeditor
 {
+
+struct QtUiLocker
+{
+    QWidget* m_pWidget;
+
+    QtUiLocker(QWidget* pWidget)
+        : m_pWidget(pWidget)
+    {
+        m_pWidget->setUpdatesEnabled(false);
+    }
+
+    ~QtUiLocker()
+    {
+        m_pWidget->setUpdatesEnabled(true);
+    }
+
+};
+
+
 MainWindow::MainWindow(CLdapSettings& settings, ldapcore::CLdapData& ldapData, QWidget* parent)
 	: QMainWindow(parent)
 	, m_Settings(settings)
@@ -182,21 +201,15 @@ void MainWindow::onTreeItemChanged(const QModelIndex& current, const QModelIndex
 			}
 			else
 			{
-				bool b = m_TableModel->Save();
-				if (!b)
-				{
-					m_LdapTree->setCurrentIndex(previous);
-					return;
-				}
+                onSaveData();
 			}
-
 		}
 		else
 		{
 			QVector<ldapcore::CLdapAttribute> newRows, deleteRows, updateRows;
 			m_TableModel->GetChangedRows(newRows, deleteRows, updateRows);
 			bool hasChanges = !(!newRows.size() && !deleteRows.size() && !updateRows.size());
-			if (hasChanges)
+            if (hasChanges && m_LdapTree->updatesEnabled())
 			{
 				auto ret = QMessageBox::question(this, "Question", "You have changes in attributes.\nDo you want to save these changes to server?", QMessageBox::Yes | QMessageBox::No);
 				if (ret == QMessageBox::Yes)
@@ -231,6 +244,8 @@ void MainWindow::onSaveData()
 	{
 		if (isNew)
 		{
+            QtUiLocker locker(m_LdapTree);
+            QtUiLocker locker2(m_AttributesList);
 			auto f = m_LdapTree->findByDn(parentDn);
 			auto index = std::get<0>(f);
 			auto entry = std::get<1>(f);
@@ -238,7 +253,8 @@ void MainWindow::onSaveData()
 			{
 				m_LdapTree->collapse(index);
 				m_LdapTree->expand(index);
-				m_TableModel->setLdapEntry(entry);
+                m_LdapTree->setCurrentIndex(index);
+                m_TableModel->setLdapEntry(entry);
 			}
 		}
 		return;
@@ -250,8 +266,11 @@ void MainWindow::onSaveData()
 	{
 		return;
 	}
-	m_TableModel->setLdapEntry(entry);
+
+    QtUiLocker locker(m_LdapTree);
+    QtUiLocker locker2(m_AttributesList);
 	m_LdapTree->collapse(index);
+    m_TableModel->setLdapEntry(entry);
 	m_LdapTree->expand(index);
 	index = index.child(entry->children().count() - 1, 0);
 	m_LdapTree->setCurrentIndex(index);

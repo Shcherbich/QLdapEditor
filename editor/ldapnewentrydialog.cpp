@@ -132,20 +132,32 @@ namespace ldapeditor
 
     void CLdapNewEntryDialog::onStructuralComboChanged(const QString&)
     {
+        ui->rdnEdit->setText("");
         QString selected = ui->structuralCombo->currentText();
         auto& schema = m_LdapData.schema();
-        auto sup = schema.supByClass(selected);
-        auto v = schema.auxiliaryClassesBySup(sup);
-        ui->listAll->clear();
-        ui->listNeeded->clear();
-        for (auto& c: v)
-            ui->listAll->addItem(c);
+
         auto startRdn = schema.startRdn(selected);
         if (startRdn.size())
         {
             ui->rdnEdit->setText(startRdn + "=");
             ui->rdnEdit->setCursorPosition(ui->rdnEdit->selectedText().size() - 1);
         }
+
+        QVector<QString> v;
+        QString sup;
+        do
+        {
+            sup = schema.supByClass(selected);
+            v << schema.auxiliaryClassesBySup(sup);
+            selected = sup == selected ? "" : sup;
+        }
+        while (selected.size());
+        qSort(v);
+        v.erase(std::unique(v.begin(), v.end()), v.end());
+        ui->listAll->clear();
+        ui->listNeeded->clear();
+        for (auto& c: v)
+            ui->listAll->addItem(c);
 
     }
 

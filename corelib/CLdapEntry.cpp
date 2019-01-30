@@ -509,6 +509,7 @@ void CLdapEntry::saveNewChild() throw(CLdapServerException)
 	auto& child = *f;
 	try
 	{
+        child->m_isNew = false;
 		std::shared_ptr<LDAPAttributeList> attrs(new LDAPAttributeList());
 		StringList objectClasses;
 		for (auto& c : child->m_classes)
@@ -526,17 +527,13 @@ void CLdapEntry::saveNewChild() throw(CLdapServerException)
 		}
 		std::shared_ptr<LDAPEntry> entry(new LDAPEntry(child->m_pEntry->getDN(), attrs.get()));
 		auto dn = m_pEntry->getDN();
-		auto q = m_Conn->search(dn, LDAPAsynConnection::SEARCH_SUB, "objectClass=*", StringList());
 		m_Conn->add(entry.get());
 		LDAPModList* mod = new LDAPModList();
 		m_Conn->modify(m_pEntry->getDN(), mod);
-		child->m_isNew = false;
 	}
 	catch (const std::exception& ex)
 	{
-		child->m_isNew = false;
-        delete child;
-		m_pChildren.erase(f);
+        m_pChildren.erase(f);
 		throw CLdapServerException(ex.what());
 	}
 }
