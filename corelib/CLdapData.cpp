@@ -82,7 +82,7 @@ void CLdapData::connect(const tConnectionOptions& connectOptions)
             m_Connection = std::move(localConn);
             m_Schema.build(m_Connection.get(), m_baseDN);
             build();
-            // emit OnConnectionCompleted(this, true, "");
+            emit OnConnectionCompleted(this, true, "");
         }
         catch (const LDAPException& e)
         {

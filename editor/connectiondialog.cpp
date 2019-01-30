@@ -122,8 +122,7 @@ namespace ldapeditor
         setWindowTitle(QString("Connecting ... %1s").arg(0));
 
         m_LdapData.connect(m_Settings.connectionOptions());
-        accept();
-        //QTimer::singleShot(1000, this, &CConnectionDialog::onTimer );
+        QTimer::singleShot(1000, this, &CConnectionDialog::onTimer );
     }
 
     void CConnectionDialog::onTimer()
