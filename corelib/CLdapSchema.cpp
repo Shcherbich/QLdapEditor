@@ -1,4 +1,5 @@
 #include <map>
+#include <set>
 #include <algorithm>
 #include <functional>
 #include <regex>
@@ -73,9 +74,9 @@ std::tuple<AttrType, std::string> FromAttributeString(std::string attr)
 
 struct CLdapSchemaImpl
 {
-	std::unique_ptr<LDAPAttribute> oc;
-	std::unique_ptr<LDAPAttribute> at;
-	std::unique_ptr<LDAPAttribute> mr;
+    std::unique_ptr<LDAPAttribute> oc{ new LDAPAttribute() };
+    std::unique_ptr<LDAPAttribute> at{ new LDAPAttribute() };
+    std::unique_ptr<LDAPAttribute> mr{ new LDAPAttribute() };
 
 	std::map<std::string, std::tuple<AttrType, bool, std::string>, comp> attr2info;
 
@@ -99,7 +100,7 @@ void CLdapSchema::build(LDAPConnection* lc, std::string& baseDn)
 {
 	StringList tmp;
 	tmp.add("subschemasubentry");
-	LDAPSearchResults* entries = lc->search("", LDAPConnection::SEARCH_BASE, "(objectClass=*)", tmp);
+    auto entries = lc->search("", LDAPConnection::SEARCH_BASE, "(objectClass=*)", tmp);
 	uEntry rootDse(entries->getNext());
 	std::string schemabase = "cn=subschema";
 	if (rootDse)
@@ -305,6 +306,105 @@ LDAPSchema* CLdapSchema::attributesSchema()
 	return &m_impl->attributesSchema;
 }
 
+QVector<QString> CLdapSchema::classes()
+{
+    QVector<QString> r;
+    for (auto& c : m_impl->classesSchema.object_classes)
+    {
+        r << c.second.getName().c_str();
+    }
+    return r;
+}
+
+QVector<QString> CLdapSchema::structuralClasses()
+{
+    QVector<QString> r;
+    for (auto& c : m_impl->classesSchema.object_classes)
+    {
+        if (c.second.getKind() == 1)
+        {
+            r << c.second.getName().c_str();
+        }
+    }
+    return r;
+}
+
+QVector<QString> CLdapSchema::auxiliaryClassesBySup(QString sup)
+{
+    QVector<QString> r;
+    for (auto& c : m_impl->classesSchema.object_classes)
+    {
+        if (c.second.getKind() != 2)
+        {
+            continue;
+        }
+        if (c.second.getSup().contains(sup.toStdString()))
+        {
+            r << c.second.getName().c_str();
+        }
+    }
+    return r;
+}
+
+
+QVector<CLdapAttribute> CLdapSchema::attributeByClasses(QVector<QString>& classes, std::map<std::string, std::string>& a2v)
+{
+    std::set<std::string> uniqueAttributes;
+    QVector<CLdapAttribute> vector;
+    for (auto& c : classes)
+    {
+        auto f = m_impl->classesSchema.getObjectClassByName(c.toStdString());
+        auto name = f.getName();
+        if (0 == name.size())
+        {
+            continue;
+        }
+
+        for (auto may : f.getMay())
+        {
+            auto attributeName = may;
+            if (uniqueAttributes.find(attributeName) != uniqueAttributes.end())
+            {
+                continue;
+            }
+            uniqueAttributes.insert(attributeName);
+            auto v2set = a2v.find(attributeName);
+            auto v = v2set == a2v.end() ? "" : v2set->second;
+            auto info = GetAttributeInfoByName(attributeName);
+            CLdapAttribute a(attributeName.c_str(), v.c_str(), std::get<0>(info), false, !v.size() ? AttributeState::AttributeValueReadWrite : AttributeState::AttributeReadOnly);
+            vector.push_back(a);
+        }
+
+        for (auto must : f.getMust())
+        {
+            auto attributeName = must;
+            if (uniqueAttributes.find(attributeName) != uniqueAttributes.end())
+            {
+                continue;
+            }
+            uniqueAttributes.insert(attributeName);
+            auto v2set = a2v.find(attributeName);
+            auto v = v2set == a2v.end() ? "" : v2set->second;
+            auto info = GetAttributeInfoByName(attributeName);
+            CLdapAttribute a(attributeName.c_str(), v.c_str(), std::get<0>(info), true, !v.size() ? AttributeState::AttributeValueReadWrite : AttributeState::AttributeReadOnly);
+            vector.push_back(a);
+        }
+    }
+    return vector;
+
+}
+
+QString CLdapSchema::supByClass(QString c)
+{
+    const auto& f = classesSchema()->getObjectClassByName(c.toStdString());
+    return f.getSup().size() ? f.getSup().begin()->c_str() : "";
+}
+
+QString CLdapSchema::startRdn(QString c)
+{
+    const auto& f = classesSchema()->getObjectClassByName(c.toStdString());
+    auto must = std::move(f.getMust());
+    return must.size() ? must.begin()->c_str() : "";}
 
 }
 

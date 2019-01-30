@@ -10,6 +10,7 @@
 #include <LDAPSearchResults.h>
 #include <LDAPExtResult.h>
 #include <LDAPAsynConnection.h> 
+#include <memory>
 
 /** Main class for synchronous LDAP-Communication
  *
@@ -207,7 +208,7 @@ class LDAPConnection : public LDAPAsynConnection {
          * @returns A pointer to a LDAPSearchResults-object that can be
          *      used to read the results of the search.
          */
-        LDAPSearchResults* search(const std::string& base, int scope=0, 
+        std::shared_ptr<LDAPSearchResults> search(const std::string& base, int scope=0,
                 const std::string& filter="objectClass=*", 
                 const StringList& attrs=StringList(), bool attrsOnly=false,
                 const LDAPConstraints* cons=0);

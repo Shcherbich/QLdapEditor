@@ -2,7 +2,7 @@
 #include "ldapeditordefines.h"
 #include "CLdapAttribute.h"
 #include <QHeaderView>
-//#include <QtDebug>
+#include "ldapattributesmodel.h"
 
 namespace ldapeditor
 {

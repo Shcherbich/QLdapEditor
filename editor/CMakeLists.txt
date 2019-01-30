@@ -25,6 +25,8 @@ INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR})
 # Populate a CMake variable with the sources
 SET(ldapeditor_SOURCES
     resources.qrc
+    TableModel.h
+    ModelDataAdapter.h
     const.h
     cmustmaymodel.h
     cmustmaymodel.cpp
@@ -40,6 +42,8 @@ SET(ldapeditor_SOURCES
     connectiondialog.ui
     ldaptableview.cpp
     ldaptreeview.cpp
+    ldapnewentrydialog.cpp
+    ldapnewentrydialog.ui
     mainwindow.cpp
     main.cpp
 )
@@ -54,6 +58,7 @@ SET(ldapeditor_HEADERS
     connectiondialog.h
     ldaptableview.h
     ldaptreeview.h
+    ldapnewentrydialog.h
     mainwindow.h
     ldapeditordefines.h
     ${CMAKE_BINARY_DIR}/version.h

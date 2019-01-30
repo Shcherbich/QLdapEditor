@@ -78,14 +78,9 @@ enum  class AttributeState
 	AttributeValueReadWrite
 };
 
-//class LDAPEDITORCORE_SO_API CLdapAttribute : public QObject
-//class CLdapAttribute : public QObject
 class CLdapAttribute
 {
-	//Q_OBJECT
 public:
-	//explicit CLdapAttribute(QObject *parent = nullptr);
-	//explicit CLdapAttribute(QString name, QString value, AttrType type, QObject *parent = nullptr);
 
 	explicit CLdapAttribute();
     explicit CLdapAttribute(QString name, QString value, AttrType type, bool isMust, AttributeState editState = AttributeState::AttributeValueReadWrite);
@@ -104,27 +99,10 @@ public:
 	bool isModified() const;
     bool isMust() const;
 
-
 	void setName(const QString& name);
 	void setValue(const QString& value);
 	void setType(AttrType type);
     void setEditState(AttributeState state);
-
-    /*
-    bool operator < (CLdapAttribute& o) const
-    {
-        if (isMust() != o.isMust())
-            return isMust() > o.isMust();
-        return name() < o.name();
-    }
-
-    bool operator ()(const ldapcore::CLdapAttribute& l, const ldapcore::CLdapAttribute& r) const
-    {
-        if (l.isMust() != r.isMust())
-            return l.isMust() > r.isMust();
-        return l.name() < r.name();
-    }
-    */
 
 private:
 	QString m_Name;

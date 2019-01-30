@@ -20,7 +20,11 @@ namespace ldapeditor
         beginResetModel();
         if(m_pAttributes)
             m_pAttributes->clear();
-        removeRows(0, rowCount());
+        int iRowCount = rowCount();
+        if (iRowCount != 0)
+        {
+            removeRows(0, iRowCount);
+        }
         m_entry = entry;
         m_pAttributes = entry->attributes();
         endResetModel();
@@ -48,7 +52,6 @@ namespace ldapeditor
         }
         return false;
     }
-
 
     int CLdapAttributesModel::rowCount(const QModelIndex &parent) const
     {
@@ -164,7 +167,7 @@ namespace ldapeditor
         if(!m_pAttributes) return true;
 
         beginRemoveRows(parent, row, row + count-1);
-         m_pAttributes->remove(row, count);
+        m_pAttributes->remove(row, count);
         endRemoveRows();
         m_IsChanged = true;
         return true;
@@ -223,13 +226,65 @@ namespace ldapeditor
 
     }
 
-    void CLdapAttributesModel::SaveToServer()
+    bool CLdapAttributesModel::isNew() const
+    {
+        return m_entry ? m_entry->isNew() : false;
+    }
+
+    QString CLdapAttributesModel::dn() const
+    {
+        return m_entry && m_entry->parent() ? m_entry->parent()->dn() : "";
+    }
+
+    bool CLdapAttributesModel::Save()
+    {
+        if (false == isNew())
+        {
+            return SaveAttributes();
+        }
+        else
+        {
+            return SaveNewEntry();
+        }
+
+    }
+
+    bool  CLdapAttributesModel::SaveNewEntry()
+    {
+        // check
+        for (auto& a: *m_pAttributes)
+        {
+            if (a.isMust() && a.value().size() == 0)
+            {
+                QMessageBox::critical(nullptr, "Error", QString("The must attribute '%1' is not filled!").arg(a.name()), QMessageBox::Ok);
+                return false;
+            }
+        }
+
+        // save to database
+        try
+        {
+            auto parent = m_entry->parent();
+            if (parent != nullptr)
+            {
+                parent->saveNewChild();
+            }
+        }
+        catch (const std::exception& e)
+        {
+            QMessageBox::critical(nullptr, "Error", e.what(), QMessageBox::Ok);
+            return false;
+        }
+        return true;
+    }
+
+    bool  CLdapAttributesModel::SaveAttributes()
     {
         QVector<ldapcore::CLdapAttribute> newRows, deleteRows, updateRows;
         GetChangedRows(newRows, deleteRows, updateRows);
         if (!newRows.size() && !deleteRows.size() && !updateRows.size())
         {
-            return;
+            return true;
         }
         for (auto& n : newRows)
         {
@@ -269,6 +324,7 @@ namespace ldapeditor
         m_entry->flushAttributeCache();
         QApplication::restoreOverrideCursor();
         setLdapEntry(m_entry);
+        return true;
     }
 
 } //namespace ldapeditor

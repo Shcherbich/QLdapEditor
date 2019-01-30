@@ -8,7 +8,12 @@ namespace ldapeditor
    MustMayModel::MustMayModel(QObject* parent, ldapcore::CLdapEntry* entry, QVector<ldapcore::CLdapAttribute>* existAttributes)
        : QAbstractListModel(parent)
    {
+       entry->availableAttributesMayImpl();
        auto allMays = entry->availableAttributesMay();
+       if (allMays.size() == 0)
+       {
+           allMays = entry->parent()->availableAttributesMay();
+       }
        for (const auto& m : allMays)
        {
            auto f = std::find_if(existAttributes->begin(), existAttributes->end(), [&](const ldapcore::CLdapAttribute& a)

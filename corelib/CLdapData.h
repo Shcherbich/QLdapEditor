@@ -15,7 +15,7 @@ class LDAPConnection;
 
 namespace ldapcore
 {
-//class LDAPEDITORCORE_SO_API CLdapData :  public QObject
+
 class CLdapData :  public QObject
 {
 	Q_OBJECT
@@ -23,27 +23,21 @@ class CLdapData :  public QObject
 public:
 	explicit CLdapData(QObject* parent = nullptr);
 	~CLdapData();
-public:
 
+public:
 	void connect(const tConnectionOptions& connectOptions);
 	void resetConnection();
+    void rebuild();
+
 	QVector<CLdapEntry*> topList();
-	void addObject(QString id);
-	void deleteObject(CLdapObject*);
-
 	QStringList search(const tSearchOptions& searchOptions);
-
 	CLdapSchema& schema();
 	QString host();
 	int port();
 	QString baseDN();
 
-signals:
-	void OnConnectionCompleted(CLdapData* pThis, bool isSucceed, QString errorDescription);
-	void OnObjectAdded(CLdapObject* p, bool isSucceed, QString errorDescription);
-	void OnObjectDeleted(CLdapObject* p, bool isSucceed, QString errorDescription);
-
-public:
+Q_SIGNALS:
+    void onConnectionCompleted(bool isSucceed, QString errorDescription);
 
 private:
 	void build();

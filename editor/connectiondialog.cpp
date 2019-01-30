@@ -25,7 +25,7 @@ namespace ldapeditor
         connect(ui->connectButton, &QAbstractButton::clicked, this, &CConnectionDialog::onConnectClicked);
         connect(ui->showPasswordCheck, &QAbstractButton::clicked, this, &CConnectionDialog::onShowPasswordClicked);
 
-        connect(&m_LdapData,  &ldapcore::CLdapData::OnConnectionCompleted, this, &CConnectionDialog::OnConnectionCompleted);
+        connect(&m_LdapData,  SIGNAL(onConnectionCompleted(bool, QString)), this, SLOT(onConnectionCompleted(bool, QString)));
         connect(ui->hostBox, &QLineEdit::textChanged, this, &CConnectionDialog::enableConnection );
         connect(ui->baseEdit, &QLineEdit::textChanged, this, &CConnectionDialog::enableConnection );
 
@@ -43,6 +43,9 @@ namespace ldapeditor
 
         onAuthTypeChanged();
         enableConnection();
+
+        ui->connectButton->activateWindow();
+        ui->connectButton->setFocus();
     }
 
     CConnectionDialog::~CConnectionDialog()
@@ -139,10 +142,11 @@ namespace ldapeditor
         }
     }
 
-    void CConnectionDialog::OnConnectionCompleted(ldapcore::CLdapData* pThis, bool isSucceed, QString errorDescription)
+    void CConnectionDialog::onConnectionCompleted(bool isSucceed, QString errorDescription)
     {
         if(isSucceed)
         {
+            m_WaitTime = 0;
             setWindowTitle(tr("Connection properties dialog"));
             setEnabled(true);
             accept();

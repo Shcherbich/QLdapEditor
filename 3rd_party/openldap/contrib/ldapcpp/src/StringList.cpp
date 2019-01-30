@@ -75,3 +75,11 @@ void StringList::clear(){
     m_data.clear();
 }
 
+bool StringList::contains(const std::string& value) const {
+    for(auto i = begin(); i != end(); i++){
+        if (*i == value) {
+            return true;
+        }
+    }
+    return false;
+}

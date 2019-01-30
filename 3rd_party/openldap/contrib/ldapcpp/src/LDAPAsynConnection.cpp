@@ -8,6 +8,7 @@
 #include "config.h"
 #include "debug.h"
 #include "LDAPAsynConnection.h"
+#include "ac/time.h"
 
 #include "LDAPAddRequest.h"
 #include "LDAPBindRequest.h"
@@ -70,7 +71,7 @@ void LDAPAsynConnection::init(const string& hostname, int port){
     int opt=3;
     ldap_set_option(cur_session, LDAP_OPT_REFERRALS, LDAP_OPT_OFF);
     ldap_set_option(cur_session, LDAP_OPT_PROTOCOL_VERSION, &opt);
-    timeval tcp = {0};
+    struct timeval tcp = {0};
     tcp.tv_sec = 10;
     ldap_set_option(cur_session, LDAP_OPT_NETWORK_TIMEOUT, &tcp);
 }
@@ -86,7 +87,7 @@ void LDAPAsynConnection::initialize(const std::string& uri){
     int opt=3;
     ldap_set_option(cur_session, LDAP_OPT_REFERRALS, LDAP_OPT_OFF);
     ldap_set_option(cur_session, LDAP_OPT_PROTOCOL_VERSION, &opt);
-    timeval tcp = {0};
+    struct timeval tcp = {0};
     tcp.tv_sec = 10;
     ldap_set_option(cur_session, LDAP_OPT_NETWORK_TIMEOUT, &tcp);
 }

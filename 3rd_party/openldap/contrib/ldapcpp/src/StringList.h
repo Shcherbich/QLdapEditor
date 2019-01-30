@@ -84,5 +84,10 @@ class StringList{
          * removes all elements from the list
          */
         void clear(); 
+
+        /**
+         * true - if internal list contains given value; otherwise - false
+         */
+        bool contains(const std::string& value) const ;
 };
 #endif //STRING_LIST_H
