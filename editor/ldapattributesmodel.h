@@ -5,6 +5,7 @@
 #include <QAbstractTableModel>
 #include <QStringList>
 #include <QVector>
+#include <QString>
 #include "CLdapAttribute.h"
 #include "CLdapEntry.h"
 #include "attributemodelhelper.h"
@@ -52,6 +53,9 @@ namespace ldapeditor
         bool Save();
         bool isNew() const;
         QString dn() const;
+
+    public slots:
+        void onRemovingAttribute(QString name);
 
     protected:
         bool  SaveAttributes();

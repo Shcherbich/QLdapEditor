@@ -270,7 +270,7 @@ void CLdapEntry::prepareAttributes()
 	loadAttributes(m_attributes);
 
 }
-void CLdapEntry::loadAttributes(QVector<CLdapAttribute>& vRet)
+void CLdapEntry::loadAttributes(QVector<CLdapAttribute>& vRet, bool needToLoadSystemAttributes)
 {
 	if (m_pEntry == nullptr || m_isNew)
 	{
@@ -307,7 +307,7 @@ void CLdapEntry::loadAttributes(QVector<CLdapAttribute>& vRet)
 		try
 		{
             auto srSystemAttrs = m_Conn->search(dn().toStdString(), LDAPConnection::SEARCH_SUB, "(objectClass=*)", systemAttrs);
-			if (srSystemAttrs != nullptr)
+            if (srSystemAttrs != nullptr && needToLoadSystemAttributes)
 			{
 				LDAPEntry* systemEntry = srSystemAttrs->top();
 				if (systemEntry != nullptr)
@@ -404,6 +404,17 @@ bool CLdapEntry::isNew()
 {
 	return m_isNew;
 }
+
+bool CLdapEntry::isEdit()
+{
+    return m_isEdit;
+}
+
+void CLdapEntry::setEditable(bool isEdit)
+{
+    m_isEdit = isEdit;
+}
+
 
 void CLdapEntry::validateAttribute(CLdapAttribute& attr)
 {

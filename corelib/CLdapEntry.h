@@ -31,11 +31,13 @@ public:
 	QVector<CLdapAttribute> availableAttributesMust();
 	bool                    isMust(std::string attributeName);
     bool                    isNew();
+    bool                    isEdit();
+    void                    setEditable(bool isEdit);
 	std::shared_ptr<CLdapAttribute> createEmptyAttribute(std::string attributeName);
 	QVector<QString>        availableClasses();
 
 	void                    validateAttribute(CLdapAttribute& attr);
-	void                    loadAttributes(QVector<CLdapAttribute>&);
+    void                    loadAttributes(QVector<CLdapAttribute>&, bool needToLoadSystemAttributes = true);
 
 	void                    addAttribute(CLdapAttribute& newOb) throw(CLdapServerException);
 	void                    deleteAttribute(CLdapAttribute& newOb) throw(CLdapServerException);
@@ -70,6 +72,7 @@ private:
 	QString               m_rDn;
 	CLdapData*            m_pData;
 	bool                  m_isNew{false};
+    bool                  m_isEdit{false};
 
 	QVector<CLdapAttribute> m_attributes;
 	QVector<CLdapAttribute> m_Must;

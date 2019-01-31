@@ -19,6 +19,7 @@ namespace ldapeditor
         explicit CLdapTableView(QWidget *parent, CLdapSettings&);
         void setLdapEntry(ldapcore::CLdapEntry* entry);
         void RestoreView();
+
     signals:
 
     public slots:
