@@ -91,10 +91,6 @@ std::string AddAttributeToServer(LDAPConnection* conn, LDAPEntry* le, std::strin
 		LDAPModification::mod_op op = LDAPModification::OP_ADD;
 		LDAPModList* mod = new LDAPModList();
 		mod->addModification(LDAPModification(newattr, op));
-
-
-		auto q = conn->search(le->getDN(), LDAPAsynConnection::SEARCH_SUB, "objectClass=*", StringList());
-		auto en = q->getNext();
 		conn->modify_s(le->getDN(), mod);
 		return "";
 	}
@@ -112,9 +108,6 @@ std::string DeleteAttributeFromServer(LDAPConnection* conn, LDAPEntry* le, std::
 		LDAPModification::mod_op op = LDAPModification::OP_DELETE;
 		LDAPModList* mod = new LDAPModList();
 		mod->addModification(LDAPModification(newattr, op));
-
-		auto q = conn->search(le->getDN(), LDAPAsynConnection::SEARCH_SUB, "objectClass=*", StringList());
-		auto en = q->getNext();
 		conn->modify_s(le->getDN(), mod);
 		return "";
 	}
@@ -324,11 +317,8 @@ void CLdapEntry::loadAttributes(QVector<CLdapAttribute>& vRet)
 					{
 						auto t = m_pData->schema().GetAttributeInfoByName(i->getName().c_str());
 						auto tp = std::get<0>(t);
-						auto editable = std::get<1>(t);
-						AttributeState editState = AttributeState::AttributeReadOnly;
-						//AttributeState editState = editable ? AttributeState::AttributeValueReadWrite : AttributeState::AttributeReadOnly;
 						auto name = i->getName();
-						CLdapAttribute attr(name.c_str(), i->toString().c_str(), tp, true, editState);
+                        CLdapAttribute attr(name.c_str(), i->toString().c_str(), tp, true, AttributeState::AttributeReadOnly);
 						vRet.push_back(attr);
 						m_Must.push_back(attr);
 					}

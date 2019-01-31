@@ -233,7 +233,7 @@ std::string CheckCountryStringImpl(std::string value, std::string extendedSet)
 		bool b1 = isalpha(ch);
 		bool b2 = isdigit(ch);
 		bool b3 = extendedSet.find(ch) != std::string::npos;
-		if (!b1 && !b2)
+        if (!b1 && !b2 && !b3)
 		{
 			return std::string("The symbol '") + ch + "' is invalid";
 		}

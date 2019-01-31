@@ -12,7 +12,7 @@ QString  FromUTCString(QString customDateString)
 {
     QDateTime timeConvertor;
     QString dateTime = customDateString.left(14);
-    int timezoneOffset = customDateString.right(5).left(3).toInt();
+    //int timezoneOffset = customDateString.right(5).left(3).toInt();
     timeConvertor = QDateTime::fromString(dateTime, LDAP_EDITOR_SERVER_DATETIME_FORMAT);
     return timeConvertor.toString(LDAP_EDITOR_UI_DATETIME_FORMAT);
 
