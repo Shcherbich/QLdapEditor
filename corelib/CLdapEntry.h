@@ -34,20 +34,23 @@ public:
     bool                    isEdit();
     void                    setEditable(bool isEdit);
 	std::shared_ptr<CLdapAttribute> createEmptyAttribute(std::string attributeName);
+    QVector<QString>        classes();
+    void                    setClasses(QVector<QString>&);
 	QVector<QString>        availableClasses();
 
 	void                    validateAttribute(CLdapAttribute& attr);
     void                    loadAttributes(QVector<CLdapAttribute>&, bool needToLoadSystemAttributes = true);
     void                    sortAttributes();
 
-	void                    addAttribute(CLdapAttribute& newOb) throw(CLdapServerException);
-	void                    deleteAttribute(CLdapAttribute& newOb) throw(CLdapServerException);
-	void                    updateAttribute(CLdapAttribute& newOb) throw(CLdapServerException);
+    void                    addAttribute(CLdapAttribute& newOb) noexcept(false);
+    void                    deleteAttribute(CLdapAttribute& newOb) noexcept(false);
+    void                    updateAttribute(CLdapAttribute& newOb) noexcept(false);
 	void                    flushAttributeCache();
 	void                    addNewChild(CLdapEntry* child);
 	void                    removeChild(CLdapEntry* child);
 	void                    addAttributes(QVector<CLdapAttribute>&);
-	void                    saveNewChild() throw(CLdapServerException);
+    void                    saveNewChild() noexcept(false);
+    void                    update() noexcept(false);
     void                    availableAttributesMayImpl();
     void                    availableAttributesMustImpl();
 

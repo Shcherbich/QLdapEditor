@@ -267,8 +267,17 @@ bool CLdapAttributesModel::SaveNewEntry()
 
 bool CLdapAttributesModel::SaveUpdatedEntry()
 {
+    // check
+    for (auto& a : *m_pAttributes) {
+        if (a.isMust() && a.value().size() == 0) {
+            QMessageBox::critical(nullptr, "Error", QString("The must attribute '%1' is not filled!").arg(a.name()), QMessageBox::Ok);
+            return false;
+        }
+    }
+
     try {
-        throw ldapcore::CLdapServerException("Not implemented yet");
+        m_entry->update();
+        setLdapEntry(m_entry);
     } catch (const std::exception& e) {
         QMessageBox::critical(nullptr, "Error", e.what(), QMessageBox::Ok);
         return false;

@@ -164,6 +164,7 @@ void CLdapTreeView::onEditEntry()
         }
     }
 
+    thisEntry->setClasses(classes);
     thisEntry->setEditable(true);
 }
 

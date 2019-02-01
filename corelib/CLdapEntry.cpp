@@ -144,6 +144,7 @@ std::string ReplaceAttributeOnServer(LDAPConnection* conn, LDAPEntry* le, std::s
 }
 
 
+
 namespace ldapcore
 {
 // supported types for edit
@@ -289,8 +290,8 @@ void CLdapEntry::loadAttributes(QVector<CLdapAttribute>& vRet, bool needToLoadSy
 		vRet.push_back(attr);
 	}
 
+    static StringList systemAttrs;
 	{
-		static StringList systemAttrs;
 		if (systemAttrs.empty())
 		{
 			systemAttrs.add("creatorsname");
@@ -422,7 +423,7 @@ void CLdapEntry::validateAttribute(CLdapAttribute& attr)
 	m_pData->schema().checkBySyntaxName(attr.name().toStdString(), attr.value().toStdString());
 }
 
-void CLdapEntry::addAttribute(CLdapAttribute& newOb) throw(CLdapServerException)
+void CLdapEntry::addAttribute(CLdapAttribute& newOb) noexcept(false)
 {
 	auto ret = AddAttributeToServer(m_Conn, m_pEntry, newOb.name().toStdString(), newOb.value().toStdString());
 	if (ret.size())
@@ -432,7 +433,7 @@ void CLdapEntry::addAttribute(CLdapAttribute& newOb) throw(CLdapServerException)
 	}
 }
 
-void CLdapEntry::deleteAttribute(CLdapAttribute& object) throw(CLdapServerException)
+void CLdapEntry::deleteAttribute(CLdapAttribute& object) noexcept(false)
 {
 	auto ret = DeleteAttributeFromServer(m_Conn, m_pEntry, object.name().toStdString());
 	if (ret.size())
@@ -442,7 +443,7 @@ void CLdapEntry::deleteAttribute(CLdapAttribute& object) throw(CLdapServerExcept
 	}
 }
 
-void CLdapEntry::updateAttribute(CLdapAttribute& object) throw(CLdapServerException)
+void CLdapEntry::updateAttribute(CLdapAttribute& object) noexcept(false)
 {
 	auto ret = ReplaceAttributeOnServer(m_Conn, m_pEntry, object.name().toStdString(), object.value().toStdString());
 	if (ret.size())
@@ -468,6 +469,17 @@ void CLdapEntry::flushAttributeCache()
 void CLdapEntry::sortAttributes()
 {
    std::sort(m_attributes.begin(), m_attributes.end(), comp());
+}
+
+QVector<QString> CLdapEntry::classes()
+{
+    return m_classes;
+}
+
+void CLdapEntry::setClasses(QVector<QString>& cList)
+{
+    m_classes.clear();
+    m_classes << cList;
 }
 
 QVector<QString> CLdapEntry::availableClasses()
@@ -501,7 +513,7 @@ void CLdapEntry::addAttributes(QVector<CLdapAttribute>& attrs)
 	std::sort(m_attributes.begin(), m_attributes.end(), comp());
 }
 
-void CLdapEntry::saveNewChild() throw(CLdapServerException)
+void CLdapEntry::saveNewChild() noexcept(false)
 {
 	auto f = std::find_if(m_pChildren.begin(), m_pChildren.end(),
                           [&](ldapcore::CLdapEntry * a)
@@ -541,6 +553,56 @@ void CLdapEntry::saveNewChild() throw(CLdapServerException)
 	{
 		throw CLdapServerException(ex.what());
 	}
+}
+
+void CLdapEntry::update() noexcept(false)
+{
+    if (m_isEdit == false)
+    {
+        return;
+    }
+    try
+    {
+        QVector<CLdapAttribute> realAttributes;
+        loadAttributes(realAttributes);
+
+        LDAPModification::mod_op op = LDAPModification::OP_REPLACE;
+        LDAPModList* mod = new LDAPModList();
+        StringList objectClasses;
+        for (auto& c : m_classes)
+            objectClasses.add(c.toStdString());
+        mod->addModification(LDAPModification(LDAPAttribute("objectClass", objectClasses), op));
+        for (auto& a : m_attributes) {
+
+            if (a.name() == "objectClass"){
+                continue;
+            }
+
+            auto f = std::find_if(realAttributes.begin(), realAttributes.end(),
+                [&](const ldapcore::CLdapAttribute& o) {
+                    return strcasecmp(o.name().toStdString().c_str(), a.name().toStdString().c_str()) == 0;
+                });
+
+            auto value = a.value().toStdString();
+
+            // no modification
+            if (f != realAttributes.end() && f->value() == a.value()) {
+                continue;
+            }
+
+            // add modification
+            if (value.size()) {
+                mod->addModification(LDAPModification(LDAPAttribute(a.name().toStdString(), value), op));
+            }
+        }
+        auto& dn = m_pEntry->getDN();
+        m_Conn->modify_s(dn, mod);
+        m_isEdit = false;
+    }
+    catch (const std::exception& ex)
+    {
+        throw CLdapServerException(ex.what());
+    }
 }
 
 }
