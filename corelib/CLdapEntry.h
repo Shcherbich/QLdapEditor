@@ -38,6 +38,7 @@ public:
 
 	void                    validateAttribute(CLdapAttribute& attr);
     void                    loadAttributes(QVector<CLdapAttribute>&, bool needToLoadSystemAttributes = true);
+    void                    sortAttributes();
 
 	void                    addAttribute(CLdapAttribute& newOb) throw(CLdapServerException);
 	void                    deleteAttribute(CLdapAttribute& newOb) throw(CLdapServerException);

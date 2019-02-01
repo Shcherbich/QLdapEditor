@@ -132,6 +132,7 @@ void CLdapTreeView::onEditEntry()
     auto prevAttributes = m_LdapData.schema().attributeByClasses(tmp, a2v);
     auto currAttributes = m_LdapData.schema().attributeByClasses(classes, a2v);
 
+    // delete attributes, which are not needed now
     for (auto& thisA : theseAttributes) {
         auto bPrev = std::find_if(prevAttributes.begin(), prevAttributes.end(), [&](const ldapcore::CLdapAttribute& a) {
             return strcasecmp(a.name().toStdString().c_str(), thisA.name().toStdString().c_str()) == 0;
@@ -146,6 +147,19 @@ void CLdapTreeView::onEditEntry()
         }
 
         if (true == bCurr && bPrev == false) {
+            continue;
+        }
+    }
+
+    // add attributes, which are needed now
+    for (auto& currA : currAttributes) {
+
+        auto bThese = std::find_if(theseAttributes.begin(), theseAttributes.end(), [&](const ldapcore::CLdapAttribute& a) {
+            return strcasecmp(a.name().toStdString().c_str(), currA.name().toStdString().c_str()) == 0;
+        }) != theseAttributes.end();
+
+        if (false == bThese) {
+            QMetaObject::invokeMethod(model(), "addAttribute", Qt::ConnectionType::QueuedConnection, Q_ARG(QString, currA.name()));
             continue;
         }
     }

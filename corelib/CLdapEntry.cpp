@@ -465,6 +465,11 @@ void CLdapEntry::flushAttributeCache()
 	}
 }
 
+void CLdapEntry::sortAttributes()
+{
+   std::sort(m_attributes.begin(), m_attributes.end(), comp());
+}
+
 QVector<QString> CLdapEntry::availableClasses()
 {
 	return m_pData->schema().classes();

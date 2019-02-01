@@ -22,6 +22,9 @@ void CLdapAttributesModel::setLdapEntry(ldapcore::CLdapEntry* entry)
     if (iRowCount != 0) {
         removeRows(0, iRowCount);
     }
+    if (m_entry && entry != m_entry){
+        m_entry->setEditable(false);
+    }
     m_entry = entry;
     m_pAttributes = entry->attributes();
     endResetModel();
@@ -217,6 +220,12 @@ bool CLdapAttributesModel::isNew() const
     return m_entry ? m_entry->isNew() : false;
 }
 
+bool CLdapAttributesModel::isEdit() const
+{
+    return m_entry ? m_entry->isEdit() : false;
+}
+
+
 QString CLdapAttributesModel::dn() const
 {
     return m_entry && m_entry->parent() ? m_entry->parent()->dn() : "";
@@ -224,11 +233,13 @@ QString CLdapAttributesModel::dn() const
 
 bool CLdapAttributesModel::Save()
 {
-    if (false == isNew()) {
-        return SaveAttributes();
-    } else {
+    if (isNew()) {
         return SaveNewEntry();
     }
+    if (isEdit()) {
+        return SaveUpdatedEntry();
+    }
+    return SaveAttributes();
 }
 
 bool CLdapAttributesModel::SaveNewEntry()
@@ -247,6 +258,17 @@ bool CLdapAttributesModel::SaveNewEntry()
         if (parent != nullptr) {
             parent->saveNewChild();
         }
+    } catch (const std::exception& e) {
+        QMessageBox::critical(nullptr, "Error", e.what(), QMessageBox::Ok);
+        return false;
+    }
+    return true;
+}
+
+bool CLdapAttributesModel::SaveUpdatedEntry()
+{
+    try {
+        throw ldapcore::CLdapServerException("Not implemented yet");
     } catch (const std::exception& e) {
         QMessageBox::critical(nullptr, "Error", e.what(), QMessageBox::Ok);
         return false;
@@ -301,5 +323,21 @@ void CLdapAttributesModel::onRemovingAttribute(QString name)
         }
     }
 }
+
+void CLdapAttributesModel::onAddAttribute(QString name)
+{
+    int row = rowCount();
+    insertRows(row, 1);
+    auto i = index(row, 1);
+    setData(i, name, Qt::EditRole);
+    sortData();
+}
+
+void CLdapAttributesModel::sortData()
+{
+    m_entry->sortAttributes();
+    emit dataChanged(index(0, 0), index(m_pAttributes->size(), m_SectionsList.size()), QVector<int>() << Qt::DisplayRole);
+}
+
 
 } //namespace ldapeditor

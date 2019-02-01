@@ -34,6 +34,7 @@ namespace ldapeditor
         Qt::ItemFlags flags(const QModelIndex& index) const override;
 
         Q_INVOKABLE void removeAttribute(QString name);
+        Q_INVOKABLE void addAttribute(QString name);
 
     private:
         ldapcore::CLdapEntry*           m_invisibleRoot{nullptr};
@@ -41,6 +42,7 @@ namespace ldapeditor
 
     Q_SIGNALS:
         void onRemovingAttribute(QString name);
+        void onAddAttribute(QString name);
 
     };
 } //namespace ldapeditor
