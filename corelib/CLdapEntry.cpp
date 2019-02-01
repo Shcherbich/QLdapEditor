@@ -1,7 +1,9 @@
 #include <string>
 #include <vector>
+#include <set>
 #include <tuple>
 #include <algorithm>
+#include <QDebug>
 #include <QThread>
 #include "CLdapData.h"
 #include "CLdapEntry.h"
@@ -11,6 +13,8 @@
 #include "LDAPModification.h"
 #include "LDAPSchema.h"
 #include "LDAPMessage.h"
+
+static StringList systemAttrs;
 
 struct comp
 {
@@ -290,7 +294,7 @@ void CLdapEntry::loadAttributes(QVector<CLdapAttribute>& vRet, bool needToLoadSy
 		vRet.push_back(attr);
 	}
 
-    static StringList systemAttrs;
+
 	{
 		if (systemAttrs.empty())
 		{
@@ -563,15 +567,18 @@ void CLdapEntry::update() noexcept(false)
     }
     try
     {
+        qDebug() << "CLdapEntry::update=" <<  '\n';
+
         QVector<CLdapAttribute> realAttributes;
         loadAttributes(realAttributes);
 
-        LDAPModification::mod_op op = LDAPModification::OP_REPLACE;
         LDAPModList* mod = new LDAPModList();
+
+        // 1. Add/Modify attributes
         StringList objectClasses;
         for (auto& c : m_classes)
             objectClasses.add(c.toStdString());
-        mod->addModification(LDAPModification(LDAPAttribute("objectClass", objectClasses), op));
+        mod->addModification(LDAPModification(LDAPAttribute("objectClass", objectClasses), LDAPModification::OP_REPLACE));
         for (auto& a : m_attributes) {
 
             if (a.name() == "objectClass"){
@@ -591,10 +598,40 @@ void CLdapEntry::update() noexcept(false)
             }
 
             // add modification
-            if (value.size()) {
-                mod->addModification(LDAPModification(LDAPAttribute(a.name().toStdString(), value), op));
+            if (value.size())
+            {
+                if (f == realAttributes.end())
+                {
+                    qDebug() << "  " << a.name() << " OP_ADD" << '\n';
+                    mod->addModification(LDAPModification(LDAPAttribute(a.name().toStdString(), value),
+                                                          LDAPModification::OP_ADD));
+                }
+                else
+                {
+                    qDebug() << "  " << a.name() << " OP_REPLACE" << '\n';
+                    mod->addModification(LDAPModification(LDAPAttribute(a.name().toStdString(), value),
+                                                          LDAPModification::OP_REPLACE));
+                }
             }
         }
+
+
+        std::set<QString> setOfAttributes;
+        for (auto& a: m_attributes) {
+            setOfAttributes.insert(a.name());
+        }
+
+        // 2. Delete attributes
+        auto new_end = std::remove_if(realAttributes.begin(), realAttributes.end(),
+                                      [&](const ldapcore::CLdapAttribute& o)
+                                      { return setOfAttributes.find(o.name()) != setOfAttributes.end() || !o.isMust() ; });
+        realAttributes.erase(new_end, realAttributes.end());
+        for (auto& a: realAttributes) {
+            qDebug() << "  " << a.name() << " OP_DELETE" << '\n';
+            mod->addModification(LDAPModification(LDAPAttribute(a.name().toStdString(), a.value().toStdString()),
+                                                  LDAPModification::OP_DELETE));
+        }
+
         auto& dn = m_pEntry->getDN();
         m_Conn->modify_s(dn, mod);
         m_isEdit = false;

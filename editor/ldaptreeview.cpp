@@ -98,11 +98,11 @@ void CLdapTreeView::onEditEntry()
     });
 
     if (fObjectClass == reallyAttributes.end()) {
-        QMessageBox::critical(this, "No found attribut 'objectClass'", "Error", QMessageBox::Ok);
+        QMessageBox::critical(this, "Error", "No found attribut 'objectClass'", QMessageBox::Ok);
         return;
     }
     if (fStructuralObjectClass == reallyAttributes.end()) {
-        QMessageBox::critical(this, "No found attribut 'structuralObjectClass'", "Error", QMessageBox::Ok);
+        QMessageBox::critical(this, "Error", "No found attribut 'structuralObjectClass'",QMessageBox::Ok);
         return;
     }
 

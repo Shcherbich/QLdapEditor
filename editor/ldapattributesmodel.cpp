@@ -16,11 +16,13 @@ CLdapAttributesModel::CLdapAttributesModel(QObject* parent)
 void CLdapAttributesModel::setLdapEntry(ldapcore::CLdapEntry* entry)
 {
     beginResetModel();
-    if (m_pAttributes)
-        m_pAttributes->clear();
     int iRowCount = rowCount();
     if (iRowCount != 0) {
         removeRows(0, iRowCount);
+    }
+    if (m_pAttributes)
+    {
+        m_pAttributes->clear();
     }
     if (m_entry && entry != m_entry){
         m_entry->setEditable(false);
@@ -277,6 +279,8 @@ bool CLdapAttributesModel::SaveUpdatedEntry()
 
     try {
         m_entry->update();
+        m_entry->setEditable(false);
+        m_entry->flushAttributeCache();
         setLdapEntry(m_entry);
     } catch (const std::exception& e) {
         QMessageBox::critical(nullptr, "Error", e.what(), QMessageBox::Ok);
