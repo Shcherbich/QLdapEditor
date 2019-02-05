@@ -227,7 +227,6 @@ void CLdapEntry::construct(CLdapData* data, LDAPConnection* conn, QString baseDn
 {
 	m_pData = data;
 	m_baseDn = baseDn;
-	m_Conn = conn;
 	try
 	{
         auto ls = conn->search(dn().toStdString(), LDAPAsynConnection::SEARCH_ONE);
@@ -244,6 +243,11 @@ void CLdapEntry::construct(CLdapData* data, LDAPConnection* conn, QString baseDn
 	{
 
 	}
+}
+
+LDAPConnection* CLdapEntry::connectionPtr() const
+{
+    return m_pData->m_Connection.get();
 }
 
 CLdapEntry* CLdapEntry::parent()
@@ -323,7 +327,7 @@ void CLdapEntry::loadAttributes(QVector<CLdapAttribute>& vRet, bool needToLoadSy
 
 		try
 		{
-            auto srSystemAttrs = m_Conn->search(dn().toStdString(), LDAPConnection::SEARCH_SUB, "(objectClass=*)", systemAttrs);
+            auto srSystemAttrs = m_pData->m_Connection->search(dn().toStdString(), LDAPConnection::SEARCH_SUB, "(objectClass=*)", systemAttrs);
             if (srSystemAttrs != nullptr && needToLoadSystemAttributes)
 			{
 				LDAPEntry* systemEntry = srSystemAttrs->top();
@@ -379,7 +383,7 @@ QVector<CLdapAttribute> CLdapEntry::availableAttributesMay()
 void CLdapEntry::availableAttributesMustImpl()
 {
 	m_Must.clear();
-	auto av = GetAvailableAttributes(*m_pData->schema().classesSchema(), m_Conn, dn().toStdString());
+    auto av = GetAvailableAttributes(*m_pData->schema().classesSchema(), connectionPtr(), dn().toStdString());
 	for (const auto& must : std::get<0>(av))
 	{
 		auto t = m_pData->schema().GetAttributeInfoByName(must);
@@ -394,7 +398,7 @@ void CLdapEntry::availableAttributesMustImpl()
 void CLdapEntry::availableAttributesMayImpl()
 {
 	m_May.clear();
-	auto av = GetAvailableAttributes(*m_pData->schema().classesSchema(), m_Conn, dn().toStdString());
+    auto av = GetAvailableAttributes(*m_pData->schema().classesSchema(), connectionPtr(), dn().toStdString());
 	for (const auto& may : std::get<1>(av))
 	{
 		auto t = m_pData->schema().GetAttributeInfoByName(may);
@@ -448,7 +452,7 @@ void CLdapEntry::validateAttribute(CLdapAttribute& attr)
 
 void CLdapEntry::addAttribute(CLdapAttribute& newOb) noexcept(false)
 {
-	auto ret = AddAttributeToServer(m_Conn, m_pEntry, newOb.name().toStdString(), newOb.value().toStdString());
+    auto ret = AddAttributeToServer(connectionPtr(), m_pEntry, newOb.name().toStdString(), newOb.value().toStdString());
 	if (ret.size())
 	{
 		auto err = QString("Add new attribute '%1': %2").arg(newOb.name()).arg(ret.c_str());
@@ -458,7 +462,7 @@ void CLdapEntry::addAttribute(CLdapAttribute& newOb) noexcept(false)
 
 void CLdapEntry::deleteAttribute(CLdapAttribute& object) noexcept(false)
 {
-	auto ret = DeleteAttributeFromServer(m_Conn, m_pEntry, object.name().toStdString());
+    auto ret = DeleteAttributeFromServer(connectionPtr(), m_pEntry, object.name().toStdString());
 	if (ret.size())
 	{
 		auto err = QString("Delete attribute '%1': %2").arg(object.name()).arg(ret.c_str());
@@ -468,7 +472,7 @@ void CLdapEntry::deleteAttribute(CLdapAttribute& object) noexcept(false)
 
 void CLdapEntry::updateAttribute(CLdapAttribute& object) noexcept(false)
 {
-	auto ret = ReplaceAttributeOnServer(m_Conn, m_pEntry, object.name().toStdString(), object.value().toStdString());
+    auto ret = ReplaceAttributeOnServer(connectionPtr(), m_pEntry, object.name().toStdString(), object.value().toStdString());
 	if (ret.size())
 	{
 		auto err = QString("Update attribute '%1': %2").arg(object.name()).arg(ret.c_str());
@@ -478,7 +482,7 @@ void CLdapEntry::updateAttribute(CLdapAttribute& object) noexcept(false)
 
 void CLdapEntry::flushAttributeCache()
 {
-	auto sr = m_Conn->search(m_pEntry->getDN(), LDAPConnection::SEARCH_BASE, "(objectClass=*)");
+    auto sr = connectionPtr()->search(m_pEntry->getDN(), LDAPConnection::SEARCH_BASE, "(objectClass=*)");
 	if (sr)
 	{
 		std::shared_ptr<LDAPEntry> entry(sr->getNext());
@@ -513,7 +517,7 @@ QVector<QString> CLdapEntry::availableClasses()
 void CLdapEntry::addNewChild(CLdapEntry* child)
 {
 	m_pChildren << child;
-	child->construct(m_pData, m_Conn, m_baseDn);
+    child->construct(m_pData, connectionPtr(), m_baseDn);
 }
 
 void CLdapEntry::removeChild(CLdapEntry* child)
@@ -567,9 +571,9 @@ void CLdapEntry::saveNewChild() noexcept(false)
 		}
 		std::shared_ptr<LDAPEntry> entry(new LDAPEntry(child->m_pEntry->getDN(), attrs.get()));
 		auto dn = m_pEntry->getDN();
-		m_Conn->add(entry.get());
+        connectionPtr()->add(entry.get());
 		LDAPModList* mod = new LDAPModList();
-		m_Conn->modify(m_pEntry->getDN(), mod);
+        connectionPtr()->modify(m_pEntry->getDN(), mod);
         child->m_isNew = false;
 	}
 	catch (const std::exception& ex)
@@ -647,7 +651,7 @@ void CLdapEntry::update() noexcept(false)
         }
 
         auto& dn = m_pEntry->getDN();
-        m_Conn->modify_s(dn, mod);
+        connectionPtr()->modify_s(dn, mod);
         m_isEdit = false;
     }
     catch (const std::exception& ex)

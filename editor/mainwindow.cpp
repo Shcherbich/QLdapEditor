@@ -112,6 +112,12 @@ void MainWindow::CreateActions()
 	dataMenu->setStatusTip(tr("Save data"));
 	dataMenu->addAction(saveDataAction);
 
+    dataMenu->addSeparator();
+    QAction* reloadDataAction = dataMenu->addAction(tr("&Reconnect"), this, &MainWindow::onReload);
+    dataMenu->setStatusTip(tr("Reconnect"));
+    dataMenu->addAction(reloadDataAction);
+
+    dataMenu->addSeparator();
 	QAction* quitAction = dataMenu->addAction(tr("&Quit"), this, &MainWindow::onQuit);
 	dataMenu->setStatusTip(tr("Quit"));
 	dataMenu->addAction(quitAction);
@@ -272,7 +278,15 @@ void MainWindow::onQuit()
 
 void MainWindow::onReload()
 {
-
+    try
+    {
+        m_LdapData.reconnect();
+        QMessageBox::question(this, tr("Information"), tr("The operation has been completed successfully!"), QMessageBox::Ok);
+    }
+    catch (const std::exception& ex)
+    {
+        QMessageBox::critical(nullptr, tr("Error"), ex.what(), QMessageBox::Ok);
+    }
 }
 }// namespace ldapeditor
 

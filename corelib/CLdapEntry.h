@@ -66,15 +66,15 @@ public slots:
 private:
 	void construct(CLdapData* data, LDAPConnection* conn, QString baseDn);
 	void prepareAttributes();
+    LDAPConnection* connectionPtr() const;
 
 private:
+    CLdapData*            m_pData;
 	CLdapEntry*           m_pParent{nullptr};
 	LDAPEntry*            m_pEntry{nullptr};
-	LDAPConnection*       m_Conn{nullptr};
 	QVector<CLdapEntry*>  m_pChildren;
 	QString               m_baseDn;
 	QString               m_rDn;
-	CLdapData*            m_pData;
 	bool                  m_isNew{false};
     bool                  m_isEdit{false};
 

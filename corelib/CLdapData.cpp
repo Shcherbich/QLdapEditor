@@ -53,25 +53,13 @@ void CLdapData::connect(const tConnectionOptions& connectOptions)
             std::unique_ptr<LDAPConnection> localConn(new LDAPConnection(connectOptions.host, connectOptions.port));
             if (connectOptions.simpleAuth)
             {
-                if (connectOptions.useTLS)
+                if (connectOptions.useAnonymous)
                 {
-                    std::string cefile("/etc/pki/tls/certs/ca-bundle.trust.crt");
-                    std::string cedir("/etc/pki/tls/certs");
-                    TlsOptions tls = localConn->getTlsOptions();
-                    tls.setOption(TlsOptions::REQUIRE_CERT, TlsOptions::DEMAND);
-                    tls.setOption(TlsOptions::CACERTFILE, cefile);
-                    localConn->start_tls();
+                    localConn->bind();
                 }
                 else
                 {
-                    if (connectOptions.useAnonymous)
-                    {
-                        localConn->bind();
-                    }
-                    else
-                    {
-                        localConn->bind(connectOptions.username, connectOptions.password);
-                    }
+                    localConn->bind(connectOptions.username, connectOptions.password);
                 }
             }
             else
@@ -81,6 +69,7 @@ void CLdapData::connect(const tConnectionOptions& connectOptions)
 
             m_baseDN = connectOptions.basedn;
             m_Connection = std::move(localConn);
+            m_connectOptions = connectOptions;
             m_Schema.build(m_Connection.get(), m_baseDN);
             build();
             emit this->onConnectionCompleted(true, "");
@@ -114,6 +103,28 @@ void CLdapData::build()
     m_baseDN = QString(m_baseDN.c_str()).trimmed().toStdString();
 	m_Entries.push_back(new CLdapEntry(nullptr, nullptr, nullptr));
 	m_Entries.back()->construct(this, m_Connection.get(), m_baseDN.c_str());
+}
+
+void CLdapData::reconnect()
+{
+    std::unique_ptr<LDAPConnection> localConn(new LDAPConnection(m_connectOptions.host, m_connectOptions.port));
+    if (m_connectOptions.simpleAuth)
+    {
+        if (m_connectOptions.useAnonymous)
+        {
+            localConn->bind();
+        }
+        else
+        {
+            localConn->bind(m_connectOptions.username, m_connectOptions.password);
+        }
+    }
+    else
+    {
+        throw LDAPException(LDAP_AUTH_UNKNOWN, "This Authorize schema is not supported by LdApEditor application yet");
+    }
+    m_Connection = std::move(localConn);
+
 }
 
 void CLdapData::resetConnection()
