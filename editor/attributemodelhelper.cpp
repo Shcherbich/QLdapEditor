@@ -30,7 +30,8 @@ QString  FromUTCString(QString customDateString)
 }
 
 
-CAttributeModelHelper::CAttributeModelHelper()
+CAttributeModelHelper::CAttributeModelHelper(ldapcore::CLdapData &ldapData):
+m_LdapData(ldapData)
 {
     m_attrMap[ldapcore::AttrType::UnknownText] = tAttrHelper{"UnknownText"};
     m_attrMap[ldapcore::AttrType::ACIItem] = tAttrHelper{"ACIItem"};
@@ -91,6 +92,11 @@ CAttributeModelHelper::CAttributeModelHelper()
     m_attrMap[ldapcore::AttrType::TeletexTerminalIdentifier] = tAttrHelper{"TeletexTerminalIdentifier"};
     m_attrMap[ldapcore::AttrType::TelexNumber] = tAttrHelper{"TelexNumber"};
     m_attrMap[ldapcore::AttrType::UtcTime] = tAttrHelper{"UtcTime"};
+}
+
+void CAttributeModelHelper::setLdapEntry(ldapcore::CLdapEntry* entry)
+{
+    m_LdapEntry = entry;
 }
 
 QVariant CAttributeModelHelper::data(const ldapcore::CLdapAttribute&  attr, const QModelIndex &index, int role )const
@@ -176,11 +182,12 @@ QString CAttributeModelHelper::displayRoleData(const ldapcore::CLdapAttribute &a
     QString length = QString::number(attr.value().length());
     switch(index.column())
     {
-    case 0: return QString("%1=%2").arg(attr.name()).arg(value);
-    case 1: return attr.name();
-    case 2: return value;
-    case 3: return attributeType2String(attr.type());
-    case 4: return length;
+    case static_cast<int>(AttributeColumn::Name): return QString("%1=%2").arg(attr.name()).arg(value);
+    case static_cast<int>(AttributeColumn::Class): return displayClassInfo();
+    case static_cast<int>(AttributeColumn::Attribute): return attr.name();
+    case static_cast<int>(AttributeColumn::Value): return value;
+    case static_cast<int>(AttributeColumn::Type): return attributeType2String(attr.type());
+    case static_cast<int>(AttributeColumn::Size): return length;
     default: break;
     }
     return QString();
@@ -250,13 +257,13 @@ QVariant CAttributeModelHelper::foregroundRoleData(const ldapcore::CLdapAttribut
             return QBrush(Qt::darkGray);
         case ldapcore::AttributeState::AttributeReadWrite:
             break;
-            if(index.column() > 0 && index.column() != 4)
+            if(index.column() > static_cast<int>(AttributeColumn::Name) && index.column() != static_cast<int>(AttributeColumn::Size))
             {
                 return attr.isModified() ? QBrush(Qt::blue) : QBrush(Qt::black);
             }
         case ldapcore::AttributeState::AttributeValueReadWrite:
             break;
-            if(index.column() == 2)
+            if(index.column() == static_cast<int>(AttributeColumn::Value))
             {
                 return attr.isModified() ? QBrush(Qt::blue) : QBrush(Qt::black);
             }
@@ -269,12 +276,12 @@ bool CAttributeModelHelper::setEditRoleData(ldapcore::CLdapAttribute &attr, cons
 {
     Q_UNUSED(index);
     bool retValue {true};
-    if(index.column() == 1) // title
+    if(index.column() == static_cast<int>(AttributeColumn::Name))
     {
         attr.setName(value.toString());
         attr.setEditState(ldapcore::AttributeState::AttributeValueReadWrite);
     }
-    else if(index.column() == 2) //value
+    else if(index.column() == static_cast<int>(AttributeColumn::Value))
     {
         switch(attr.type())
         {
@@ -297,12 +304,24 @@ bool CAttributeModelHelper::setEditRoleData(ldapcore::CLdapAttribute &attr, cons
             attr.setValue(value.toString());
         }
     }
-     else if(index.column() == 3) //type
+     else if(index.column() == static_cast<int>(AttributeColumn::Type))
     {
         attr.setType(static_cast<ldapcore::AttrType>(value.toInt()));
     }
 
     return retValue;
+}
+
+QString CAttributeModelHelper::displayClassInfo() const
+{
+    QString str;
+    if(m_LdapEntry)
+    {
+        for(auto s : m_LdapEntry->classes())
+             str += (" " + s);
+    }
+
+    return str;
 }
 
 } //namespace ldapeditor

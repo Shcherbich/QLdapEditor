@@ -78,31 +78,37 @@ void CLdapTreeView::onEditEntry()
 {
     using namespace ldapcore;
     auto index = currentIndex();
-    if (!index.isValid()) {
+    if (!index.isValid())
+    {
         return;
     }
 
     CLdapEntry* thisEntry = static_cast<CLdapEntry*>(index.internalPointer());
-    if (!thisEntry) {
+    if (!thisEntry)
+    {
         return;
     }
 
     QVector<ldapcore::CLdapAttribute> reallyAttributes;
     thisEntry->loadAttributes(reallyAttributes);
 
-    auto fObjectClass = std::find_if(reallyAttributes.begin(), reallyAttributes.end(), [&](const ldapcore::CLdapAttribute& a) {
+    auto fObjectClass = std::find_if(reallyAttributes.begin(), reallyAttributes.end(), [&](const ldapcore::CLdapAttribute& a)
+    {
         return strcasecmp(a.name().toStdString().c_str(), "objectClass") == 0;
     });
-    auto fStructuralObjectClass = std::find_if(reallyAttributes.begin(), reallyAttributes.end(), [&](const ldapcore::CLdapAttribute& a) {
+    auto fStructuralObjectClass = std::find_if(reallyAttributes.begin(), reallyAttributes.end(), [&](const ldapcore::CLdapAttribute& a)
+    {
         return strcasecmp(a.name().toStdString().c_str(), "structuralObjectClass") == 0;
     });
 
-    if (fObjectClass == reallyAttributes.end()) {
-        QMessageBox::critical(this, "Error", "No found attribut 'objectClass'", QMessageBox::Ok);
+    if (fObjectClass == reallyAttributes.end())
+    {
+        QMessageBox::critical(this, tr("Error"), tr("No found attribut 'objectClass'"), QMessageBox::Ok);
         return;
     }
-    if (fStructuralObjectClass == reallyAttributes.end()) {
-        QMessageBox::critical(this, "Error", "No found attribut 'structuralObjectClass'",QMessageBox::Ok);
+    if (fStructuralObjectClass == reallyAttributes.end())
+    {
+        QMessageBox::critical(this, tr("Error"), tr("No found attribut 'structuralObjectClass'"),QMessageBox::Ok);
         return;
     }
 
@@ -113,7 +119,8 @@ void CLdapTreeView::onEditEntry()
     auto dn = thisEntry->dn();
     auto rdn = thisEntry->rDn();
     ldapeditor::CLdapNewEntryDialog dialog(nullptr, dn, rdn, structuralObjectClass, prevClasses, m_LdapData);
-    if (dialog.exec() == QDialog::Rejected) {
+    if (dialog.exec() == QDialog::Rejected)
+    {
         return;
     }
     QVector<ldapcore::CLdapAttribute> theseAttributes;
@@ -133,7 +140,8 @@ void CLdapTreeView::onEditEntry()
     auto currAttributes = m_LdapData.schema().attributeByClasses(classes, a2v);
 
     // delete attributes, which are not needed now
-    for (auto& thisA : theseAttributes) {
+    for (auto& thisA : theseAttributes)
+    {
         auto bPrev = std::find_if(prevAttributes.begin(), prevAttributes.end(), [&](const ldapcore::CLdapAttribute& a) {
             return strcasecmp(a.name().toStdString().c_str(), thisA.name().toStdString().c_str()) == 0;
         }) != prevAttributes.end();
@@ -141,18 +149,21 @@ void CLdapTreeView::onEditEntry()
             return strcasecmp(a.name().toStdString().c_str(), thisA.name().toStdString().c_str()) == 0;
         }) != currAttributes.end();
 
-        if (false == bCurr) {
+        if (!bCurr)
+        {
             QMetaObject::invokeMethod(model(), "removeAttribute", Qt::ConnectionType::QueuedConnection, Q_ARG(QString, thisA.name()));
             continue;
         }
 
-        if (true == bCurr && bPrev == false) {
+        if (bCurr && !bPrev)
+        {
             continue;
         }
     }
 
     // add attributes, which are needed now
-    for (auto& currA : currAttributes) {
+    for (auto& currA : currAttributes)
+    {
 
         auto bThese = std::find_if(theseAttributes.begin(), theseAttributes.end(), [&](const ldapcore::CLdapAttribute& a) {
             return strcasecmp(a.name().toStdString().c_str(), currA.name().toStdString().c_str()) == 0;

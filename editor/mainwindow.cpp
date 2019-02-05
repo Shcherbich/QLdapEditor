@@ -50,7 +50,8 @@ MainWindow::MainWindow(CLdapSettings& settings, ldapcore::CLdapData& ldapData, Q
 	, m_LdapData(ldapData)
 {
 	setWindowTitle(ApplicationName);
-	setMinimumSize(800, 600);
+    setMinimumSize(800, 600);
+    resize(1024, 800);
 
 	CreateDockWindows();
 	CreateActions();
@@ -59,7 +60,7 @@ MainWindow::MainWindow(CLdapSettings& settings, ldapcore::CLdapData& ldapData, Q
     QString baseDN = normilizeDN(m_Settings.baseDN());
 
     m_TreeModel = new CLdapTreeModel(baseDN, this);
-    m_TableModel = new CLdapAttributesModel(this);
+    m_TableModel = new CLdapAttributesModel(m_LdapData, this);
     m_AttributesList = new CLdapTableView(this, m_Settings);
 
     setCentralWidget(m_AttributesList);
@@ -138,15 +139,15 @@ void MainWindow::onAboutApp()
 {
 	QString title(tr("About application"));
 	QStringList lines;
-	lines << QString("%1 application").arg(ApplicationName);
-	lines << QString("Version: %1").arg(ApplicationVersion);
-	lines << QString("License: %1").arg("GPL v2");
-	lines << QString("© %1, 2018-%2").arg(OrganizationName).arg(QDate::currentDate().year());
+    lines << QString(tr("%1 application")).arg(ApplicationName);
+    lines << QString(tr("Version: %1")).arg(ApplicationVersion);
+    lines << QString(tr("License: %1")).arg(tr("GPL v2"));
+    lines << QString(tr("© %1, 2018-%2")).arg(OrganizationName).arg(QDate::currentDate().year());
 	lines << QString();
-	lines << QString("Credentials:");
-	lines << QString("SimpleCrypt, kindly provided by");
-	lines << QString("https://wiki.qt.io/Simple_encryption_with_SimpleCrypt");
-	lines << QString("Icons, are kindly provided by www.flaticon.com");
+    lines << QString(tr("Credentials:"));
+    lines << QString(tr("SimpleCrypt, kindly provided by"));
+    lines << QString(tr("https://wiki.qt.io/Simple_encryption_with_SimpleCrypt"));
+    lines << QString(tr("Icons, are kindly provided by www.flaticon.com"));
 
 	QString text(lines.join("\n"));
 	QMessageBox dlg(QMessageBox::Information, title, text, QMessageBox::Ok, this);
@@ -187,8 +188,9 @@ void MainWindow::onTreeItemChanged(const QModelIndex& current, const QModelIndex
 	{
         if (m_TableModel->isNew() && m_LdapTree->updatesEnabled())
 		{
-            auto ret = QMessageBox::question(this, "Question",
-                                             "The new entry was added.\nDo you want to save new entry to server?", QMessageBox::Yes | QMessageBox::No);
+            auto ret = QMessageBox::question(this, tr("Question"),
+                                             tr("The new entry was added.\nDo you want to save new entry to server?"),
+                                             QMessageBox::Yes | QMessageBox::No);
 			if (ret != QMessageBox::Yes)
 			{
                 ldapcore::CLdapEntry* prevEntry = static_cast<ldapcore::CLdapEntry*>(mainPrev.internalPointer());
@@ -227,9 +229,9 @@ void MainWindow::onTreeItemChanged(const QModelIndex& current, const QModelIndex
             hasChanges |= m_TableModel->isEdit() ? 1 : 0;
             if (hasChanges && m_LdapTree->updatesEnabled())
 			{
-                const QString s1 = "You have changes in attributes.\nDo you want to save these changes to server?";
-                const QString s2 = "The entry was updated.\nDo you want to save editable entry to server?";
-                auto ret = QMessageBox::question(this, "Question",
+                const QString s1(tr("You have changes in attributes.\nDo you want to save these changes to server?"));
+                const QString s2(tr("The entry was updated.\nDo you want to save editable entry to server?"));
+                auto ret = QMessageBox::question(this, tr("Question"),
                                                  m_TableModel->isEdit() ? s2 : s1,
                                                  QMessageBox::Yes | QMessageBox::No);
 				if (ret == QMessageBox::Yes)
@@ -256,7 +258,10 @@ void MainWindow::onLdapSearch()
 
 void MainWindow::onSaveData()
 {
-    m_TableModel->Save();
+    if(m_TableModel->Save())
+    {
+        statusBar()->showMessage(tr("Data saved"));
+    }
 }
 
 void MainWindow::onQuit()

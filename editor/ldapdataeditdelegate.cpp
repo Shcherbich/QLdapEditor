@@ -29,14 +29,14 @@ void CLdapDataEditDelegate::setLdapEntry(ldapcore::CLdapEntry* entry)
 QWidget* CLdapDataEditDelegate::createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
     editor = nullptr;
-    if(index.column() == 1)
+    if(index.column() == static_cast<int>(AttributeColumn::Attribute))
     {
         QComboBox* e = new QComboBox(parent);
         e->setModel(new MustMayModel(e, m_entry, m_entry->attributes()));
         e->setEditable(false);
         editor = e;
     }
-    else if(index.column() == 2)
+    else if(index.column() == static_cast<int>(AttributeColumn::Value))
     {
         m_attrType = static_cast<ldapcore::AttrType>(index.data(ldapeditor::AttrTypeRole).toInt());
         switch(m_attrType)
@@ -65,7 +65,7 @@ QWidget* CLdapDataEditDelegate::createEditor(QWidget *parent, const QStyleOption
             default:  break;
         }
     }
-    else if(index.column() == 3)
+    else if(index.column() == static_cast<int>(AttributeColumn::Type))
     {
         QComboBox* e = new QComboBox(parent);
         int i=0;
@@ -137,7 +137,7 @@ QWidget* CLdapDataEditDelegate::createEditor(QWidget *parent, const QStyleOption
 }
 void CLdapDataEditDelegate::setEditorData(QWidget *editor, const QModelIndex &index) const
 {
-    if(index.column() == 1)
+    if(index.column() == static_cast<int>(AttributeColumn::Attribute))
     {
         QComboBox *edit = static_cast<QComboBox*>(editor);
         for(int i=0; i< edit->count();i++)
@@ -149,7 +149,7 @@ void CLdapDataEditDelegate::setEditorData(QWidget *editor, const QModelIndex &in
             }
         }
     }
-    else if(index.column() == 2)
+    else if(index.column() == static_cast<int>(AttributeColumn::Value))
     {
         switch(m_attrType)
         {
@@ -186,17 +186,16 @@ void CLdapDataEditDelegate::setEditorData(QWidget *editor, const QModelIndex &in
 
 void CLdapDataEditDelegate::setModelData(QWidget *editor, QAbstractItemModel *model,const QModelIndex &index) const
 {
-    if(index.column() == 1)
+    if(index.column() == static_cast<int>(AttributeColumn::Attribute))
     {
         QComboBox *edit = static_cast<QComboBox*>(editor);
         auto text = edit->itemText(edit->currentIndex());
         model->setData(index, text, Qt::EditRole);
         auto aNew = m_entry->createEmptyAttribute(text.toStdString());
-        CAttributeModelHelper helper;
         model->setData(index.sibling(index.row(), 3), QString("%1").arg((int)aNew->type()), Qt::EditRole);
 
     }
-    else if(index.column() == 2)
+    else if(index.column() == static_cast<int>(AttributeColumn::Value))
     {
         switch(m_attrType)
         {
@@ -213,13 +212,12 @@ void CLdapDataEditDelegate::setModelData(QWidget *editor, QAbstractItemModel *mo
                 }
         }
     }
-    else if(index.column() == 3)
+    else if(index.column() == static_cast<int>(AttributeColumn::Type))
     {
          QComboBox *edit = static_cast<QComboBox*>(editor);
          int i = edit->currentIndex();
          model->setData(index, edit->itemData(i), Qt::EditRole);
     }
-
 }
 
 void CLdapDataEditDelegate::updateEditorGeometry(QWidget *editor,const QStyleOptionViewItem &option, const QModelIndex &index) const
@@ -238,11 +236,10 @@ bool CLdapDataEditDelegate::canDeleteRow(const QModelIndex &index) const
 void CLdapDataEditDelegate::expandEditor() const
 {
     QComboBox* qe = qobject_cast<QComboBox*>(editor);
-    if (qe == nullptr)
+    if (qe)
     {
-        return;
-    }
-    qe->showPopup();
+        qe->showPopup();
+    }    
 }
 
 }//namespace ldapeditor

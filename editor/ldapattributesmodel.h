@@ -17,7 +17,7 @@ namespace ldapeditor
         Q_OBJECT
 
     public:
-        explicit CLdapAttributesModel(QObject *parent);
+        explicit CLdapAttributesModel(ldapcore::CLdapData& ldapData, QObject *parent);
 
         void setLdapEntry(ldapcore::CLdapEntry* entry);
         bool IsChanged() const {return m_IsChanged;}
@@ -65,6 +65,7 @@ namespace ldapeditor
         bool  SaveUpdatedEntry();
 
     private:
+        ldapcore::CLdapData& m_LdapData;
         QStringList m_SectionsList;
         bool m_IsChanged{false};
         QString m_baseDN;

@@ -52,6 +52,9 @@ namespace ldapeditor
         int columnDn() const;
         void setColumnDn(int w);
 
+        int columnClass() const;
+        void setColumnClass(int w);
+
         int columnAttribute() const;
         void setColumnAttribute(int w);
 

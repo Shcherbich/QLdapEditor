@@ -7,9 +7,11 @@
 #include <QtDebug>
 
 namespace ldapeditor {
-CLdapAttributesModel::CLdapAttributesModel(QObject* parent)
+CLdapAttributesModel::CLdapAttributesModel(ldapcore::CLdapData &ldapData, QObject* parent)
     : QAbstractTableModel(parent)
-    , m_SectionsList { tr("Name"), tr("Attribute"), tr("Value"), tr("Type"), tr("Size") }
+    , m_LdapData(ldapData)
+    , m_SectionsList { tr("Name"), tr("Class"), tr("Attribute"), tr("Value"), tr("Type"), tr("Size") }
+    , m_attrHelper(m_LdapData)
 {
 }
 
@@ -17,17 +19,21 @@ void CLdapAttributesModel::setLdapEntry(ldapcore::CLdapEntry* entry)
 {
     beginResetModel();
     int iRowCount = rowCount();
-    if (iRowCount != 0) {
+    if (iRowCount != 0)
+    {
         removeRows(0, iRowCount);
     }
     if (m_pAttributes)
     {
         m_pAttributes->clear();
     }
-    if (m_entry && entry != m_entry){
+    if (m_entry && entry != m_entry)
+    {
         m_entry->setEditable(false);
     }
     m_entry = entry;
+    m_attrHelper.setLdapEntry(entry);
+
     m_pAttributes = entry->attributes();
     endResetModel();
     emit dataChanged(index(0, 0), index(m_pAttributes->size(), m_SectionsList.size()), QVector<int>() << Qt::DisplayRole);
@@ -95,7 +101,7 @@ bool CLdapAttributesModel::setData(const QModelIndex& index, const QVariant& val
         if (data(index, role) != value) {
             bool bRet { true };
             try {
-                if (index.column() == 2) // changing value
+                if (index.column() == static_cast<int>(AttributeColumn::Value)) // changing value
                 {
                     ldapcore::CLdapAttribute temp(attr);
                     temp.setValue(value.toString());
@@ -104,7 +110,7 @@ bool CLdapAttributesModel::setData(const QModelIndex& index, const QVariant& val
                 bRet = m_attrHelper.setData(attr, index, value, role);
                 emit dataChanged(index, index, QVector<int>() << role << Qt::DisplayRole);
             } catch (const std::exception& e) {
-                QMessageBox::critical(nullptr, "Error", e.what(), QMessageBox::Ok);
+                QMessageBox::critical(nullptr, tr("Error"), e.what(), QMessageBox::Ok);
                 bRet = false;
             }
             return bRet;
@@ -129,10 +135,10 @@ Qt::ItemFlags CLdapAttributesModel::flags(const QModelIndex& index) const
             return readonlyFlags;
             break;
         case ldapcore::AttributeState::AttributeReadWrite:
-            return col == 1 || col == 2 ? editFlags : readonlyFlags;
+            return col == static_cast<int>(AttributeColumn::Attribute) || col == static_cast<int>(AttributeColumn::Value) ? editFlags : readonlyFlags;
             break;
         case ldapcore::AttributeState::AttributeValueReadWrite:
-            return col == 2 ? editFlags : readonlyFlags;
+            return col == static_cast<int>(AttributeColumn::Value) ? editFlags : readonlyFlags;
             break;
         default:
             break;
@@ -247,21 +253,27 @@ bool CLdapAttributesModel::Save()
 bool CLdapAttributesModel::SaveNewEntry()
 {
     // check
-    for (auto& a : *m_pAttributes) {
-        if (a.isMust() && a.value().size() == 0) {
-            QMessageBox::critical(nullptr, "Error", QString("The must attribute '%1' is not filled!").arg(a.name()), QMessageBox::Ok);
+    for (auto& a : *m_pAttributes)
+    {
+        if (a.isMust() && a.value().isEmpty())
+        {
+            QMessageBox::critical(nullptr, tr("Error"), QString(tr("The must attribute '%1' is not filled!")).arg(a.name()), QMessageBox::Ok);
             return false;
         }
     }
 
     // save to database
-    try {
+    try
+    {
         auto parent = m_entry->parent();
-        if (parent != nullptr) {
+        if (parent != nullptr)
+        {
             parent->saveNewChild();
         }
-    } catch (const std::exception& e) {
-        QMessageBox::critical(nullptr, "Error", e.what(), QMessageBox::Ok);
+    }
+    catch (const std::exception& e)
+    {
+        QMessageBox::critical(nullptr, tr("Error"), e.what(), QMessageBox::Ok);
         return false;
     }
     return true;
@@ -270,20 +282,25 @@ bool CLdapAttributesModel::SaveNewEntry()
 bool CLdapAttributesModel::SaveUpdatedEntry()
 {
     // check
-    for (auto& a : *m_pAttributes) {
-        if (a.isMust() && a.value().size() == 0) {
-            QMessageBox::critical(nullptr, "Error", QString("The must attribute '%1' is not filled!").arg(a.name()), QMessageBox::Ok);
+    for (auto& a : *m_pAttributes)
+    {
+        if (a.isMust() && a.value().isEmpty())
+        {
+            QMessageBox::critical(nullptr, tr("Error"), QString(tr("The must attribute '%1' is not filled!")).arg(a.name()), QMessageBox::Ok);
             return false;
         }
     }
 
-    try {
+    try
+    {
         m_entry->update();
         m_entry->setEditable(false);
         m_entry->flushAttributeCache();
         setLdapEntry(m_entry);
-    } catch (const std::exception& e) {
-        QMessageBox::critical(nullptr, "Error", e.what(), QMessageBox::Ok);
+    }
+    catch (const std::exception& e)
+    {
+        QMessageBox::critical(nullptr, tr("Error"), e.what(), QMessageBox::Ok);
         return false;
     }
     return true;
@@ -293,28 +310,41 @@ bool CLdapAttributesModel::SaveAttributes()
 {
     QVector<ldapcore::CLdapAttribute> newRows, deleteRows, updateRows;
     GetChangedRows(newRows, deleteRows, updateRows);
-    if (!newRows.size() && !deleteRows.size() && !updateRows.size()) {
+    if (!newRows.size() && !deleteRows.size() && !updateRows.size())
+    {
         return true;
     }
-    for (auto& n : newRows) {
-        try {
+    for (auto& n : newRows)
+    {
+        try
+        {
             m_entry->addAttribute(n);
-        } catch (const std::exception& e) {
-            QMessageBox::critical(nullptr, "Error", e.what(), QMessageBox::Ok);
+        }
+        catch (const std::exception& e)
+        {
+            QMessageBox::critical(nullptr, tr("Error"), e.what(), QMessageBox::Ok);
         }
     }
-    for (auto& d : deleteRows) {
-        try {
+    for (auto& d : deleteRows)
+    {
+        try
+        {
             m_entry->deleteAttribute(d);
-        } catch (const std::exception& e) {
-            QMessageBox::critical(nullptr, "Error", e.what(), QMessageBox::Ok);
+        }
+        catch (const std::exception& e)
+        {
+            QMessageBox::critical(nullptr, tr("Error"), e.what(), QMessageBox::Ok);
         }
     }
-    for (auto& u : updateRows) {
-        try {
+    for (auto& u : updateRows)
+    {
+        try
+        {
             m_entry->updateAttribute(u);
-        } catch (const std::exception& e) {
-            QMessageBox::critical(nullptr, "Error", e.what(), QMessageBox::Ok);
+        }
+        catch (const std::exception& e)
+        {
+            QMessageBox::critical(nullptr, tr("Error"), e.what(), QMessageBox::Ok);
         }
     }
 
@@ -327,10 +357,12 @@ bool CLdapAttributesModel::SaveAttributes()
 
 void CLdapAttributesModel::onRemovingAttribute(QString name)
 {
-    for (int i = 0; i < rowCount(); ++i) {
+    for (int i = 0; i < rowCount(); ++i)
+    {
         auto index = createIndex(i, 1);
         auto displayText = data(index, Qt::DisplayRole);
-        if (displayText == name) {
+        if (displayText == name)
+        {
             removeRows(i, 1);
             return;
         }
