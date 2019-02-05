@@ -219,6 +219,11 @@ QVariant CAttributeModelHelper::editRoleData(const ldapcore::CLdapAttribute &att
 
 QVariant CAttributeModelHelper::tooltipRoleData(const ldapcore::CLdapAttribute &attr, const QModelIndex &index)const
 {
+    if (index.column() == 1) // https://github.com/Shcherbich/QLdapEditor/issues/24
+    {
+        return attr.description();
+    }
+
     QString displayData = displayRoleData(attr,index);
     const int chunkSize = 16*3;
     if(attr.type() == ldapcore::AttrType::Binary)

@@ -290,7 +290,8 @@ void CLdapEntry::loadAttributes(QVector<CLdapAttribute>& vRet, bool needToLoadSy
 		auto editable = std::get<1>(t);
 		AttributeState editState = editable ? AttributeState::AttributeValueReadWrite : AttributeState::AttributeReadOnly;
 		auto name = i->getName();
-		CLdapAttribute attr(name.c_str(), i->toString().c_str(), tp, isMust(name), editState);
+        auto attributeTypeByName = m_pData->schema().attributesSchema()->getAttributeTypeByName(name);
+        CLdapAttribute attr(name.c_str(), i->toString().c_str(), tp, isMust(name), attributeTypeByName.getDesc().c_str(), editState);
 		vRet.push_back(attr);
 	}
 
@@ -323,7 +324,8 @@ void CLdapEntry::loadAttributes(QVector<CLdapAttribute>& vRet, bool needToLoadSy
 						auto t = m_pData->schema().GetAttributeInfoByName(i->getName().c_str());
 						auto tp = std::get<0>(t);
 						auto name = i->getName();
-                        CLdapAttribute attr(name.c_str(), i->toString().c_str(), tp, true, AttributeState::AttributeReadOnly);
+                        auto attributeTypeByName = m_pData->schema().attributesSchema()->getAttributeTypeByName(name);
+                        CLdapAttribute attr(name.c_str(), i->toString().c_str(), tp, true, attributeTypeByName.getDesc().c_str(), AttributeState::AttributeReadOnly);
 						vRet.push_back(attr);
 						m_Must.push_back(attr);
 					}
@@ -370,7 +372,8 @@ void CLdapEntry::availableAttributesMustImpl()
 	{
 		auto t = m_pData->schema().GetAttributeInfoByName(must);
 		auto tp = std::get<0>(t);
-		CLdapAttribute attr(must.c_str(), "", tp, true, AttributeState::AttributeReadWrite);
+        auto attributeTypeByName = m_pData->schema().attributesSchema()->getAttributeTypeByName(must.c_str());
+        CLdapAttribute attr(must.c_str(), "", tp, true, attributeTypeByName.getDesc().c_str(), AttributeState::AttributeReadWrite);
 		m_Must.push_back(attr);
 	}
 }
@@ -383,7 +386,8 @@ void CLdapEntry::availableAttributesMayImpl()
 	{
 		auto t = m_pData->schema().GetAttributeInfoByName(may);
 		auto tp = std::get<0>(t);
-		CLdapAttribute attr(may.c_str(), "", tp, false, AttributeState::AttributeReadWrite);
+        auto attributeTypeByName = m_pData->schema().attributesSchema()->getAttributeTypeByName(may.c_str());
+        CLdapAttribute attr(may.c_str(), "", tp, false, attributeTypeByName.getDesc().c_str(), AttributeState::AttributeReadWrite);
 		m_May.push_back(attr);
 	}
 }
@@ -392,7 +396,7 @@ std::shared_ptr<CLdapAttribute> CLdapEntry::createEmptyAttribute(std::string att
 {
 	auto t = m_pData->schema().GetAttributeInfoByName(attributeName);
 	auto tp = std::get<0>(t);
-	std::shared_ptr<CLdapAttribute> p(new CLdapAttribute(attributeName.c_str(), "", tp, isMust(attributeName), AttributeState::AttributeReadWrite));
+    std::shared_ptr<CLdapAttribute> p(new CLdapAttribute(attributeName.c_str(), "", tp, isMust(attributeName), "", AttributeState::AttributeReadWrite));
 	return p;
 }
 
@@ -567,8 +571,6 @@ void CLdapEntry::update() noexcept(false)
     }
     try
     {
-        qDebug() << "CLdapEntry::update=" <<  '\n';
-
         QVector<CLdapAttribute> realAttributes;
         loadAttributes(realAttributes);
 
@@ -602,13 +604,11 @@ void CLdapEntry::update() noexcept(false)
             {
                 if (f == realAttributes.end())
                 {
-                    qDebug() << "  " << a.name() << " OP_ADD" << '\n';
                     mod->addModification(LDAPModification(LDAPAttribute(a.name().toStdString(), value),
                                                           LDAPModification::OP_ADD));
                 }
                 else
                 {
-                    qDebug() << "  " << a.name() << " OP_REPLACE" << '\n';
                     mod->addModification(LDAPModification(LDAPAttribute(a.name().toStdString(), value),
                                                           LDAPModification::OP_REPLACE));
                 }
@@ -627,7 +627,6 @@ void CLdapEntry::update() noexcept(false)
                                       { return setOfAttributes.find(o.name()) != setOfAttributes.end() || !o.isMust() ; });
         realAttributes.erase(new_end, realAttributes.end());
         for (auto& a: realAttributes) {
-            qDebug() << "  " << a.name() << " OP_DELETE" << '\n';
             mod->addModification(LDAPModification(LDAPAttribute(a.name().toStdString(), a.value().toStdString()),
                                                   LDAPModification::OP_DELETE));
         }

@@ -83,7 +83,8 @@ class CLdapAttribute
 public:
 
 	explicit CLdapAttribute();
-    explicit CLdapAttribute(QString name, QString value, AttrType type, bool isMust, AttributeState editState = AttributeState::AttributeValueReadWrite);
+    explicit CLdapAttribute(QString name, QString value, AttrType type, bool isMust, QString desc,
+                            AttributeState editState = AttributeState::AttributeValueReadWrite);
     CLdapAttribute(const CLdapAttribute& src);
     CLdapAttribute(CLdapAttribute&& temp);
 
@@ -96,6 +97,7 @@ public:
 	QString value() const;
 	AttrType type() const;
 	AttributeState editState() const;
+    QString description() const;
 	bool isModified() const;
     bool isMust() const;
 
@@ -103,12 +105,14 @@ public:
 	void setValue(const QString& value);
 	void setType(AttrType type);
     void setEditState(AttributeState state);
+    void setDescription(QString& desc);
 
 private:
-	QString m_Name;
-	QString m_Value;
-	AttrType m_Type{AttrType::UnknownText};
+    QString     m_Name;
+    QString     m_Value;
+    AttrType    m_Type{AttrType::UnknownText};
 	AttributeState    m_editState;
+    QString     m_Description;
     bool    m_isMust{false};
 	bool    m_isModified{false};
 
