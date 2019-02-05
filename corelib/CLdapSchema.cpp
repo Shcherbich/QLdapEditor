@@ -424,5 +424,10 @@ QString CLdapSchema::startRdn(QString c)
     return must.size() ? must.begin()->c_str() : "";
 }
 
+QString CLdapSchema::classDescription(const QString& cls)
+{
+    return QString(QObject::tr("%1 class")).arg(cls);
+}
+
 }
 

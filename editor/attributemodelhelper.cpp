@@ -226,12 +226,25 @@ QVariant CAttributeModelHelper::editRoleData(const ldapcore::CLdapAttribute &att
 
 QVariant CAttributeModelHelper::tooltipRoleData(const ldapcore::CLdapAttribute &attr, const QModelIndex &index)const
 {
-    if (index.column() == static_cast<int>(AttributeColumn::Attribute))
+    QString displayData = displayRoleData(attr,index);
+    if (index.column() == static_cast<int>(AttributeColumn::Class))
     {
-        return attr.description();
+        QString str("description: ");
+        QStringList l = displayData.split(";");
+        for(auto s: l)
+        {
+            if(!str.isEmpty()) str += "\n";
+            str += s == "???" ? "???" : m_LdapData.schema().classDescription(s);
+        }
+        return str;
     }
 
-    QString displayData = displayRoleData(attr,index);
+    if (index.column() == static_cast<int>(AttributeColumn::Attribute)) // https://github.com/Shcherbich/QLdapEditor/issues/24
+    {
+        QString s = attr.description();
+        return QString(QObject::tr("description:\n%1")).arg(s.isEmpty() ? displayData : s);
+    }
+
     const int chunkSize = 16*3;
     if(attr.type() == ldapcore::AttrType::Binary)
     {
@@ -318,10 +331,9 @@ QString CAttributeModelHelper::displayClassInfo(const ldapcore::CLdapAttribute &
     if(m_LdapEntry)
     {
         for(auto s : attr.classes())
-             str += (" " + s);
+             str += !str.isEmpty() ? (";" + s) : s;
     }
-
-    return str;
+    return str.isEmpty() ? "???" : str;
 }
 
 } //namespace ldapeditor

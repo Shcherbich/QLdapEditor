@@ -35,6 +35,7 @@ public:
     QVector<QString> auxiliaryClassesBySup(QString sup);
     QVector<CLdapAttribute> attributeByClasses(QVector<QString>& classes, std::map<std::string, std::string>& attribute2value);
     QVector<QString> classesByAttributeName(std::string attrName, QVector<QString>& classesOfEntry);
+    QString classDescription(const QString& cls);
 
 private:
 	void build(LDAPConnection* lc, std::string& baseDn);
