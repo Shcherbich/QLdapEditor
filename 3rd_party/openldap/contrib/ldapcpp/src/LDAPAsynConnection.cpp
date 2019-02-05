@@ -71,9 +71,8 @@ void LDAPAsynConnection::init(const string& hostname, int port){
     int opt=3;
     ldap_set_option(cur_session, LDAP_OPT_REFERRALS, LDAP_OPT_OFF);
     ldap_set_option(cur_session, LDAP_OPT_PROTOCOL_VERSION, &opt);
-    struct timeval tcp = {0};
-    tcp.tv_sec = 10;
-    ldap_set_option(cur_session, LDAP_OPT_NETWORK_TIMEOUT, &tcp);
+
+    configureTimeouts();
 }
 
 void LDAPAsynConnection::initialize(const std::string& uri){
@@ -87,9 +86,8 @@ void LDAPAsynConnection::initialize(const std::string& uri){
     int opt=3;
     ldap_set_option(cur_session, LDAP_OPT_REFERRALS, LDAP_OPT_OFF);
     ldap_set_option(cur_session, LDAP_OPT_PROTOCOL_VERSION, &opt);
-    struct timeval tcp = {0};
-    tcp.tv_sec = 10;
-    ldap_set_option(cur_session, LDAP_OPT_NETWORK_TIMEOUT, &tcp);
+
+    configureTimeouts();
 }
 
 void LDAPAsynConnection::start_tls(){
@@ -97,6 +95,28 @@ void LDAPAsynConnection::start_tls(){
     if( ret != LDAP_SUCCESS ) {
         throw LDAPException(this);
     }
+}
+
+
+void LDAPAsynConnection::configureTimeouts()
+{
+    struct timeval tcp = {0};
+    tcp.tv_sec = 10;
+    int ret = ldap_set_option(cur_session, LDAP_OPT_NETWORK_TIMEOUT, &tcp);
+    int value = 0;
+
+    value = 120;
+    ret = ldap_set_option(cur_session, LDAP_OPT_X_KEEPALIVE_IDLE, &value);
+
+    value = 4000;
+    ret = ldap_set_option(cur_session, LDAP_OPT_X_KEEPALIVE_PROBES, &value);
+
+    value = 120;
+    ret = ldap_set_option(cur_session, LDAP_OPT_X_KEEPALIVE_INTERVAL, &value);
+
+    value = 120;
+    ret = ldap_set_option(cur_session, LDAP_OPT_RESTART, &value);
+
 }
 
 LDAPMessageQueue* LDAPAsynConnection::bind(const string& dn,
