@@ -183,7 +183,7 @@ QString CAttributeModelHelper::displayRoleData(const ldapcore::CLdapAttribute &a
     switch(index.column())
     {
     case static_cast<int>(AttributeColumn::Name): return QString("%1=%2").arg(attr.name()).arg(value);
-    case static_cast<int>(AttributeColumn::Class): return displayClassInfo();
+    case static_cast<int>(AttributeColumn::Class): return displayClassInfo(attr);
     case static_cast<int>(AttributeColumn::Attribute): return attr.name();
     case static_cast<int>(AttributeColumn::Value): return value;
     case static_cast<int>(AttributeColumn::Type): return attributeType2String(attr.type());
@@ -226,7 +226,7 @@ QVariant CAttributeModelHelper::editRoleData(const ldapcore::CLdapAttribute &att
 
 QVariant CAttributeModelHelper::tooltipRoleData(const ldapcore::CLdapAttribute &attr, const QModelIndex &index)const
 {
-    if (index.column() == 1) // https://github.com/Shcherbich/QLdapEditor/issues/24
+    if (index.column() == static_cast<int>(AttributeColumn::Attribute))
     {
         return attr.description();
     }
@@ -312,12 +312,12 @@ bool CAttributeModelHelper::setEditRoleData(ldapcore::CLdapAttribute &attr, cons
     return retValue;
 }
 
-QString CAttributeModelHelper::displayClassInfo() const
+QString CAttributeModelHelper::displayClassInfo(const ldapcore::CLdapAttribute &attr) const
 {
     QString str;
     if(m_LdapEntry)
     {
-        for(auto s : m_LdapEntry->classes())
+        for(auto s : attr.classes())
              str += (" " + s);
     }
 

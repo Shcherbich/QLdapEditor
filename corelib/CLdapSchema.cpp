@@ -365,7 +365,8 @@ QVector<CLdapAttribute> CLdapSchema::attributeByClasses(QVector<QString>& classe
             auto v = v2set == a2v.end() ? "" : v2set->second;
             auto info = GetAttributeInfoByName(attributeName);
             auto attr = m_impl->attributesSchema.getAttributeTypeByName(attributeName);
-            CLdapAttribute a(attributeName.c_str(), v.c_str(), std::get<0>(info), false, attr.getDesc().c_str(),
+            QVector<QString> classes;
+            CLdapAttribute a(attributeName.c_str(), v.c_str(), std::get<0>(info), false, attr.getDesc().c_str(), classes,
                              v.empty() ? AttributeState::AttributeValueReadWrite : AttributeState::AttributeReadOnly);
             vector.push_back(a);
         }
@@ -382,13 +383,32 @@ QVector<CLdapAttribute> CLdapSchema::attributeByClasses(QVector<QString>& classe
             auto v = v2set == a2v.end() ? "" : v2set->second;
             auto info = GetAttributeInfoByName(attributeName);
             auto attr = m_impl->attributesSchema.getAttributeTypeByName(attributeName);
-            CLdapAttribute a(attributeName.c_str(), v.c_str(), std::get<0>(info), true, attr.getDesc().c_str(),
+            QVector<QString> classes;
+            CLdapAttribute a(attributeName.c_str(), v.c_str(), std::get<0>(info), true, attr.getDesc().c_str(), classes,
                              v.empty() ? AttributeState::AttributeValueReadWrite : AttributeState::AttributeReadOnly);
             vector.push_back(a);
         }
     }
     return vector;
 
+}
+
+QVector<QString> CLdapSchema::classesByAttributeName(std::string attrName, QVector<QString>& classesOfEntry)
+{
+    QVector<QString> classes;
+    for (auto& c : m_impl->classesSchema.object_classes)
+    {
+        QString cl = c.first.c_str();
+        if (!classesOfEntry.contains(cl) || classes.contains(cl))
+        {
+            continue;
+        }
+        if (c.second.getMay().contains(attrName) || c.second.getMust().contains(attrName))
+        {
+            classes << cl;
+        }
+    }
+    return classes;
 }
 
 QString CLdapSchema::supByClass(QString c)

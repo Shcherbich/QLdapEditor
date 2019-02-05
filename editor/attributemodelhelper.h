@@ -48,7 +48,7 @@ private:
     QVariant fontRoleData(const ldapcore::CLdapAttribute &attr, const QModelIndex &index)const;
 
     bool setEditRoleData(ldapcore::CLdapAttribute &attr, const QVariant& value, const QModelIndex &index);
-    QString displayClassInfo() const;
+    QString displayClassInfo(const ldapcore::CLdapAttribute &attr) const;
 };
 } //namespace ldapeditor
 #endif // ATTRIBUTEMODELHELPER_H
