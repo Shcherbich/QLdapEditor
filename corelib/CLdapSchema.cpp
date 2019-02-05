@@ -428,7 +428,7 @@ QString CLdapSchema::classDescription(const QString& cls)
 {
     LDAPObjClass objectClassByName = m_impl->classesSchema.getObjectClassByName(cls.toStdString());
     std::string desc = objectClassByName.getDesc();
-    return QString(QObject::tr("%1 class")).arg(desc.c_str());
+    return QString(QObject::tr("%1 class")).arg(desc.empty() ? cls : desc.c_str());
 }
 
 }
