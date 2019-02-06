@@ -108,7 +108,8 @@ std::string CheckGeneralizedTime(std::string value)
         The seconds (ss) and microseconds (ffffff) can be omitted and defaults to 0.
     */
 
-    QRegExp timeFormat("[0-9]{14}\\.(0|[0-9]{1-6})($|Z|-[0-9]{4}|+[0-9]{4})");
+    QRegExp timeFormat("^[0-9]{14}\\.([0-9]{1,6}|[0-9]{1,6}Z|[0-9]{1,6}\\-[0-9]{4}|[0-9]{1,6}\\+[0-9]{4})$");
+    timeFormat.indexIn(value.c_str());
     QStringList listName = timeFormat.capturedTexts();
     return listName.length() > 1 ? "" : "There is not a generalized time";
 }
@@ -125,7 +126,8 @@ std::string CheckUTCTime(std::string value)
         The seconds (ss) and microseconds (ffffff) can be omitted and defaults to 0.
     */
 
-    QRegExp timeFormat("[0-9]{12}\\.(0|[0-9]{1-6})($|Z|-[0-9]{4}|+[0-9]{4})");
+    QRegExp timeFormat("^[0-9]{12}\\.([0-9]{1,6}|[0-9]{1,6}Z|[0-9]{1,6}\\-[0-9]{4}|[0-9]{1,6}\\+[0-9]{4})$");
+    timeFormat.indexIn(value.c_str());
     QStringList listName = timeFormat.capturedTexts();
     return listName.length() > 1 ? "" : "There is not a generalized time";
 }
