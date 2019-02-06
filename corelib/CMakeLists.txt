@@ -21,6 +21,7 @@ set(LdapCore_SRCS
     CLdapException.cpp
     CLdapSchema.h
     CLdapSchema.cpp
+	CLdapSchemaValidator.cpp
     qfunctional.h
     CLdapEntry.h
     CLdapEntry.cpp
