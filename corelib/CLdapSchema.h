@@ -26,8 +26,8 @@ public:
 
 	std::tuple<AttrType, bool> GetAttributeInfoByName(std::string attrName);
 
-	bool isNameExist(std::string attributeName) throw (CLdapNameMissedException);
-	void checkBySyntaxName(std::string attributeName, std::string value) throw (CLdapMatchRuleException);
+    bool isNameExist(std::string attributeName) noexcept(false);
+    void checkBySyntaxName(std::string attributeName, std::string value) noexcept(false);
     QVector<QString> classes();
     QVector<QString> structuralClasses();
     QString supByClass(QString c);

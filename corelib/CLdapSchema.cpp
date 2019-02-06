@@ -161,7 +161,7 @@ std::tuple<AttrType, bool> CLdapSchema::GetAttributeInfoByName(std::string attrN
 }
 
 
-bool CLdapSchema::isNameExist(std::string attributeName) throw (CLdapNameMissedException)
+bool CLdapSchema::isNameExist(std::string attributeName) noexcept(false)
 {
 	auto f = m_impl->attr2info.find(attributeName);
 	if (f == m_impl->attr2info.end())
