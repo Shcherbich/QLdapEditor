@@ -55,6 +55,8 @@ namespace ldapeditor
         bool isEdit()   const;
         QString dn()    const;
 
+        bool addAttribute(const ldapcore::CLdapAttribute& attribute);
+
     public slots:
         void onRemovingAttribute(QString name);
         void onAddAttribute(QString name);

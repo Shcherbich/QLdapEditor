@@ -162,6 +162,31 @@ bool CLdapAttributesModel::insertRows(int row, int count, const QModelIndex& par
     return true;
 }
 
+bool CLdapAttributesModel::addAttribute(const ldapcore::CLdapAttribute& attribute)
+{
+    auto aNew = m_entry->createEmptyAttribute(attribute.name().toStdString());
+    aNew->setType(attribute.type());
+    aNew->setValue(attribute.value());
+
+    auto classes = attribute.classes();
+    aNew->setClasses(classes);
+
+    auto description = attribute.description();
+    aNew->setDescription(description);
+
+    int row = rowCount();
+    int count = 1;
+    QModelIndex parent;
+    beginInsertRows(QModelIndex(), row, row + count - 1);
+    m_pAttributes->append(*aNew);
+    endInsertRows();
+
+    QModelIndex idxFrom = index(row, 0, parent);
+    QModelIndex idxTo = index(row + count - 1, m_SectionsList.size() - 1, parent);
+    emit dataChanged(idxFrom, idxTo, QVector<int>() << Qt::DisplayRole);
+    return true;
+}
+
 bool CLdapAttributesModel::insertColumns(int column, int count, const QModelIndex& parent)
 {
     beginInsertColumns(parent, column, column + count - 1);
