@@ -4,7 +4,7 @@
  * COPYING RESTRICTIONS APPLY, see COPYRIGHT file
  */
 
-
+#include <assert.h>
 #include "config.h"
 #include "debug.h"
 #include "LDAPAsynConnection.h"
@@ -107,16 +107,19 @@ void LDAPAsynConnection::configureTimeouts()
 
     value = 120;
     ret = ldap_set_option(cur_session, LDAP_OPT_X_KEEPALIVE_IDLE, &value);
+    assert(ret == LDAP_SUCCESS);
 
     value = 4000;
     ret = ldap_set_option(cur_session, LDAP_OPT_X_KEEPALIVE_PROBES, &value);
+    assert(ret == LDAP_SUCCESS);
 
     value = 120;
     ret = ldap_set_option(cur_session, LDAP_OPT_X_KEEPALIVE_INTERVAL, &value);
+    assert(ret == LDAP_SUCCESS);
 
     value = 120;
     ret = ldap_set_option(cur_session, LDAP_OPT_RESTART, &value);
-
+    assert(ret == LDAP_SUCCESS);
 }
 
 LDAPMessageQueue* LDAPAsynConnection::bind(const string& dn,
