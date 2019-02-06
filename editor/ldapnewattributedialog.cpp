@@ -117,6 +117,8 @@ ldapcore::CLdapAttribute CLdapNewAttributeDialog::attribute()
     auto value = ui->valueEdit->text();
     attr.setValue(value);
 
+    attr.setEditState(ldapcore::AttributeState::AttributeValueReadWrite);
+
     return attr;
 }
 
