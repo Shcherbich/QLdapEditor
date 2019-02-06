@@ -61,7 +61,7 @@ MainWindow::MainWindow(CLdapSettings& settings, ldapcore::CLdapData& ldapData, Q
 
     m_TreeModel = new CLdapTreeModel(baseDN, this);
     m_TableModel = new CLdapAttributesModel(m_LdapData, this);
-    m_AttributesList = new CLdapTableView(this, m_Settings);
+    m_AttributesList = new CLdapTableView(this, m_LdapData, m_Settings);
 
     setCentralWidget(m_AttributesList);
     m_AttributesList->horizontalHeader()->setDefaultSectionSize(100);

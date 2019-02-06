@@ -3,16 +3,17 @@
 #include "CLdapAttribute.h"
 #include <QHeaderView>
 #include "ldapattributesmodel.h"
+#include "ldapnewattributedialog.h"
 
 namespace ldapeditor
 {
-    CLdapTableView::CLdapTableView(QWidget *parent, CLdapSettings& s)
-        : QTableView(parent), m_LdapSettings(s)
+    CLdapTableView::CLdapTableView(QWidget *parent, ldapcore::CLdapData& ldapData, CLdapSettings& s)
+        : QTableView(parent), m_LdapData(ldapData), m_LdapSettings(s)
     , m_ldapDataDelegate(this)
     , m_defaultDelegate(this)
     , m_contextMenu(this)
-    , m_newAttr(new QAction("New attribute", this))
-    , m_delAttr(new QAction("Delete attribute", this))
+    , m_newAttr(new QAction(tr("New attribute"), this))
+    , m_delAttr(new QAction(tr("Delete attribute"), this))
     {
         setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
         setAlternatingRowColors(true);
@@ -30,6 +31,7 @@ namespace ldapeditor
 
     void CLdapTableView::setLdapEntry(ldapcore::CLdapEntry* entry)
     {
+        m_entry = entry;
         m_ldapDataDelegate.setLdapEntry(entry);
     }
 
@@ -93,12 +95,18 @@ namespace ldapeditor
 
     void CLdapTableView::onNewAttribute()
     {
-        int row = model()->rowCount();
-        model()->insertRows(row, 1);
-        auto index = model()->index(row, 1);
-        QAbstractItemView* abstractItemView = this;
-        abstractItemView->edit(index);
-        m_ldapDataDelegate.expandEditor();
+        ldapeditor::CLdapNewAttributeDialog dlg(m_LdapData, m_entry);
+        if(dlg.exec() == QDialog::Accepted)
+        {
+            static_cast<CLdapAttributesModel*>(model())->addAttribute(dlg.attribute());
+
+//            int row = model()->rowCount();
+//            model()->insertRows(row, 1);
+//            auto index = model()->index(row, 1);
+//            QAbstractItemView* abstractItemView = this;
+//            abstractItemView->edit(index);
+//            m_ldapDataDelegate.expandEditor();
+        }
     }
 
     void CLdapTableView::onDeleteAttribute()

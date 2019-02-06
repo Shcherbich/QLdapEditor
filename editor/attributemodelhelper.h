@@ -26,6 +26,8 @@ public:
     QVariant data(const ldapcore::CLdapAttribute &attr, const QModelIndex &index, int role = Qt::DisplayRole)const;
     bool setData(ldapcore::CLdapAttribute&  attr, const QModelIndex &index, const QVariant &value, int role = Qt::EditRole);
 
+    QString attributeType2String(ldapcore::AttrType type) const;
+
 private:
     ldapcore::CLdapData& m_LdapData;
     ldapcore::CLdapEntry* m_LdapEntry{nullptr};
@@ -38,7 +40,7 @@ private:
     typedef QMap<ldapcore::AttrType, tAttrHelper> tAttrHelperMap;
     tAttrHelperMap m_attrMap;
 
-    QString attributeType2String(ldapcore::AttrType type) const;
+
     QString formatValueByType(const ldapcore::CLdapAttribute &attr)const;
 
     QString displayRoleData(const ldapcore::CLdapAttribute &attr, const QModelIndex &index)const;
