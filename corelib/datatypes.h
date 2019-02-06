@@ -2,6 +2,9 @@
 #define DATATYPES_H
 
 #include <string>
+#include <map>
+#include <memory>
+
 namespace ldapcore
 {
 
