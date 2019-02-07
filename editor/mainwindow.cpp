@@ -1,3 +1,10 @@
+/*!
+\file
+\brief Implementation file for applications's main window
+
+File contains  implementations for applications's main window
+*/
+
 #include <algorithm>
 #include "mainwindow.h"
 #include "ldapeditordefines.h"
