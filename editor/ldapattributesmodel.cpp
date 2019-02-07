@@ -135,7 +135,9 @@ Qt::ItemFlags CLdapAttributesModel::flags(const QModelIndex& index) const
             return readonlyFlags;
             break;
         case ldapcore::AttributeState::AttributeReadWrite:
-            return col == static_cast<int>(AttributeColumn::Attribute) || col == static_cast<int>(AttributeColumn::Value) ? editFlags : readonlyFlags;
+            return (col == static_cast<int>(AttributeColumn::Attribute) || col == static_cast<int>(AttributeColumn::Value))
+                    ? editFlags
+                    : readonlyFlags;
             break;
         case ldapcore::AttributeState::AttributeValueReadWrite:
             return col == static_cast<int>(AttributeColumn::Value) ? editFlags : readonlyFlags;
@@ -173,6 +175,8 @@ bool CLdapAttributesModel::addAttribute(const ldapcore::CLdapAttribute& attribut
 
     auto description = attribute.description();
     aNew->setDescription(description);
+
+    aNew->setEditState(attribute.editState());
 
     int row = rowCount();
     int count = 1;

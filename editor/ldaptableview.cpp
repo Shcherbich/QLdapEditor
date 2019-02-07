@@ -99,13 +99,6 @@ namespace ldapeditor
         if(dlg.exec() == QDialog::Accepted)
         {
             static_cast<CLdapAttributesModel*>(model())->addAttribute(dlg.attribute());
-
-//            int row = model()->rowCount();
-//            model()->insertRows(row, 1);
-//            auto index = model()->index(row, 1);
-//            QAbstractItemView* abstractItemView = this;
-//            abstractItemView->edit(index);
-//            m_ldapDataDelegate.expandEditor();
         }
     }
 
