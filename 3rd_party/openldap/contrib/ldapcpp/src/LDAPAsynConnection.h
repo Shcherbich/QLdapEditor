@@ -307,6 +307,12 @@ class LDAPAsynConnection{
 
     private :
         /**
+         * This method is used to configure TCP/Networks timeouts by defaults
+         */
+        void configureTimeouts();
+
+    private :
+        /**
          * Private copy constructor. So nobody can call it.
          */
         LDAPAsynConnection(const LDAPAsynConnection& lc){};
@@ -328,6 +334,7 @@ class LDAPAsynConnection{
          * The URI of this connection
          */
         LDAPUrl m_uri;
+
 
     protected:
         /**

@@ -17,11 +17,15 @@ namespace ldapeditor
         Q_OBJECT
 
     public:
+
         explicit CLdapNewEntryDialog(QWidget *parent, QString parentDn, ldapcore::CLdapData& ldapData);
+        explicit CLdapNewEntryDialog(QWidget *parent, QString dn, QString rdn, std::string& structuralClass,
+                                     std::vector<std::string>& auxClasses,  ldapcore::CLdapData& ldapData);
         ~CLdapNewEntryDialog();
 
         QString rdn() const;
         QVector<QString> selectedClasses() const;
+        void fillListAll(QString structuralClass);
 
     private slots:
         void onCloseClicked();
@@ -35,6 +39,7 @@ namespace ldapeditor
         QString          m_rdn;
         QVector<QString> vSelectedClasses;
         ldapcore::CLdapData& m_LdapData;
+        bool m_editMode {false};
     };
 }//namespace ldapeditor
 

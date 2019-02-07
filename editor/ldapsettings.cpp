@@ -140,13 +140,24 @@ namespace ldapeditor
     {
         QSettings::sync();
     }
+
     int CLdapSettings::columnDn() const
     {
         return readInt("columnDn", 60);
     }
+
     void CLdapSettings::setColumnDn(int w)
     {
         return writeInt("columnDn", w);
+    }
+
+    int CLdapSettings::columnClass() const
+    {
+        return readInt("columnClass", 60);
+    }
+    void CLdapSettings::setColumnClass(int w)
+    {
+        return writeInt("columnClass", w);
     }
 
     int CLdapSettings::columnAttribute() const

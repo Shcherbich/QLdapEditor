@@ -17,10 +17,12 @@ FIND_PACKAGE(Qt5Core CONFIG REQUIRED)
 
 set(LdapCore_SRCS
     datatypes.h
+    datatypesinternal.h 
     CLdapException.h
     CLdapException.cpp
     CLdapSchema.h
     CLdapSchema.cpp
+	CLdapSchemaValidator.cpp
     qfunctional.h
     CLdapEntry.h
     CLdapEntry.cpp

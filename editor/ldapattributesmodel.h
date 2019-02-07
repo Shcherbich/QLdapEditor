@@ -5,6 +5,7 @@
 #include <QAbstractTableModel>
 #include <QStringList>
 #include <QVector>
+#include <QString>
 #include "CLdapAttribute.h"
 #include "CLdapEntry.h"
 #include "attributemodelhelper.h"
@@ -16,7 +17,7 @@ namespace ldapeditor
         Q_OBJECT
 
     public:
-        explicit CLdapAttributesModel(QObject *parent);
+        explicit CLdapAttributesModel(ldapcore::CLdapData& ldapData, QObject *parent);
 
         void setLdapEntry(ldapcore::CLdapEntry* entry);
         bool IsChanged() const {return m_IsChanged;}
@@ -47,17 +48,26 @@ namespace ldapeditor
         // Delete Data
         bool removeRows(int row, int count, const QModelIndex &parent = QModelIndex()) ;
 
-
+        void sortData();
         void GetChangedRows(QVector<ldapcore::CLdapAttribute>& newRows, QVector<ldapcore::CLdapAttribute>& deleteRows, QVector<ldapcore::CLdapAttribute>& updateRows);
         bool Save();
-        bool isNew() const;
-        QString dn() const;
+        bool isNew()    const;
+        bool isEdit()   const;
+        QString dn()    const;
+
+        bool addAttribute(const ldapcore::CLdapAttribute& attribute);
+
+    public slots:
+        void onRemovingAttribute(QString name);
+        void onAddAttribute(QString name);
 
     protected:
         bool  SaveAttributes();
         bool  SaveNewEntry();
+        bool  SaveUpdatedEntry();
 
     private:
+        ldapcore::CLdapData& m_LdapData;
         QStringList m_SectionsList;
         bool m_IsChanged{false};
         QString m_baseDN;

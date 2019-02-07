@@ -26,7 +26,7 @@ public:
 
 public:
 	void connect(const tConnectionOptions& connectOptions);
-	void resetConnection();
+    void reconnect();
     void rebuild();
 
 	QVector<CLdapEntry*> topList();
@@ -41,12 +41,17 @@ Q_SIGNALS:
 
 private:
 	void build();
+    void resetConnection();
 
 private:
-	QVector<CLdapEntry*> m_Entries;
-	std::unique_ptr<LDAPConnection> m_Connection;
-	CLdapSchema m_Schema;
-	std::string m_baseDN;
+    QVector<CLdapEntry*>        m_Entries;
+    tSearchOptions              m_searchOptions;
+    tConnectionOptions          m_connectOptions;
+    std::unique_ptr<LDAPConnection> m_Connection;
+    CLdapSchema                 m_Schema;
+    std::string                 m_baseDN;
+
+    friend class CLdapEntry;
 };
 
 }

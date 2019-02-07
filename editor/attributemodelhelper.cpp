@@ -1,4 +1,3 @@
-#include "const.h"
 #include "attributemodelhelper.h"
 #include "ldapeditordefines.h"
 #include <QDateTime>
@@ -8,29 +7,8 @@
 namespace ldapeditor
 {
 
-QString  FromUTCString(QString customDateString)
-{
-    QDateTime timeConvertor;
-    QString dateTime = customDateString.left(14);
-    int timezoneOffset = customDateString.right(5).left(3).toInt();
-    timeConvertor = QDateTime::fromString(dateTime, LDAP_EDITOR_SERVER_DATETIME_FORMAT);
-    return timeConvertor.toString(LDAP_EDITOR_UI_DATETIME_FORMAT);
-
-    /*
-    to be .... next period
-    // Mark this QDateTime as one with a certain offset from UTC, and set that
-    // offset.
-    timeConvertor.setTimeSpec(Qt::OffsetFromUTC);
-    timeConvertor.setUtcOffset(timezoneOffset * 3600);
-
-    // Convert this QDateTime to UTC.
-    timeConvertor = timeConvertor.toUTC();
-    return timeConvertor.toString();
-    */
-}
-
-
-CAttributeModelHelper::CAttributeModelHelper()
+CAttributeModelHelper::CAttributeModelHelper(ldapcore::CLdapData &ldapData):
+m_LdapData(ldapData)
 {
     m_attrMap[ldapcore::AttrType::UnknownText] = tAttrHelper{"UnknownText"};
     m_attrMap[ldapcore::AttrType::ACIItem] = tAttrHelper{"ACIItem"};
@@ -91,6 +69,11 @@ CAttributeModelHelper::CAttributeModelHelper()
     m_attrMap[ldapcore::AttrType::TeletexTerminalIdentifier] = tAttrHelper{"TeletexTerminalIdentifier"};
     m_attrMap[ldapcore::AttrType::TelexNumber] = tAttrHelper{"TelexNumber"};
     m_attrMap[ldapcore::AttrType::UtcTime] = tAttrHelper{"UtcTime"};
+}
+
+void CAttributeModelHelper::setLdapEntry(ldapcore::CLdapEntry* entry)
+{
+    m_LdapEntry = entry;
 }
 
 QVariant CAttributeModelHelper::data(const ldapcore::CLdapAttribute&  attr, const QModelIndex &index, int role )const
@@ -160,7 +143,8 @@ QString CAttributeModelHelper::formatValueByType(const ldapcore::CLdapAttribute&
         break;
     case ldapcore::AttrType::GeneralizedTime:
         {
-            retValue = FromUTCString(attr.value());
+            retValue = attr.value();
+            //retValue = "201902121415";
         }
         break;
     default:
@@ -176,11 +160,18 @@ QString CAttributeModelHelper::displayRoleData(const ldapcore::CLdapAttribute &a
     QString length = QString::number(attr.value().length());
     switch(index.column())
     {
-    case 0: return QString("%1=%2").arg(attr.name()).arg(value);
-    case 1: return attr.name();
-    case 2: return value;
-    case 3: return attributeType2String(attr.type());
-    case 4: return length;
+    case static_cast<int>(AttributeColumn::Name):
+        return QString("%1=%2").arg(attr.name()).arg(value);
+    case static_cast<int>(AttributeColumn::Class):
+        return displayClassInfo(attr);
+    case static_cast<int>(AttributeColumn::Attribute):
+        return attr.name();
+    case static_cast<int>(AttributeColumn::Value):
+        return value;
+    case static_cast<int>(AttributeColumn::Type):
+        return attributeType2String(attr.type());
+    case static_cast<int>(AttributeColumn::Size):
+        return length;
     default: break;
     }
     return QString();
@@ -203,13 +194,11 @@ QVariant CAttributeModelHelper::editRoleData(const ldapcore::CLdapAttribute &att
         }
     case ldapcore::AttrType::GeneralizedTime:
         {
-            v = v.trimmed().toLower();
-            return QDateTime::fromString(v, LDAP_EDITOR_UI_DATETIME_FORMAT);
+            return v.trimmed();
         }
     case ldapcore::AttrType::UtcTime:
     {
-        v = v.trimmed().toLower();
-        return QDateTime::fromString(v);
+        return v.trimmed();
     }
     default:
         return v.trimmed();
@@ -220,6 +209,24 @@ QVariant CAttributeModelHelper::editRoleData(const ldapcore::CLdapAttribute &att
 QVariant CAttributeModelHelper::tooltipRoleData(const ldapcore::CLdapAttribute &attr, const QModelIndex &index)const
 {
     QString displayData = displayRoleData(attr,index);
+    if (index.column() == static_cast<int>(AttributeColumn::Class))
+    {
+        QString str("description: ");
+        QStringList l = displayData.split(";");
+        for(auto s: l)
+        {
+            if(!str.isEmpty()) str += "\n";
+            str += s == "???" ? "???" : m_LdapData.schema().classDescription(s);
+        }
+        return str;
+    }
+
+    if (index.column() == static_cast<int>(AttributeColumn::Attribute)) // https://github.com/Shcherbich/QLdapEditor/issues/24
+    {
+        QString s = attr.description();
+        return QString(QObject::tr("description:\n%1")).arg(s.isEmpty() ? displayData : s);
+    }
+
     const int chunkSize = 16*3;
     if(attr.type() == ldapcore::AttrType::Binary)
     {
@@ -245,13 +252,13 @@ QVariant CAttributeModelHelper::foregroundRoleData(const ldapcore::CLdapAttribut
             return QBrush(Qt::darkGray);
         case ldapcore::AttributeState::AttributeReadWrite:
             break;
-            if(index.column() > 0 && index.column() != 4)
+            if(index.column() > static_cast<int>(AttributeColumn::Name) && index.column() != static_cast<int>(AttributeColumn::Size))
             {
                 return attr.isModified() ? QBrush(Qt::blue) : QBrush(Qt::black);
             }
         case ldapcore::AttributeState::AttributeValueReadWrite:
             break;
-            if(index.column() == 2)
+            if(index.column() == static_cast<int>(AttributeColumn::Value))
             {
                 return attr.isModified() ? QBrush(Qt::blue) : QBrush(Qt::black);
             }
@@ -264,12 +271,12 @@ bool CAttributeModelHelper::setEditRoleData(ldapcore::CLdapAttribute &attr, cons
 {
     Q_UNUSED(index);
     bool retValue {true};
-    if(index.column() == 1) // title
+    if(index.column() == static_cast<int>(AttributeColumn::Name))
     {
         attr.setName(value.toString());
         attr.setEditState(ldapcore::AttributeState::AttributeValueReadWrite);
     }
-    else if(index.column() == 2) //value
+    else if(index.column() == static_cast<int>(AttributeColumn::Value))
     {
         switch(attr.type())
         {
@@ -283,21 +290,34 @@ bool CAttributeModelHelper::setEditRoleData(ldapcore::CLdapAttribute &attr, cons
              attr.setValue(QString::number(value.toInt()));
              break;
         case ldapcore::AttrType::GeneralizedTime:
-            attr.setValue(value.toDateTime().toString(LDAP_EDITOR_SERVER_DATETIME_FORMAT) + LDAP_EDITOR_SERVER_POSTFIX);
+             attr.setValue(value.toString());
+             //attr.setValue(value.toDateTime().toString(LDAP_EDITOR_SERVER_DATETIME_FORMAT) + LDAP_EDITOR_SERVER_POSTFIX);
             break;
         case ldapcore::AttrType::UtcTime:
-             attr.setValue(value.toDateTime().toUTC().toString(LDAP_EDITOR_SERVER_DATETIME_FORMAT) + LDAP_EDITOR_SERVER_POSTFIX);
+             attr.setValue(value.toString());
+             //attr.setValue(value.toDateTime().toUTC().toString(LDAP_EDITOR_SERVER_DATETIME_FORMAT) + LDAP_EDITOR_SERVER_POSTFIX);
             break;
         default:
             attr.setValue(value.toString());
         }
     }
-     else if(index.column() == 3) //type
+     else if(index.column() == static_cast<int>(AttributeColumn::Type))
     {
         attr.setType(static_cast<ldapcore::AttrType>(value.toInt()));
     }
 
     return retValue;
+}
+
+QString CAttributeModelHelper::displayClassInfo(const ldapcore::CLdapAttribute &attr) const
+{
+    QString str;
+    if(m_LdapEntry)
+    {
+        for(auto s : attr.classes())
+             str += !str.isEmpty() ? (";" + s) : s;
+    }
+    return str.isEmpty() ? "???" : str;
 }
 
 } //namespace ldapeditor

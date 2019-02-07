@@ -3,6 +3,7 @@
 
 //#include <share.h>
 #include <QObject>
+#include <QVector>
 #include <QString>
 
 namespace ldapcore
@@ -83,7 +84,8 @@ class CLdapAttribute
 public:
 
 	explicit CLdapAttribute();
-    explicit CLdapAttribute(QString name, QString value, AttrType type, bool isMust, AttributeState editState = AttributeState::AttributeValueReadWrite);
+    explicit CLdapAttribute(QString name, QString value, AttrType type, bool isMust, QString desc, QVector<QString>& classes,
+                            AttributeState editState = AttributeState::AttributeValueReadWrite);
     CLdapAttribute(const CLdapAttribute& src);
     CLdapAttribute(CLdapAttribute&& temp);
 
@@ -96,21 +98,27 @@ public:
 	QString value() const;
 	AttrType type() const;
 	AttributeState editState() const;
+    QString description() const;
 	bool isModified() const;
     bool isMust() const;
+    QVector<QString> classes() const;
 
 	void setName(const QString& name);
 	void setValue(const QString& value);
 	void setType(AttrType type);
     void setEditState(AttributeState state);
+    void setDescription(QString& desc);
+    void setClasses(QVector<QString>&);
 
 private:
-	QString m_Name;
-	QString m_Value;
-	AttrType m_Type{AttrType::UnknownText};
+    QString     m_Name;
+    QString     m_Value;
+    AttrType    m_Type{AttrType::UnknownText};
 	AttributeState    m_editState;
-    bool    m_isMust{false};
-	bool    m_isModified{false};
+    QString     m_Description;
+    bool        m_isMust{false};
+    bool        m_isModified{false};
+    QVector<QString> m_Classes;
 
 
 private:

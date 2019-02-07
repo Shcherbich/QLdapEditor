@@ -2,6 +2,15 @@
 #define DATATYPES_H
 
 #include <string>
+#include <map>
+#include <memory>
+
+/*!
+ \defgroup ldapcore
+ \brief namespace for groupping ldap core related functionality
+
+ Namespace ldapeditor wrapes all classes and declarations, related to ldap core functionality
+*/
 namespace ldapcore
 {
 

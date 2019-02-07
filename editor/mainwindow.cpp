@@ -1,3 +1,10 @@
+/*!
+\file
+\brief Implementation file for applications's main window
+
+File contains  implementations for applications's main window
+*/
+
 #include <algorithm>
 #include "mainwindow.h"
 #include "ldapeditordefines.h"
@@ -50,36 +57,39 @@ MainWindow::MainWindow(CLdapSettings& settings, ldapcore::CLdapData& ldapData, Q
 	, m_LdapData(ldapData)
 {
 	setWindowTitle(ApplicationName);
-	setMinimumSize(800, 600);
+    setMinimumSize(800, 600);
+    resize(1024, 800);
 
 	CreateDockWindows();
 	CreateActions();
 	CreateStatusBar();
 
-	QString baseDN = normilizeDN(m_Settings.baseDN());
+    QString baseDN = normilizeDN(m_Settings.baseDN());
 
-	m_TreeModel = new CLdapTreeModel(baseDN, this);
-	m_TableModel = new CLdapAttributesModel(this);
-	m_AttributesList = new CLdapTableView(this, m_Settings);
+    m_TreeModel = new CLdapTreeModel(baseDN, this);
+    m_TableModel = new CLdapAttributesModel(m_LdapData, this);
+    m_AttributesList = new CLdapTableView(this, m_LdapData, m_Settings);
 
-	setCentralWidget(m_AttributesList);
-	m_AttributesList->horizontalHeader()->setDefaultSectionSize(100);
-	m_AttributesList->horizontalHeader()->setStretchLastSection(true);
+    setCentralWidget(m_AttributesList);
+    m_AttributesList->horizontalHeader()->setDefaultSectionSize(100);
+    m_AttributesList->horizontalHeader()->setStretchLastSection(true);
 
-	m_TreeModel->setTopItems(m_LdapData.topList());
-	m_RootIndex = m_TreeModel->index(0, 0);
+    m_TreeModel->setTopItems(m_LdapData.topList());
+    m_RootIndex = m_TreeModel->index(0, 0);
 
-	m_TableModel->setBaseDN(baseDN);
-	m_AttributesList->setModel(m_TableModel);
-	m_AttributesList->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
-	m_AttributesList->RestoreView();
+    m_TableModel->setBaseDN(baseDN);
+    m_AttributesList->setModel(m_TableModel);
+    m_AttributesList->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+    m_AttributesList->RestoreView();
 
-	m_LdapTree->setModel(m_TreeModel);
-	m_LdapTree->header()->resizeSection(0, m_LdapTree->header()->width());
-	m_LdapTree->expand(m_RootIndex);
-	m_LdapTree->setCurrentIndex(m_RootIndex);
+    m_LdapTree->setModel(m_TreeModel);
+    m_LdapTree->header()->resizeSection(0, m_LdapTree->header()->width());
+    m_LdapTree->expand(m_RootIndex);
+    m_LdapTree->setCurrentIndex(m_RootIndex);
+
+    connect(m_TreeModel, SIGNAL(onRemovingAttribute(QString)), m_TableModel, SLOT(onRemovingAttribute(QString)));
+    connect(m_TreeModel, SIGNAL(onAddAttribute(QString)), m_TableModel, SLOT(onAddAttribute(QString)));
 }
-
 
 MainWindow::~MainWindow()
 {
@@ -109,6 +119,12 @@ void MainWindow::CreateActions()
 	dataMenu->setStatusTip(tr("Save data"));
 	dataMenu->addAction(saveDataAction);
 
+    dataMenu->addSeparator();
+    QAction* reloadDataAction = dataMenu->addAction(tr("&Reconnect"), this, &MainWindow::onReload);
+    dataMenu->setStatusTip(tr("Reconnect"));
+    dataMenu->addAction(reloadDataAction);
+
+    dataMenu->addSeparator();
 	QAction* quitAction = dataMenu->addAction(tr("&Quit"), this, &MainWindow::onQuit);
 	dataMenu->setStatusTip(tr("Quit"));
 	dataMenu->addAction(quitAction);
@@ -136,15 +152,15 @@ void MainWindow::onAboutApp()
 {
 	QString title(tr("About application"));
 	QStringList lines;
-	lines << QString("%1 application").arg(ApplicationName);
-	lines << QString("Version: %1").arg(ApplicationVersion);
-	lines << QString("License: %1").arg("GPL v2");
-	lines << QString("© %1, 2018-%2").arg(OrganizationName).arg(QDate::currentDate().year());
+    lines << QString(tr("%1 application")).arg(ApplicationName);
+    lines << QString(tr("Version: %1")).arg(ApplicationVersion);
+    lines << QString(tr("License: %1")).arg(tr("GPL v2"));
+    lines << QString(tr("© %1, 2018-%2")).arg(OrganizationName).arg(QDate::currentDate().year());
 	lines << QString();
-	lines << QString("Credentials:");
-	lines << QString("SimpleCrypt, kindly provided by");
-	lines << QString("https://wiki.qt.io/Simple_encryption_with_SimpleCrypt");
-	lines << QString("Icons, are kindly provided by www.flaticon.com");
+    lines << QString(tr("Credentials:"));
+    lines << QString(tr("SimpleCrypt, kindly provided by"));
+    lines << QString(tr("https://wiki.qt.io/Simple_encryption_with_SimpleCrypt"));
+    lines << QString(tr("Icons, are kindly provided by www.flaticon.com"));
 
 	QString text(lines.join("\n"));
 	QMessageBox dlg(QMessageBox::Information, title, text, QMessageBox::Ok, this);
@@ -185,8 +201,9 @@ void MainWindow::onTreeItemChanged(const QModelIndex& current, const QModelIndex
 	{
         if (m_TableModel->isNew() && m_LdapTree->updatesEnabled())
 		{
-            auto ret = QMessageBox::question(this, "Question",
-                                             "The new entry was added.\nDo you want to save new entry to server?", QMessageBox::Yes | QMessageBox::No);
+            auto ret = QMessageBox::question(this, tr("Question"),
+                                             tr("The new entry was added.\nDo you want to save new entry to server?"),
+                                             QMessageBox::Yes | QMessageBox::No);
 			if (ret != QMessageBox::Yes)
 			{
                 ldapcore::CLdapEntry* prevEntry = static_cast<ldapcore::CLdapEntry*>(mainPrev.internalPointer());
@@ -211,8 +228,6 @@ void MainWindow::onTreeItemChanged(const QModelIndex& current, const QModelIndex
 			{
                 if (!m_TableModel->Save())
                 {
-
-                    //m_LdapTree->setCurrentIndex(previous);
                     return;
                 }
 			}
@@ -221,10 +236,17 @@ void MainWindow::onTreeItemChanged(const QModelIndex& current, const QModelIndex
 		{
 			QVector<ldapcore::CLdapAttribute> newRows, deleteRows, updateRows;
 			m_TableModel->GetChangedRows(newRows, deleteRows, updateRows);
+            // first check
 			bool hasChanges = !(!newRows.size() && !deleteRows.size() && !updateRows.size());
+            // second check
+            hasChanges |= m_TableModel->isEdit() ? 1 : 0;
             if (hasChanges && m_LdapTree->updatesEnabled())
 			{
-				auto ret = QMessageBox::question(this, "Question", "You have changes in attributes.\nDo you want to save these changes to server?", QMessageBox::Yes | QMessageBox::No);
+                const QString s1(tr("You have changes in attributes.\nDo you want to save these changes to server?"));
+                const QString s2(tr("The entry was updated.\nDo you want to save editable entry to server?"));
+                auto ret = QMessageBox::question(this, tr("Question"),
+                                                 m_TableModel->isEdit() ? s2 : s1,
+                                                 QMessageBox::Yes | QMessageBox::No);
 				if (ret == QMessageBox::Yes)
 				{
 					m_TableModel->Save();
@@ -236,7 +258,6 @@ void MainWindow::onTreeItemChanged(const QModelIndex& current, const QModelIndex
 	ldapcore::CLdapEntry* currentEntry = static_cast<ldapcore::CLdapEntry*>(current.internalPointer());
 	if (currentEntry)
 	{
-		QVector<ldapcore::CLdapAttribute>* pAttrs = currentEntry->attributes();
 		m_TableModel->setLdapEntry(currentEntry);
 		m_AttributesList->setLdapEntry(currentEntry);
 	}
@@ -250,48 +271,10 @@ void MainWindow::onLdapSearch()
 
 void MainWindow::onSaveData()
 {
-    m_TableModel->Save();
-    return;
-/*
-	bool isNew =  m_TableModel->isNew();
-	bool isSaved = m_TableModel->Save();
-	auto parentDn = m_TableModel->dn();
-	if (false == isSaved)
-	{
-		if (isNew)
-		{
-            QtUiLocker locker(m_LdapTree);
-            QtUiLocker locker2(m_AttributesList);
-			auto f = m_LdapTree->findByDn(parentDn);
-			auto index = std::get<0>(f);
-			auto entry = std::get<1>(f);
-			if (entry != nullptr)
-			{
-				m_LdapTree->collapse(index);
-				m_LdapTree->expand(index);
-                m_LdapTree->setCurrentIndex(index);
-                m_TableModel->setLdapEntry(entry);
-			}
-		}
-		return;
-	}
-	auto f = m_LdapTree->findByDn(parentDn);
-	auto index = std::get<0>(f);
-	auto entry = std::get<1>(f);
-	if (entry == nullptr)
-	{
-		return;
-	}
-
-    QtUiLocker locker(m_LdapTree);
-    QtUiLocker locker2(m_AttributesList);
-	m_LdapTree->collapse(index);
-    m_TableModel->setLdapEntry(entry);
-	m_LdapTree->expand(index);
-	index = index.child(entry->children().count() - 1, 0);
-	m_LdapTree->setCurrentIndex(index);
-	m_TableModel->setLdapEntry(entry->children().back());
-    */
+    if(m_TableModel->Save())
+    {
+        statusBar()->showMessage(tr("Data saved"));
+    }
 }
 
 void MainWindow::onQuit()
@@ -302,7 +285,15 @@ void MainWindow::onQuit()
 
 void MainWindow::onReload()
 {
-
+    try
+    {
+        m_LdapData.reconnect();
+        QMessageBox::question(this, tr("Information"), tr("The operation has been completed successfully!"), QMessageBox::Ok);
+    }
+    catch (const std::exception& ex)
+    {
+        QMessageBox::critical(nullptr, tr("Error"), ex.what(), QMessageBox::Ok);
+    }
 }
 }// namespace ldapeditor
 

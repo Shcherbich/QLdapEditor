@@ -16,9 +16,10 @@ namespace ldapeditor
     {
         Q_OBJECT
     public:
-        explicit CLdapTableView(QWidget *parent, CLdapSettings&);
+        explicit CLdapTableView(QWidget *parent, ldapcore::CLdapData&, CLdapSettings&);
         void setLdapEntry(ldapcore::CLdapEntry* entry);
         void RestoreView();
+
     signals:
 
     public slots:
@@ -33,6 +34,7 @@ namespace ldapeditor
 
         CLdapDataEditDelegate m_ldapDataDelegate;
         QStyledItemDelegate   m_defaultDelegate;
+        ldapcore::CLdapData&  m_LdapData;
         CLdapSettings&        m_LdapSettings;
         QMenu m_contextMenu;
         QAction* m_newAttr{nullptr};

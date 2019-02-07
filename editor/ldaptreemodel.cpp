@@ -143,6 +143,16 @@ namespace ldapeditor
         return true;
     }
 
+    void CLdapTreeModel::removeAttribute(QString name)
+    {
+        emit onRemovingAttribute(name);
+    }
+
+    void CLdapTreeModel::addAttribute(QString name)
+    {
+        emit onAddAttribute(name);
+    }
+
 } //namespace ldapeditor
 
 

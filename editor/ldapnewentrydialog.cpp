@@ -1,10 +1,10 @@
-#include <vector>
-#include <string>
 #include "ldapnewentrydialog.h"
 #include "ui_ldapnewentrydialog.h"
+#include <QComboBox>
 #include <QListWidgetItem>
 #include <QMessageBox>
-#include <QComboBox>
+#include <string>
+#include <vector>
 
 std::vector<std::string> split(const std::string& str, const std::string& delim)
 {
@@ -25,141 +25,188 @@ std::vector<std::string> split(const std::string& str, const std::string& delim)
             tokens.push_back(token);
         }
         prev = pos + delim.length();
-    }
-    while (pos < str.length() && prev < str.length());
+    } while (pos < str.length() && prev < str.length());
     return tokens;
 }
 
+namespace ldapeditor {
 
-namespace ldapeditor
+CLdapNewEntryDialog::CLdapNewEntryDialog(QWidget* parent, QString parentDn, ldapcore::CLdapData& ldapData)
+    : QDialog(parent)
+    , ui(new Ui::CLdapNewEntryDialog)
+    , m_LdapData(ldapData)
+
 {
+    ui->setupUi(this);
 
-    CLdapNewEntryDialog::CLdapNewEntryDialog(QWidget *parent, QString parentDn, ldapcore::CLdapData& ldapData) :
-        QDialog(parent),
-        ui(new Ui::CLdapNewEntryDialog),
-        m_LdapData(ldapData)
+    connect(ui->closeButton, &QAbstractButton::clicked, this, &CLdapNewEntryDialog::onCloseClicked);
+    connect(ui->okButton, &QAbstractButton::clicked, this, &CLdapNewEntryDialog::onOkClicked);
+    connect(ui->addButton, &QAbstractButton::clicked, this, &CLdapNewEntryDialog::onAddClicked);
+    connect(ui->removeButton, &QAbstractButton::clicked, this, &CLdapNewEntryDialog::onRemoveClicked);
+    connect(ui->structuralCombo, &QComboBox::currentTextChanged, this, &CLdapNewEntryDialog::onStructuralComboChanged);
 
+    ui->parentdnEdit->setText(parentDn);
+    ui->parentdnEdit->setReadOnly(true);
+    for (auto c : m_LdapData.schema().structuralClasses())
     {
-        ui->setupUi(this);
+        ui->structuralCombo->addItem(c);
+    }
 
-        connect(ui->closeButton, &QAbstractButton::clicked, this, &CLdapNewEntryDialog::onCloseClicked);
-        connect(ui->okButton, &QAbstractButton::clicked, this, &CLdapNewEntryDialog::onOkClicked);
-        connect(ui->addButton, &QAbstractButton::clicked, this, &CLdapNewEntryDialog::onAddClicked);
-        connect(ui->removeButton, &QAbstractButton::clicked, this, &CLdapNewEntryDialog::onRemoveClicked);
-        connect(ui->structuralCombo, &QComboBox::currentTextChanged, this, &CLdapNewEntryDialog::onStructuralComboChanged);
+    ui->rdnEdit->setFocus();
+}
 
-        ui->parentdnEdit->setText(parentDn);
-        ui->parentdnEdit->setReadOnly(true);
-        for(auto c : m_LdapData.schema().structuralClasses())
+CLdapNewEntryDialog::CLdapNewEntryDialog(QWidget* parent, QString dn, QString rdn,
+    std::string& structuralClass,
+    std::vector<std::string>& auxClasses,
+    ldapcore::CLdapData& ldapData)
+    : QDialog(parent)
+    , ui(new Ui::CLdapNewEntryDialog)
+    , m_LdapData(ldapData)
+    , m_editMode(true)
+
+{
+    ui->setupUi(this);
+
+    connect(ui->closeButton, &QAbstractButton::clicked, this, &CLdapNewEntryDialog::onCloseClicked);
+    connect(ui->okButton, &QAbstractButton::clicked, this, &CLdapNewEntryDialog::onOkClicked);
+    connect(ui->addButton, &QAbstractButton::clicked, this, &CLdapNewEntryDialog::onAddClicked);
+    connect(ui->removeButton, &QAbstractButton::clicked, this, &CLdapNewEntryDialog::onRemoveClicked);
+    ui->structuralCombo->addItem(structuralClass.c_str());
+    ui->structuralCombo->setEnabled(false);
+    ui->parentdnEdit->setText(rdn);
+    ui->parentdnEdit->setReadOnly(true);
+    ui->rdnEdit->setText(dn);
+    ui->rdnEdit->setReadOnly(true);
+    setWindowTitle(tr("Edit entry"));
+
+    fillListAll(structuralClass.c_str());
+
+    for (auto& c : auxClasses)
+        ui->listNeeded->addItem(c.c_str());
+
+    auxClasses.push_back(structuralClass);
+    for (auto& c : auxClasses)
+    {
+        for (int i = 0; i < ui->listAll->count(); ++i)
         {
-            ui->structuralCombo->addItem(c);
+            if (ui->listAll->item(i)->text() == c.c_str())
+            {
+                delete ui->listAll->takeItem(ui->listAll->row(ui->listAll->item(i)));
+                break;
+            }
         }
+    }
+}
 
+CLdapNewEntryDialog::~CLdapNewEntryDialog()
+{
+    delete ui;
+}
+
+void CLdapNewEntryDialog::onCloseClicked()
+{
+    reject();
+}
+
+void CLdapNewEntryDialog::onOkClicked()
+{
+    m_rdn = ui->rdnEdit->text().trimmed();
+    if (m_rdn.size() == 0 && !m_editMode)
+    {
+        QMessageBox::critical(this, tr("Error"), tr("The RDN is empty!"), QMessageBox::Ok);
         ui->rdnEdit->setFocus();
+        return;
     }
 
-    CLdapNewEntryDialog::~CLdapNewEntryDialog()
+    std::string delim = "=";
+    auto v = split(m_rdn.toStdString(), delim);
+    if (v.size() != 2 && !m_editMode)
     {
-        delete ui;
+        QMessageBox::critical(this, tr("Error"), tr("The RDN has invalid format!. Format must be like as 'cn=SomaValue'!"), QMessageBox::Ok);
+        return;
     }
 
-    void CLdapNewEntryDialog::onCloseClicked()
+    vSelectedClasses.clear();
+    QString structuralClass = ui->structuralCombo->currentText();
+    if (structuralClass != "top")
     {
-        reject();
+        vSelectedClasses << "top";
+    }
+    vSelectedClasses << structuralClass;
+    for (int i = 0; i < ui->listNeeded->count(); ++i)
+    {
+        vSelectedClasses << ui->listNeeded->item(i)->text();
     }
 
-    void CLdapNewEntryDialog::onOkClicked()
+    accept();
+}
+
+void CLdapNewEntryDialog::onAddClicked()
+{
+    QList<QListWidgetItem*> l = ui->listAll->selectedItems();
+    if (!l.isEmpty())
     {
-        m_rdn = ui->rdnEdit->text().trimmed();
-        if (m_rdn.size() == 0)
-        {
-            QMessageBox::critical(this, "Error", "The RDN is empty!", QMessageBox::Ok);
-            ui->rdnEdit->setFocus();
-            return;
-        }
-
-        std::string delim = "=";
-        auto v = split(m_rdn.toStdString(), delim);
-        if (v.size() != 2)
-        {
-            QMessageBox::critical(this, "Error", "The RDN has invalid format!. Format must be like as 'cn=SomaValue'!", QMessageBox::Ok);
-            return;
-        }
-
-        vSelectedClasses.clear();
-        vSelectedClasses << ui->structuralCombo->currentText();
-        for(int i = 0; i < ui->listNeeded->count(); ++i)
-        {
-            vSelectedClasses << ui->listNeeded->item(i)->text();
-        }
-
-        accept();
-    }
-
-    void CLdapNewEntryDialog::onAddClicked()
-    {
-        QList<QListWidgetItem*> l = ui->listAll->selectedItems();
-        if (l.size() == 0)
-        {
-            return;
-        }
         QListWidgetItem* item = l.first();
         ui->listNeeded->addItem(item->text());
         delete ui->listAll->takeItem(ui->listAll->row(item));
-    }
+    }    
+}
 
-    void CLdapNewEntryDialog::onRemoveClicked()
+void CLdapNewEntryDialog::onRemoveClicked()
+{
+    QList<QListWidgetItem*> l = ui->listNeeded->selectedItems();
+    if (!l.isEmpty())
     {
-        QList<QListWidgetItem*> l = ui->listNeeded->selectedItems();
-        if (l.size() == 0)
-        {
-            return;
-        }
         QListWidgetItem* item = l.first();
         ui->listAll->addItem(item->text());
         delete ui->listNeeded->takeItem(ui->listNeeded->row(item));
     }
+}
 
-    QString CLdapNewEntryDialog::rdn() const
+QString CLdapNewEntryDialog::rdn() const
+{
+    return m_rdn;
+}
+
+QVector<QString> CLdapNewEntryDialog::selectedClasses() const
+{
+    return vSelectedClasses;
+}
+
+void CLdapNewEntryDialog::onStructuralComboChanged(const QString&)
+{
+    ui->rdnEdit->setText("");
+    QString selected = ui->structuralCombo->currentText();
+    auto& schema = m_LdapData.schema();
+
+    auto startRdn = schema.startRdn(selected);
+    if (!startRdn.isEmpty())
     {
-        return m_rdn;
+        ui->rdnEdit->setText(startRdn + "=");
+        ui->rdnEdit->setCursorPosition(ui->rdnEdit->selectedText().size() - 1);
     }
 
-    QVector<QString> CLdapNewEntryDialog::selectedClasses() const
+    fillListAll(selected);
+}
+
+void CLdapNewEntryDialog::fillListAll(QString structuralClass)
+{
+    auto& schema = m_LdapData.schema();
+    QString selected = structuralClass;
+    QVector<QString> v;
+    QString sup;
+    do
     {
-        return vSelectedClasses;
-    }
+        sup = schema.supByClass(selected);
+        v << schema.auxiliaryClassesBySup(sup);
+        selected = sup == selected ? "" : sup;
+    } while (!selected.isEmpty());
+    qSort(v);
+    v.erase(std::unique(v.begin(), v.end()), v.end());
+    ui->listAll->clear();
+    ui->listNeeded->clear();
+    for (auto& c : v)
+        ui->listAll->addItem(c);
+}
 
-    void CLdapNewEntryDialog::onStructuralComboChanged(const QString&)
-    {
-        ui->rdnEdit->setText("");
-        QString selected = ui->structuralCombo->currentText();
-        auto& schema = m_LdapData.schema();
-
-        auto startRdn = schema.startRdn(selected);
-        if (startRdn.size())
-        {
-            ui->rdnEdit->setText(startRdn + "=");
-            ui->rdnEdit->setCursorPosition(ui->rdnEdit->selectedText().size() - 1);
-        }
-
-        QVector<QString> v;
-        QString sup;
-        do
-        {
-            sup = schema.supByClass(selected);
-            v << schema.auxiliaryClassesBySup(sup);
-            selected = sup == selected ? "" : sup;
-        }
-        while (selected.size());
-        qSort(v);
-        v.erase(std::unique(v.begin(), v.end()), v.end());
-        ui->listAll->clear();
-        ui->listNeeded->clear();
-        for (auto& c: v)
-            ui->listAll->addItem(c);
-
-    }
-
-
-}//namespace ldapeditor
+} //namespace ldapeditor

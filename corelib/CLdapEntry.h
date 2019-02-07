@@ -31,20 +31,26 @@ public:
 	QVector<CLdapAttribute> availableAttributesMust();
 	bool                    isMust(std::string attributeName);
     bool                    isNew();
+    bool                    isEdit();
+    void                    setEditable(bool isEdit);
 	std::shared_ptr<CLdapAttribute> createEmptyAttribute(std::string attributeName);
+    QVector<QString>        classes();
+    void                    setClasses(QVector<QString>&);
 	QVector<QString>        availableClasses();
 
 	void                    validateAttribute(CLdapAttribute& attr);
-	void                    loadAttributes(QVector<CLdapAttribute>&);
+    void                    loadAttributes(QVector<CLdapAttribute>&, bool needToLoadSystemAttributes = true);
+    void                    sortAttributes();
 
-	void                    addAttribute(CLdapAttribute& newOb) throw(CLdapServerException);
-	void                    deleteAttribute(CLdapAttribute& newOb) throw(CLdapServerException);
-	void                    updateAttribute(CLdapAttribute& newOb) throw(CLdapServerException);
+    void                    addAttribute(CLdapAttribute& newOb) noexcept(false);
+    void                    deleteAttribute(CLdapAttribute& newOb) noexcept(false);
+    void                    updateAttribute(CLdapAttribute& newOb) noexcept(false);
 	void                    flushAttributeCache();
 	void                    addNewChild(CLdapEntry* child);
 	void                    removeChild(CLdapEntry* child);
 	void                    addAttributes(QVector<CLdapAttribute>&);
-	void                    saveNewChild() throw(CLdapServerException);
+    void                    saveNewChild() noexcept(false);
+    void                    update() noexcept(false);
     void                    availableAttributesMayImpl();
     void                    availableAttributesMustImpl();
 
@@ -60,16 +66,17 @@ public slots:
 private:
 	void construct(CLdapData* data, LDAPConnection* conn, QString baseDn);
 	void prepareAttributes();
+    LDAPConnection* connectionPtr() const;
 
 private:
+    CLdapData*            m_pData;
 	CLdapEntry*           m_pParent{nullptr};
 	LDAPEntry*            m_pEntry{nullptr};
-	LDAPConnection*       m_Conn{nullptr};
 	QVector<CLdapEntry*>  m_pChildren;
 	QString               m_baseDn;
 	QString               m_rDn;
-	CLdapData*            m_pData;
 	bool                  m_isNew{false};
+    bool                  m_isEdit{false};
 
 	QVector<CLdapAttribute> m_attributes;
 	QVector<CLdapAttribute> m_Must;

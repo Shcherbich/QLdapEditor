@@ -3,16 +3,17 @@
 #include "CLdapAttribute.h"
 #include <QHeaderView>
 #include "ldapattributesmodel.h"
+#include "ldapnewattributedialog.h"
 
 namespace ldapeditor
 {
-    CLdapTableView::CLdapTableView(QWidget *parent, CLdapSettings& s)
-        : QTableView(parent), m_LdapSettings(s)
+    CLdapTableView::CLdapTableView(QWidget *parent, ldapcore::CLdapData& ldapData, CLdapSettings& s)
+        : QTableView(parent), m_LdapData(ldapData), m_LdapSettings(s)
     , m_ldapDataDelegate(this)
     , m_defaultDelegate(this)
     , m_contextMenu(this)
-    , m_newAttr(new QAction("New attribute", this))
-    , m_delAttr(new QAction("Delete attribute", this))
+    , m_newAttr(new QAction(tr("New attribute"), this))
+    , m_delAttr(new QAction(tr("Delete attribute"), this))
     {
         setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
         setAlternatingRowColors(true);
@@ -30,28 +31,30 @@ namespace ldapeditor
 
     void CLdapTableView::setLdapEntry(ldapcore::CLdapEntry* entry)
     {
+        m_entry = entry;
         m_ldapDataDelegate.setLdapEntry(entry);
     }
 
     void CLdapTableView::RestoreView()
     {
-        setColumnWidth(0, m_LdapSettings.columnDn());
-        setColumnWidth(1, m_LdapSettings.columnAttribute());
-        setColumnWidth(2, m_LdapSettings.columnValue());
-        setColumnWidth(3, m_LdapSettings.columnType());
-        setColumnWidth(4, m_LdapSettings.columnSize());
-        hideColumn(0);
-        hideColumn(4);
+        setColumnWidth(static_cast<int>(AttributeColumn::Name), m_LdapSettings.columnDn());
+        setColumnWidth(static_cast<int>(AttributeColumn::Class), m_LdapSettings.columnClass());
+        setColumnWidth(static_cast<int>(AttributeColumn::Attribute), m_LdapSettings.columnAttribute());
+        setColumnWidth(static_cast<int>(AttributeColumn::Value), m_LdapSettings.columnValue());
+        setColumnWidth(static_cast<int>(AttributeColumn::Type), m_LdapSettings.columnType());
+        setColumnWidth(static_cast<int>(AttributeColumn::Size), m_LdapSettings.columnSize());
+        hideColumn(static_cast<int>(AttributeColumn::Name));
+        hideColumn(static_cast<int>(AttributeColumn::Size));
         connect(horizontalHeader(), &QHeaderView::sectionResized, this, &CLdapTableView::OnHeaderChanged);
     }
 
     bool CLdapTableView::edit(const QModelIndex& index, QAbstractItemView::EditTrigger trigger, QEvent* event)
     {
-        if(index.column() == 1)
+        if(index.column() == static_cast<int>(AttributeColumn::Attribute))
         {
             setItemDelegate(&m_ldapDataDelegate);
         }
-        else if(index.column() == 2)
+        else if(index.column() == static_cast<int>(AttributeColumn::Value))
         {
             ldapcore::AttrType type = static_cast<ldapcore::AttrType>(index.data(ldapeditor::AttrTypeRole).toInt());
             switch(type)
@@ -65,7 +68,7 @@ namespace ldapeditor
                 setItemDelegate(&m_defaultDelegate);
             }
         }
-        else if(index.column() == 3)
+        else if(index.column() == static_cast<int>(AttributeColumn::Type))
         {
             setItemDelegate(&m_ldapDataDelegate);
         }
@@ -92,12 +95,11 @@ namespace ldapeditor
 
     void CLdapTableView::onNewAttribute()
     {
-        int row = model()->rowCount();
-        model()->insertRows(row, 1);
-        auto index = model()->index(row, 1);
-        QAbstractItemView* abstractItemView = this;
-        abstractItemView->edit(index);
-        m_ldapDataDelegate.expandEditor();
+        ldapeditor::CLdapNewAttributeDialog dlg(m_LdapData, m_entry);
+        if(dlg.exec() == QDialog::Accepted)
+        {
+            static_cast<CLdapAttributesModel*>(model())->addAttribute(dlg.attribute());
+        }
     }
 
     void CLdapTableView::onDeleteAttribute()
