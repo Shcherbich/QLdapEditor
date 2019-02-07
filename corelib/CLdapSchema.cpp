@@ -226,7 +226,7 @@ QVector<QString> CLdapSchema::auxiliaryClassesBySup(QString sup)
 
 QVector<CLdapAttribute> CLdapSchema::attributeByClasses(QVector<QString>& classes, std::map<std::string, std::string>& a2v)
 {
-    std::set<std::string> excludedSystemClasses {"objectClass", "objectCategory", "distinguishedName"};
+    static std::set<std::string> excludedAttributeNames {"objectClass", "objectCategory", "distinguishedName"};
 	std::set<std::string> uniqueAttributes;
 	QVector<CLdapAttribute> vector;
 	for (auto& c : classes)
@@ -242,7 +242,7 @@ QVector<CLdapAttribute> CLdapSchema::attributeByClasses(QVector<QString>& classe
 		{
 			auto attributeName = may;
             if (uniqueAttributes.find(attributeName) != uniqueAttributes.end() ||
-                excludedSystemClasses.find(attributeName) != excludedSystemClasses.end())
+                excludedAttributeNames.find(attributeName) != excludedAttributeNames.end())
 			{
 				continue;
 			}
@@ -261,7 +261,7 @@ QVector<CLdapAttribute> CLdapSchema::attributeByClasses(QVector<QString>& classe
 		{
 			auto attributeName = must;
             if (uniqueAttributes.find(attributeName) != uniqueAttributes.end() ||
-                excludedSystemClasses.find(attributeName) != excludedSystemClasses.end())
+                excludedAttributeNames.find(attributeName) != excludedAttributeNames.end())
 			{
 				continue;
 			}

@@ -564,6 +564,8 @@ void CLdapEntry::saveNewChild() noexcept(false)
             }
         }
         attrs->addAttribute(LDAPAttribute("objectClass", objectClasses));
+        static std::set<QString> excludedAttributeNames {"cn"};
+
         for (auto& a : child->m_attributes)
         {
             auto value = a.value().toStdString();
@@ -575,8 +577,6 @@ void CLdapEntry::saveNewChild() noexcept(false)
         std::shared_ptr<LDAPEntry> entry(new LDAPEntry(child->m_pEntry->getDN(), attrs.get()));
         auto dn = m_pEntry->getDN();
         connectionPtr()->add(entry.get());
-        LDAPModList* mod = new LDAPModList();
-        connectionPtr()->modify(m_pEntry->getDN(), mod);
         child->m_isNew = false;
     }
     catch (const std::exception& ex)
