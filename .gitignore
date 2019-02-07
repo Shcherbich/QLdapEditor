@@ -1,4 +1,5 @@
 
 \.DS_Store
+\doxygen
 
-CMakeLists.txt.user 
+CMakeLists.txt.user
