@@ -148,7 +148,7 @@ void CLdapSchema::build(LDAPConnection* lc, std::string& baseDn)
 	}
 }
 
-std::tuple<AttrType, bool> CLdapSchema::GetAttributeInfoByName(std::string attrName)
+std::tuple<AttrType, bool> CLdapSchema::attributeInfoByName(std::string attrName)
 {
 	auto f = m_impl->attr2info.find(attrName);
 	if (f != m_impl->attr2info.end())
@@ -226,6 +226,7 @@ QVector<QString> CLdapSchema::auxiliaryClassesBySup(QString sup)
 
 QVector<CLdapAttribute> CLdapSchema::attributeByClasses(QVector<QString>& classes, std::map<std::string, std::string>& a2v)
 {
+    std::set<std::string> excludedSystemClasses {"objectClass", "objectCategory", "distinguishedName"};
 	std::set<std::string> uniqueAttributes;
 	QVector<CLdapAttribute> vector;
 	for (auto& c : classes)
@@ -240,14 +241,15 @@ QVector<CLdapAttribute> CLdapSchema::attributeByClasses(QVector<QString>& classe
 		for (auto may : f.getMay())
 		{
 			auto attributeName = may;
-			if (uniqueAttributes.find(attributeName) != uniqueAttributes.end())
+            if (uniqueAttributes.find(attributeName) != uniqueAttributes.end() ||
+                excludedSystemClasses.find(attributeName) != excludedSystemClasses.end())
 			{
 				continue;
 			}
 			uniqueAttributes.insert(attributeName);
 			auto v2set = a2v.find(attributeName);
 			auto v = v2set == a2v.end() ? "" : v2set->second;
-			auto info = GetAttributeInfoByName(attributeName);
+			auto info = attributeInfoByName(attributeName);
 			auto attr = m_impl->attributesSchema.getAttributeTypeByName(attributeName);
 			QVector<QString> classes;
 			CLdapAttribute a(attributeName.c_str(), v.c_str(), std::get<0>(info), false, attr.getDesc().c_str(), classes,
@@ -258,14 +260,15 @@ QVector<CLdapAttribute> CLdapSchema::attributeByClasses(QVector<QString>& classe
 		for (auto must : f.getMust())
 		{
 			auto attributeName = must;
-			if (uniqueAttributes.find(attributeName) != uniqueAttributes.end())
+            if (uniqueAttributes.find(attributeName) != uniqueAttributes.end() ||
+                excludedSystemClasses.find(attributeName) != excludedSystemClasses.end())
 			{
 				continue;
 			}
 			uniqueAttributes.insert(attributeName);
 			auto v2set = a2v.find(attributeName);
 			auto v = v2set == a2v.end() ? "" : v2set->second;
-			auto info = GetAttributeInfoByName(attributeName);
+			auto info = attributeInfoByName(attributeName);
 			auto attr = m_impl->attributesSchema.getAttributeTypeByName(attributeName);
 			QVector<QString> classes;
 			CLdapAttribute a(attributeName.c_str(), v.c_str(), std::get<0>(info), true, attr.getDesc().c_str(), classes,

@@ -198,7 +198,7 @@ static std::map<std::string, validateInfo > syntaxNumber2toCheckFunction
 };
 
 
-void CLdapSchema::checkBySyntaxName(std::string attributeName, std::string value) noexcept(false)
+void CLdapSchema::validateAttributeByName(std::string attributeName, std::string value) noexcept(false)
 {
 	auto info = m_impl->attr2info.find(attributeName);
 	if (info == m_impl->attr2info.end())

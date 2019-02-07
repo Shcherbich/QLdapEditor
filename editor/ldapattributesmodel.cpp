@@ -284,10 +284,11 @@ bool CLdapAttributesModel::SaveNewEntry()
     // check
     for (auto& a : *m_pAttributes)
     {
-        if (a.isMust() && a.value().isEmpty())
+        // Known issue: Now Here is doing nothing
+        //if (a.isMust() && a.value().isEmpty())
         {
-            QMessageBox::critical(nullptr, tr("Error"), QString(tr("The must attribute '%1' is not filled!")).arg(a.name()), QMessageBox::Ok);
-            return false;
+            //QMessageBox::critical(nullptr, tr("Error"), QString(tr("The must attribute '%1' is not filled!")).arg(a.name()), QMessageBox::Ok);
+            //return false;
         }
     }
 

@@ -127,8 +127,12 @@ void CLdapNewEntryDialog::onOkClicked()
     }
 
     vSelectedClasses.clear();
-    vSelectedClasses << ui->structuralCombo->currentText();
-
+    QString structuralClass = ui->structuralCombo->currentText();
+    if (structuralClass != "top")
+    {
+        vSelectedClasses << "top";
+    }
+    vSelectedClasses << structuralClass;
     for (int i = 0; i < ui->listNeeded->count(); ++i)
     {
         vSelectedClasses << ui->listNeeded->item(i)->text();

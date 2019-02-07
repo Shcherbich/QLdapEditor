@@ -24,10 +24,10 @@ public:
 	CLdapSchema();
 	~CLdapSchema();
 
-	std::tuple<AttrType, bool> GetAttributeInfoByName(std::string attrName);
+    std::tuple<AttrType, bool> attributeInfoByName(std::string attrName);
 
     bool isNameExist(std::string attributeName) noexcept(false);
-    void checkBySyntaxName(std::string attributeName, std::string value) noexcept(false);
+    void validateAttributeByName(std::string attributeName, std::string value) noexcept(false);
     QVector<QString> classes();
     QVector<QString> structuralClasses();
     QString supByClass(QString c);

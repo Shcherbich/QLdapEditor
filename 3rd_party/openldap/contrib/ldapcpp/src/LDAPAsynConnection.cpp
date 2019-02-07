@@ -103,9 +103,9 @@ void LDAPAsynConnection::configureTimeouts()
     struct timeval tcp = {0};
     tcp.tv_sec = 10;
     int ret = ldap_set_option(cur_session, LDAP_OPT_NETWORK_TIMEOUT, &tcp);
-    int value = 0;
+    assert(ret == LDAP_SUCCESS);
 
-    value = 120;
+    int value = 120;
     ret = ldap_set_option(cur_session, LDAP_OPT_X_KEEPALIVE_IDLE, &value);
     assert(ret == LDAP_SUCCESS);
 

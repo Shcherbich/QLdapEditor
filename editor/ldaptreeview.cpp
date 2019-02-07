@@ -9,7 +9,9 @@
 
 extern std::vector<std::string> split(const std::string& str, const std::string& delim);
 
-namespace ldapeditor {
+namespace ldapeditor
+{
+
 CLdapTreeView::CLdapTreeView(QWidget* parent, ldapcore::CLdapData& data)
     : QTreeView(parent)
     , m_LdapData(data)
@@ -33,18 +35,21 @@ void CLdapTreeView::onNewEntry()
     using namespace ldapcore;
 
     auto index = currentIndex();
-    if (!index.isValid()) {
+    if (!index.isValid())
+    {
         return;
     }
 
     CLdapEntry* currentEntry = static_cast<CLdapEntry*>(index.internalPointer());
-    if (!currentEntry) {
+    if (!currentEntry)
+    {
         return;
     }
 
     auto dn = currentEntry->dn();
     ldapeditor::CLdapNewEntryDialog dialog(nullptr, dn, m_LdapData);
-    if (dialog.exec() == QDialog::Rejected) {
+    if (dialog.exec() == QDialog::Rejected)
+    {
         return;
     }
     auto rdn = dialog.rdn();
@@ -52,7 +57,8 @@ void CLdapTreeView::onNewEntry()
     auto v = split(rdn.toStdString(), delim);
 
     std::map<std::string, std::string> a2v;
-    if (v.size() > 1) {
+    if (v.size() > 1)
+    {
         a2v[v[0]] = v[1];
     }
 
@@ -66,7 +72,8 @@ void CLdapTreeView::onNewEntry()
     setExpanded(index, true);
 
     QModelIndexList Items = model()->match(index, Qt::DisplayRole, QVariant::fromValue(rdn), 2, Qt::MatchRecursive);
-    if (Items.count() == 0) {
+    if (Items.count() == 0)
+    {
         return;
     }
 
@@ -94,11 +101,11 @@ void CLdapTreeView::onEditEntry()
 
     auto fObjectClass = std::find_if(reallyAttributes.begin(), reallyAttributes.end(), [&](const ldapcore::CLdapAttribute& a)
     {
-        return strcasecmp(a.name().toStdString().c_str(), "objectClass") == 0;
+        return QString::compare(a.name(), "objectClass", Qt::CaseInsensitive);
     });
     auto fStructuralObjectClass = std::find_if(reallyAttributes.begin(), reallyAttributes.end(), [&](const ldapcore::CLdapAttribute& a)
     {
-        return strcasecmp(a.name().toStdString().c_str(), "structuralObjectClass") == 0;
+        return QString::compare(a.name(), "structuralObjectClass", Qt::CaseInsensitive);
     });
 
     if (fObjectClass == reallyAttributes.end())

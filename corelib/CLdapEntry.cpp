@@ -299,7 +299,7 @@ void CLdapEntry::loadAttributes(QVector<CLdapAttribute>& vRet, bool needToLoadSy
     LDAPAttributeList::const_iterator i = al->begin();
     for (; i != al->end(); i++)
     {
-        auto t = m_pData->schema().GetAttributeInfoByName(i->getName().c_str());
+        auto t = m_pData->schema().attributeInfoByName(i->getName().c_str());
         auto tp = std::get<0>(t);
         auto editable = std::get<1>(t);
         AttributeState editState = editable ? AttributeState::AttributeValueReadWrite : AttributeState::AttributeReadOnly;
@@ -336,7 +336,7 @@ void CLdapEntry::loadAttributes(QVector<CLdapAttribute>& vRet, bool needToLoadSy
                     auto systemAttributes = systemEntry->getAttributes();
                     for (auto i = systemAttributes->begin(); i != systemAttributes->end(); ++i)
                     {
-                        auto t = m_pData->schema().GetAttributeInfoByName(i->getName().c_str());
+                        auto t = m_pData->schema().attributeInfoByName(i->getName().c_str());
                         auto tp = std::get<0>(t);
                         auto name = i->getName();
                         auto attributeTypeByName = m_pData->schema().attributesSchema()->getAttributeTypeByName(name);
@@ -386,7 +386,7 @@ void CLdapEntry::availableAttributesMustImpl()
     auto av = GetAvailableAttributes(*m_pData->schema().classesSchema(), connectionPtr(), dn().toStdString());
     for (const auto& must : std::get<0>(av))
     {
-        auto t = m_pData->schema().GetAttributeInfoByName(must);
+        auto t = m_pData->schema().attributeInfoByName(must);
         auto tp = std::get<0>(t);
         auto attributeTypeByName = m_pData->schema().attributesSchema()->getAttributeTypeByName(must.c_str());
         QVector<QString> classes;
@@ -401,7 +401,7 @@ void CLdapEntry::availableAttributesMayImpl()
     auto av = GetAvailableAttributes(*m_pData->schema().classesSchema(), connectionPtr(), dn().toStdString());
     for (const auto& may : std::get<1>(av))
     {
-        auto t = m_pData->schema().GetAttributeInfoByName(may);
+        auto t = m_pData->schema().attributeInfoByName(may);
         auto tp = std::get<0>(t);
         auto attributeTypeByName = m_pData->schema().attributesSchema()->getAttributeTypeByName(may.c_str());
         QVector<QString> classes;
@@ -412,7 +412,7 @@ void CLdapEntry::availableAttributesMayImpl()
 
 std::shared_ptr<CLdapAttribute> CLdapEntry::createEmptyAttribute(std::string attributeName)
 {
-    auto t = m_pData->schema().GetAttributeInfoByName(attributeName);
+    auto t = m_pData->schema().attributeInfoByName(attributeName);
     auto tp = std::get<0>(t);
     QVector<QString> classes;
     std::shared_ptr<CLdapAttribute> p(new CLdapAttribute(attributeName.c_str(), "", tp, isMust(attributeName), "", classes, AttributeState::AttributeReadWrite));
@@ -447,7 +447,7 @@ void CLdapEntry::setEditable(bool isEdit)
 void CLdapEntry::validateAttribute(CLdapAttribute& attr)
 {
     m_pData->schema().isNameExist(attr.name().toStdString());
-    m_pData->schema().checkBySyntaxName(attr.name().toStdString(), attr.value().toStdString());
+    m_pData->schema().validateAttributeByName(attr.name().toStdString(), attr.value().toStdString());
 }
 
 void CLdapEntry::addAttribute(CLdapAttribute& newOb) noexcept(false)
@@ -558,7 +558,10 @@ void CLdapEntry::saveNewChild() noexcept(false)
         StringList objectClasses;
         for (auto& c : child->m_classes)
         {
-            objectClasses.add(c.toStdString());
+            if (c != "top")
+            {
+                objectClasses.add(c.toStdString());
+            }
         }
         attrs->addAttribute(LDAPAttribute("objectClass", objectClasses));
         for (auto& a : child->m_attributes)
