@@ -29,7 +29,6 @@ SET(ldapeditor_SOURCES
     ldapnewattributedialog.ui
     TableModel.h
     ModelDataAdapter.h
-    const.h
     cmustmaymodel.h
     cmustmaymodel.cpp
     ldapdataeditdelegate.cpp

@@ -1,4 +1,3 @@
-#include "const.h"
 #include "attributemodelhelper.h"
 #include "ldapeditordefines.h"
 #include <QDateTime>
@@ -7,28 +6,6 @@
 
 namespace ldapeditor
 {
-
-QString  FromUTCString(QString customDateString)
-{
-    QDateTime timeConvertor;
-    QString dateTime = customDateString.left(14);
-    //int timezoneOffset = customDateString.right(5).left(3).toInt();
-    timeConvertor = QDateTime::fromString(dateTime, LDAP_EDITOR_SERVER_DATETIME_FORMAT);
-    return timeConvertor.toString(LDAP_EDITOR_UI_DATETIME_FORMAT);
-
-    /*
-    to be .... next period
-    // Mark this QDateTime as one with a certain offset from UTC, and set that
-    // offset.
-    timeConvertor.setTimeSpec(Qt::OffsetFromUTC);
-    timeConvertor.setUtcOffset(timezoneOffset * 3600);
-
-    // Convert this QDateTime to UTC.
-    timeConvertor = timeConvertor.toUTC();
-    return timeConvertor.toString();
-    */
-}
-
 
 CAttributeModelHelper::CAttributeModelHelper(ldapcore::CLdapData &ldapData):
 m_LdapData(ldapData)
@@ -166,7 +143,8 @@ QString CAttributeModelHelper::formatValueByType(const ldapcore::CLdapAttribute&
         break;
     case ldapcore::AttrType::GeneralizedTime:
         {
-            retValue = FromUTCString(attr.value());
+            retValue = attr.value();
+            //retValue = "201902121415";
         }
         break;
     default:
@@ -182,12 +160,18 @@ QString CAttributeModelHelper::displayRoleData(const ldapcore::CLdapAttribute &a
     QString length = QString::number(attr.value().length());
     switch(index.column())
     {
-    case static_cast<int>(AttributeColumn::Name): return QString("%1=%2").arg(attr.name()).arg(value);
-    case static_cast<int>(AttributeColumn::Class): return displayClassInfo(attr);
-    case static_cast<int>(AttributeColumn::Attribute): return attr.name();
-    case static_cast<int>(AttributeColumn::Value): return value;
-    case static_cast<int>(AttributeColumn::Type): return attributeType2String(attr.type());
-    case static_cast<int>(AttributeColumn::Size): return length;
+    case static_cast<int>(AttributeColumn::Name):
+        return QString("%1=%2").arg(attr.name()).arg(value);
+    case static_cast<int>(AttributeColumn::Class):
+        return displayClassInfo(attr);
+    case static_cast<int>(AttributeColumn::Attribute):
+        return attr.name();
+    case static_cast<int>(AttributeColumn::Value):
+        return value;
+    case static_cast<int>(AttributeColumn::Type):
+        return attributeType2String(attr.type());
+    case static_cast<int>(AttributeColumn::Size):
+        return length;
     default: break;
     }
     return QString();
@@ -210,13 +194,11 @@ QVariant CAttributeModelHelper::editRoleData(const ldapcore::CLdapAttribute &att
         }
     case ldapcore::AttrType::GeneralizedTime:
         {
-            v = v.trimmed().toLower();
-            return QDateTime::fromString(v, LDAP_EDITOR_UI_DATETIME_FORMAT);
+            return v.trimmed();
         }
     case ldapcore::AttrType::UtcTime:
     {
-        v = v.trimmed().toLower();
-        return QDateTime::fromString(v);
+        return v.trimmed();
     }
     default:
         return v.trimmed();
@@ -308,10 +290,12 @@ bool CAttributeModelHelper::setEditRoleData(ldapcore::CLdapAttribute &attr, cons
              attr.setValue(QString::number(value.toInt()));
              break;
         case ldapcore::AttrType::GeneralizedTime:
-            attr.setValue(value.toDateTime().toString(LDAP_EDITOR_SERVER_DATETIME_FORMAT) + LDAP_EDITOR_SERVER_POSTFIX);
+             attr.setValue(value.toString());
+             //attr.setValue(value.toDateTime().toString(LDAP_EDITOR_SERVER_DATETIME_FORMAT) + LDAP_EDITOR_SERVER_POSTFIX);
             break;
         case ldapcore::AttrType::UtcTime:
-             attr.setValue(value.toDateTime().toUTC().toString(LDAP_EDITOR_SERVER_DATETIME_FORMAT) + LDAP_EDITOR_SERVER_POSTFIX);
+             attr.setValue(value.toString());
+             //attr.setValue(value.toDateTime().toUTC().toString(LDAP_EDITOR_SERVER_DATETIME_FORMAT) + LDAP_EDITOR_SERVER_POSTFIX);
             break;
         default:
             attr.setValue(value.toString());

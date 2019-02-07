@@ -1,4 +1,10 @@
-#include "const.h"
+/*!
+\file
+\brief Implementation file for attributes editor delegates
+
+File contains  implementation for attributes editor delegates
+*/
+
 #include "ldapdataeditdelegate.h"
 #include "ldapeditordefines.h"
 #include "CLdapEntry.h"
@@ -58,7 +64,6 @@ QWidget* CLdapDataEditDelegate::createEditor(QWidget *parent, const QStyleOption
             case ldapcore::AttrType::GeneralizedTime:
             {
                 QDateTimeEdit* e  = new QDateTimeEdit(parent);
-                e->setDisplayFormat(LDAP_EDITOR_UI_DATETIME_FORMAT);
                 editor = e;
             }
             break;
@@ -155,9 +160,11 @@ void CLdapDataEditDelegate::setEditorData(QWidget *editor, const QModelIndex &in
         {
         case ldapcore::AttrType::GeneralizedTime:
             {
-                QDateTimeEdit *edit = static_cast<QDateTimeEdit*>(editor);
-                auto d = index.model()->data(index, Qt::EditRole).toDateTime();
-                edit->setDateTime(d);
+                QDateTimeEdit *edit = static_cast<QDateTimeEdit*>(editor);                
+                QString dt = index.model()->data(index, Qt::EditRole).toString();//.toDateTime();
+                m_dateTimeFormatInfo = formatDataTimeFromString(dt);
+                edit->setDisplayFormat(m_dateTimeFormatInfo.editFormat);
+                edit->setDateTime(m_dateTimeFormatInfo.dateTime);
             }
             break;
         default:
@@ -167,21 +174,6 @@ void CLdapDataEditDelegate::setEditorData(QWidget *editor, const QModelIndex &in
             }
         }
     }
-    /*else if(index.column() == 3)
-    {
-        QComboBox *edit = static_cast<QComboBox*>(editor);
-        for(int i=0; i< edit->count();i++)
-        {
-            if(edit->itemData(i).toInt() == index.data(AttrTypeRole).toInt())
-            {
-                edit->setCurrentIndex(i);
-                break;
-            }
-        }
-    }
-    */
-
-
 }
 
 void CLdapDataEditDelegate::setModelData(QWidget *editor, QAbstractItemModel *model,const QModelIndex &index) const
@@ -202,7 +194,8 @@ void CLdapDataEditDelegate::setModelData(QWidget *editor, QAbstractItemModel *mo
             case ldapcore::AttrType::GeneralizedTime:
             {
                 QDateTimeEdit *edit = static_cast<QDateTimeEdit*>(editor);
-                model->setData(index, edit->dateTime(), Qt::EditRole);
+                m_dateTimeFormatInfo.dateTime = edit->dateTime();
+                model->setData(index, makeDateTimeValue(m_dateTimeFormatInfo), Qt::EditRole);
             }
             break;
             default:
@@ -240,6 +233,93 @@ void CLdapDataEditDelegate::expandEditor() const
     {
         qe->showPopup();
     }    
+}
+
+CLdapDataEditDelegate::GeneralizedTimeFormatInfo CLdapDataEditDelegate::formatDataTimeFromString(const QString& strDateTime) const
+{
+    GeneralizedTimeFormatInfo formatInfo;
+
+    QRegExp rxTimeZoneWest("(\\d{14}\\.\\d{3})\\d{3}\\+(\\d{2})(\\d{2})");
+    QRegExp rxTimeZoneEast("(\\d{14}\\.\\d{3})\\d{3}-(\\d{2})(\\d{2})");
+    QRegExp rxTimeUTC("(\\d{14}\\.\\d{3})\\d{3}Z");
+    QRegExp rxTimeLocal("(\\d{12})(\\d{2})?((\\.\\d{3})\\d{3})?");
+    if(rxTimeZoneWest.exactMatch(strDateTime))
+    {
+         QString dt = rxTimeZoneWest.cap(1);
+         QString hh = rxTimeZoneWest.cap(2);
+         QString mm = rxTimeZoneWest.cap(3);
+
+         formatInfo.format = GeneralizedTimeFormat::formatTimeZoneWest;
+         formatInfo.editFormat =  "yyyyMMddHHmmss.zzz";
+         formatInfo.dateTime = QDateTime::fromString(dt, formatInfo.editFormat);
+
+         int offsetUTC = hh.toInt()*60*60 + mm.toInt()*60;
+         formatInfo.dateTime.setOffsetFromUtc(offsetUTC);
+    }
+    else if(rxTimeZoneEast.exactMatch(strDateTime))
+    {
+        QString dt = rxTimeZoneEast.cap(1);
+        QString hh = rxTimeZoneEast.cap(2);
+        QString mm = rxTimeZoneEast.cap(3);
+
+        formatInfo.format = GeneralizedTimeFormat::formatTimeZoneEast;
+        formatInfo.editFormat = "yyyyMMddHHmmss.zzz";
+        formatInfo.dateTime = QDateTime::fromString(dt, formatInfo.editFormat);
+
+        int offsetUTC = hh.toInt()*60*60 + mm.toInt()*60;
+        formatInfo.dateTime.setOffsetFromUtc(-offsetUTC);
+    }
+    else if(rxTimeUTC.exactMatch(strDateTime))
+    {
+        QString dt = rxTimeUTC.cap(1);
+
+
+        formatInfo.format = GeneralizedTimeFormat::formatTimeZoneUtc;
+        formatInfo.editFormat = "yyyyMMddHHmmss.zzz";
+        formatInfo.dateTime = QDateTime::fromString(dt, formatInfo.editFormat);
+
+        int offsetUTC = 0;
+        formatInfo.dateTime.setOffsetFromUtc(offsetUTC);
+    }
+    else if(rxTimeLocal.exactMatch(strDateTime))
+    {
+        QString dt = rxTimeLocal.cap(1);
+        QString ss = rxTimeLocal.cap(2);
+        QString ms = rxTimeLocal.cap(4);
+
+        formatInfo.format = GeneralizedTimeFormat::formatTimeZoneLocal;
+        formatInfo.editFormat = "yyyyMMddHHmm";
+
+        dt += !ss.isEmpty() ? ss : "00";
+        formatInfo.editFormat = "yyyyMMddHHmmss";
+
+        dt += !ms.isEmpty() ? ms : ".000";
+        formatInfo.editFormat = "yyyyMMddHHmmss.zzz";
+
+        formatInfo.dateTime = QDateTime::fromString(dt, formatInfo.editFormat);
+    }
+    return formatInfo;
+}
+
+QString CLdapDataEditDelegate::makeDateTimeValue(const GeneralizedTimeFormatInfo& formatInfo) const
+{
+    QDateTime dt = formatInfo.dateTime;
+    QString strDateTime;
+    switch(formatInfo.format)
+    {
+    case GeneralizedTimeFormat::formatTimeZoneWest:
+    case GeneralizedTimeFormat::formatTimeZoneEast:
+    case GeneralizedTimeFormat::formatTimeZoneUtc:
+        dt.setTimeSpec(Qt::OffsetFromUTC);
+        strDateTime = dt.toString("yyyyMMddHHmmss.zzz");
+        strDateTime += dt.timeZoneAbbreviation().mid(3);
+        break;
+    case GeneralizedTimeFormat::formatTimeZoneLocal:
+        strDateTime = dt.toString("yyyyMMddHHmmss.zzz");
+        break;
+    default: break;
+    }
+    return strDateTime;
 }
 
 }//namespace ldapeditor
