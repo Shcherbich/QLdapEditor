@@ -14,6 +14,7 @@ add_compile_options(-DLDAPEDITORCORE_SO_EXPORTS)
 add_compile_options(-std=c++11)
 
 FIND_PACKAGE(Qt5Core CONFIG REQUIRED)
+FIND_PACKAGE(Qt5Widgets CONFIG REQUIRED)
 
 set(LdapCore_SRCS
     datatypes.h
@@ -49,7 +50,7 @@ FIND_LIBRARY(LDAP_LIBRARY NAMES ldap PATHS /usr/lib64)
 
 add_library(${PROJECT_NAME} SHARED ${LdapCore_SRCS} ${OpenLDAPCpp_SRCS})
 
-qt5_use_modules(${PROJECT_NAME} Core)
+qt5_use_modules(${PROJECT_NAME} Core Gui Widgets)
 target_link_libraries(${PROJECT_NAME} ${LDAP_LIBRARY} )
 
 

@@ -74,7 +74,7 @@ void LDAPAsynConnection::init(const string& hostname, int port){
     ldap_set_option(cur_session, LDAP_OPT_REFERRALS, LDAP_OPT_OFF);
     ldap_set_option(cur_session, LDAP_OPT_PROTOCOL_VERSION, &opt);
 
-    //configureTimeouts();
+    configureTimeouts();
 }
 
 void LDAPAsynConnection::initialize(const std::string& uri){
@@ -89,7 +89,7 @@ void LDAPAsynConnection::initialize(const std::string& uri){
     ldap_set_option(cur_session, LDAP_OPT_REFERRALS, LDAP_OPT_OFF);
     ldap_set_option(cur_session, LDAP_OPT_PROTOCOL_VERSION, &opt);
 
-    //configureTimeouts();
+    configureTimeouts();
 }
 
 std::function< bool(std::string)> mainFuncToConfirmWarnings {nullptr};
@@ -143,8 +143,8 @@ void LDAPAsynConnection::start_tls(std::function< bool(std::string)> funcToConfi
 
     void* invalue;
     invalue = (void*)ldap_tls_cb;
-    int result = ldap_set_option(nullptr, LDAP_OPT_X_TLS_CONNECT_CB, invalue);
-    result = ldap_start_tls_s(nullptr, NULL, NULL);
+    int result = ldap_set_option(cur_session, LDAP_OPT_X_TLS_CONNECT_CB, invalue);
+    result = ldap_start_tls_s(cur_session, NULL, NULL);
     if (result != LDAP_SUCCESS)
     {
         throw LDAPException(this);
