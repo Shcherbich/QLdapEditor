@@ -24,6 +24,8 @@
 #include "LDAPSearchRequest.h"
 #include <lber.h>
 #include <sstream>
+#include <openssl/ssl.h>
+
 
 using namespace std;
 
@@ -72,7 +74,7 @@ void LDAPAsynConnection::init(const string& hostname, int port){
     ldap_set_option(cur_session, LDAP_OPT_REFERRALS, LDAP_OPT_OFF);
     ldap_set_option(cur_session, LDAP_OPT_PROTOCOL_VERSION, &opt);
 
-    configureTimeouts();
+    //configureTimeouts();
 }
 
 void LDAPAsynConnection::initialize(const std::string& uri){
@@ -87,12 +89,64 @@ void LDAPAsynConnection::initialize(const std::string& uri){
     ldap_set_option(cur_session, LDAP_OPT_REFERRALS, LDAP_OPT_OFF);
     ldap_set_option(cur_session, LDAP_OPT_PROTOCOL_VERSION, &opt);
 
-    configureTimeouts();
+    //configureTimeouts();
 }
 
-void LDAPAsynConnection::start_tls(){
-    int ret = ldap_start_tls_s( cur_session, NULL, NULL );
-    if( ret != LDAP_SUCCESS ) {
+std::function< bool(std::string)> mainFuncToConfirmWarnings {nullptr};
+
+static int verify_callback(int ok, X509_STORE_CTX *ctx)
+{
+    //return 0 - stop verification
+    //       1 - OK. continue
+    X509* cert = X509_STORE_CTX_get_current_cert(ctx);
+    if (ok)
+    {
+        return ok;
+    }
+
+    long serialNum = ASN1_INTEGER_get(X509_get_serialNumber(cert));
+    char* subjectid= X509_NAME_oneline(X509_get_subject_name(cert), NULL, 0);
+    int sslRet = X509_STORE_CTX_get_error(ctx);
+    const char* err = NULL;
+    switch (sslRet)
+    {
+        case X509_V_ERR_UNABLE_TO_GET_CRL:
+        case X509_V_ERR_CRL_HAS_EXPIRED:
+        case X509_V_ERR_CRL_NOT_YET_VALID:
+            return 1;
+        default:
+            err = X509_verify_cert_error_string(sslRet);
+            if (err)
+            {
+                if (mainFuncToConfirmWarnings != nullptr)
+                {
+                    bool canContinue = mainFuncToConfirmWarnings(err);
+                    return canContinue ? 1 : 0;
+
+                }
+            }
+            return 0;
+    }
+    return 0;
+}
+
+static void ldap_tls_cb(LDAP* ld, SSL* ssl, SSL_CTX* ctx, void* arg)
+{
+    SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER , verify_callback);
+    SSL_set_verify(ssl, SSL_VERIFY_PEER , verify_callback);
+}
+
+
+void LDAPAsynConnection::start_tls(std::function< bool(std::string)> funcToConfirmWarnings)
+{
+    mainFuncToConfirmWarnings = funcToConfirmWarnings;
+
+    void* invalue;
+    invalue = (void*)ldap_tls_cb;
+    int result = ldap_set_option(nullptr, LDAP_OPT_X_TLS_CONNECT_CB, invalue);
+    result = ldap_start_tls_s(nullptr, NULL, NULL);
+    if (result != LDAP_SUCCESS)
+    {
         throw LDAPException(this);
     }
 }

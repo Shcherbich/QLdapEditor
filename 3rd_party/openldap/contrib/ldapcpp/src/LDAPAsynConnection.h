@@ -10,6 +10,7 @@
 
 #include<iostream>
 #include<string>
+#include<functional>
 
 #include<ldap.h>
 
@@ -102,7 +103,7 @@ class LDAPAsynConnection{
          * @throws LDAPException if the TLS Layer could not be setup 
          * correctly
          */
-        void start_tls();
+        void start_tls(std::function< bool(std::string)> funcToConfirmWarnings);
 
         /** Simple authentication to a LDAP-Server
          *
@@ -343,5 +344,6 @@ class LDAPAsynConnection{
         bool m_cacheEnabled;
 };
 #endif //LDAP_ASYN_CONNECTION_H
+
 
 

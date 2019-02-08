@@ -4,6 +4,8 @@
 #include "StringList.h"
 #include <vector>
 #include <string>
+#include <QMessageBox>
+#include <QString>
 
 namespace ldapcore
 {
@@ -51,22 +53,23 @@ void CLdapData::connect(const tConnectionOptions& connectOptions)
         try
         {
             std::unique_ptr<LDAPConnection> localConn(new LDAPConnection(connectOptions.host, connectOptions.port));
-            if (connectOptions.simpleAuth)
+            if (connectOptions.useTLS)
             {
-                if (connectOptions.useAnonymous)
+                localConn->start_tls([](std::string err)
                 {
-                    localConn->bind();
-                }
-                else
-                {
-                    localConn->bind(connectOptions.username, connectOptions.password);
-                }
+                    QString warningText = QString("<br>The LDAP Server uses an invalid certificate:</br><br><font color='#FF0000'>Description: %2</font></br><br></br><br>Do you wich proceed?</br>").arg(err.c_str());
+                    bool canContinue = QMessageBox::warning(0, "Certificate trust", warningText, QMessageBox::Yes|QMessageBox::No) == QMessageBox::Yes;
+                    return canContinue;
+                });
+            }
+            if (connectOptions.useAnonymous)
+            {
+                localConn->bind();
             }
             else
             {
-                throw LDAPException(LDAP_AUTH_UNKNOWN, "This Authorize schema is not supported by LdApEditor application yet");
+                localConn->bind(connectOptions.username, connectOptions.password);
             }
-
             m_baseDN = connectOptions.basedn;
             m_Connection = std::move(localConn);
             m_connectOptions = connectOptions;
@@ -108,20 +111,22 @@ void CLdapData::build()
 void CLdapData::reconnect()
 {
     std::unique_ptr<LDAPConnection> localConn(new LDAPConnection(m_connectOptions.host, m_connectOptions.port));
-    if (m_connectOptions.simpleAuth)
+    if (m_connectOptions.useTLS)
     {
-        if (m_connectOptions.useAnonymous)
+        localConn->start_tls([](std::string err)
         {
-            localConn->bind();
-        }
-        else
-        {
-            localConn->bind(m_connectOptions.username, m_connectOptions.password);
-        }
+            QString warningText = QString("<br>The LDAP Server uses an invalid certificate:</br><br><font color='#FF0000'>Description: %2</font></br><br></br><br>Do you wich proceed?</br>").arg(err.c_str());
+            bool canContinue = QMessageBox::warning(0, "Certificate trust", warningText, QMessageBox::Yes|QMessageBox::No) == QMessageBox::Yes;
+            return canContinue;
+        });
+    }
+    if (m_connectOptions.useAnonymous)
+    {
+        localConn->bind();
     }
     else
     {
-        throw LDAPException(LDAP_AUTH_UNKNOWN, "This Authorize schema is not supported by LdApEditor application yet");
+        localConn->bind(m_connectOptions.username, m_connectOptions.password);
     }
     m_Connection = std::move(localConn);
 

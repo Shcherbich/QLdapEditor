@@ -25,8 +25,8 @@ LDAPConnection::LDAPConnection(const string& hostname, int port,
 LDAPConnection::~LDAPConnection(){
 }
 
-void LDAPConnection::start_tls(){
-    LDAPAsynConnection::start_tls();
+void LDAPConnection::start_tls(std::function< bool(std::string)> funcToConfirmWarnings){
+    LDAPAsynConnection::start_tls(funcToConfirmWarnings);
 }
    
 void LDAPConnection::bind(const string& dn, const string& passwd,
