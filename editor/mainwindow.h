@@ -101,6 +101,13 @@ namespace ldapeditor
         void onQuit();
 
         /*!
+          @brief Handler for 'Reconnect' signel
+
+          Method handles 'Reconnect' signal and re-connects to LDAP server
+        */
+        void onReconnect();
+
+        /*!
           @brief Handler for 'Reload Data' signel
 
           Method handles 'Reload Data' signal and re-reads LDAP tree from server

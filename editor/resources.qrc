@@ -8,5 +8,9 @@
         <file alias="group">images/group.png</file>
         <file alias="folder">images/folder.png</file>
         <file alias="diagram">images/diagram.png</file>
+        <file alias="reload">images/reload.png</file>
+        <file alias="save">images/save.png</file>
+        <file alias="search">images/search.png</file>
+        <file alias="network">images/wifi.png</file>
     </qresource>
 </RCC>

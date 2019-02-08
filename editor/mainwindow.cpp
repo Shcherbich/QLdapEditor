@@ -118,18 +118,23 @@ void MainWindow::CreateDockWindows()
 void MainWindow::CreateActions()
 {
 	QMenu* dataMenu = menuBar()->addMenu(tr("&Data"));
-	QAction* searchAction = dataMenu->addAction(tr("&Ldap search"), this, &MainWindow::onLdapSearch);
+    QAction* searchAction = dataMenu->addAction(QIcon(":/search"),tr("&Ldap search"), this, &MainWindow::onLdapSearch);
 	dataMenu->setStatusTip(tr("Ldap search"));
 	dataMenu->addAction(searchAction);
 
-	QAction* saveDataAction = dataMenu->addAction(tr("&Save data"), this, &MainWindow::onSaveData);
+    QAction* saveDataAction = dataMenu->addAction(QIcon(":/save"),tr("&Save data"), this, &MainWindow::onSaveData);
 	dataMenu->setStatusTip(tr("Save data"));
 	dataMenu->addAction(saveDataAction);
 
     dataMenu->addSeparator();
-    QAction* reloadDataAction = dataMenu->addAction(tr("&Reconnect"), this, &MainWindow::onReload);
-    dataMenu->setStatusTip(tr("Reconnect"));
+    QAction* reloadDataAction = dataMenu->addAction(QIcon(":/network"),tr("&Reconnect"), this, &MainWindow::onReconnect);
+    dataMenu->setStatusTip(tr("Reconnect to server"));
     dataMenu->addAction(reloadDataAction);
+
+    dataMenu->addSeparator();
+    QAction* refreshDataAction = dataMenu->addAction(QIcon(":/reload"),tr("Re&fresh"), this, &MainWindow::onReload);
+    dataMenu->setStatusTip(tr("Refresh data"));
+    dataMenu->addAction(refreshDataAction);
 
     dataMenu->addSeparator();
 	QAction* quitAction = dataMenu->addAction(tr("&Quit"), this, &MainWindow::onQuit);
@@ -144,6 +149,14 @@ void MainWindow::CreateActions()
 	QAction* aboutQtAction = helpMenu->addAction(tr("About &Qt"), qApp, &QApplication::aboutQt);
 	aboutQtAction->setStatusTip(tr("Show the Qt library's About box"));
 	helpMenu->addAction(aboutQtAction);
+
+
+    QToolBar* mainToolbar = addToolBar(tr("mainToolbar"));
+    mainToolbar->addAction(searchAction);
+    mainToolbar->addSeparator();
+    mainToolbar->addAction(saveDataAction);
+    mainToolbar->addAction(reloadDataAction);
+    mainToolbar->addAction(refreshDataAction);
 }
 
 void MainWindow::CreateStatusBar()
@@ -292,17 +305,27 @@ void MainWindow::onQuit()
 }
 
 
-void MainWindow::onReload()
+void MainWindow::onReconnect()
 {
     try
     {
         m_LdapData.reconnect();
-        QMessageBox::question(this, tr("Information"), tr("The operation has been completed successfully!"), QMessageBox::Ok);
+        QMessageBox::information(this, tr("Reconnect operation"), tr("The operation has been completed successfully!"), QMessageBox::Ok);
     }
     catch (const std::exception& ex)
     {
         QMessageBox::critical(nullptr, tr("Error"), ex.what(), QMessageBox::Ok);
     }
 }
+
+
+void MainWindow::onReload()
+{
+   // m_TableModel->Save();
+    //m_LdapData.rebuild();
+
+    //QMessageBox::information(this, tr("Reload operation"), tr("The operation has been completed successfully!"), QMessageBox::Ok);
+}
+
 }// namespace ldapeditor
 
