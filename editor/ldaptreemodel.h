@@ -2,6 +2,7 @@
 #define CLDAPTREEMODEL_H
 
 #include <QAbstractItemModel>
+#include <QSortFilterProxyModel>
 #include <QVector>
 #include <QString>
 
@@ -11,6 +12,17 @@ class CLdapEntry;
 
 namespace ldapeditor
 {
+
+    class CLdapTreeProxyModel : public QSortFilterProxyModel
+    {
+        Q_OBJECT
+    public:
+        explicit CLdapTreeProxyModel(QObject *parent = nullptr):QSortFilterProxyModel(parent)
+        {
+        }
+    protected:
+        virtual bool lessThan(const QModelIndex &source_left, const QModelIndex &source_right) const;
+    };
 
     class CLdapTreeModel : public QAbstractItemModel
     {

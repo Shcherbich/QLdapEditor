@@ -6,6 +6,13 @@
 
 namespace ldapeditor
 {
+    bool CLdapTreeProxyModel::lessThan(const QModelIndex &source_left, const QModelIndex &source_right) const
+    {
+        QString dnLeft = sourceModel()->data(source_left,Qt::DisplayRole).toString();
+        QString dnRight = sourceModel()->data(source_right,Qt::DisplayRole).toString();
+        return dnLeft < dnRight;
+    }
+
     CLdapTreeModel::CLdapTreeModel(const QString &baseDN, QObject *parent)
         : QAbstractItemModel(parent)
         //, m_baseDN(baseDN)

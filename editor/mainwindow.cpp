@@ -67,6 +67,8 @@ MainWindow::MainWindow(CLdapSettings& settings, ldapcore::CLdapData& ldapData, Q
     QString baseDN = normilizeDN(m_Settings.baseDN());
 
     m_TreeModel = new CLdapTreeModel(baseDN, this);
+    m_TreeProxyModel = new CLdapTreeProxyModel(this);
+
     m_TableModel = new CLdapAttributesModel(m_LdapData, this);
     m_AttributesList = new CLdapTableView(this, m_LdapData, m_Settings);
 
@@ -75,15 +77,20 @@ MainWindow::MainWindow(CLdapSettings& settings, ldapcore::CLdapData& ldapData, Q
     m_AttributesList->horizontalHeader()->setStretchLastSection(true);
 
     m_TreeModel->setTopItems(m_LdapData.topList());
-    m_RootIndex = m_TreeModel->index(0, 0);
 
     m_TableModel->setBaseDN(baseDN);
     m_AttributesList->setModel(m_TableModel);
     m_AttributesList->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
     m_AttributesList->RestoreView();
 
-    m_LdapTree->setModel(m_TreeModel);
+    m_TreeProxyModel->setDynamicSortFilter(true);
+    m_TreeProxyModel->setSourceModel(m_TreeModel);
+    m_TreeProxyModel->setSortRole(Qt::DisplayRole);
+    m_TreeProxyModel->sort(0);
+    m_LdapTree->setModel(m_TreeProxyModel);
     m_LdapTree->header()->resizeSection(0, m_LdapTree->header()->width());
+
+    m_RootIndex = m_TreeProxyModel->index(0, 0);
     m_LdapTree->expand(m_RootIndex);
     m_LdapTree->setCurrentIndex(m_RootIndex);
 
@@ -192,12 +199,14 @@ QString MainWindow::normilizeDN(const QString& dn)
 
 void MainWindow::onTreeItemChanged(const QModelIndex& current, const QModelIndex& mainPrev)
 {
-	if (!current.isValid())
+    QModelIndex curProxy = m_TreeProxyModel->mapToSource(current);
+    QModelIndex mainPrevProxy = m_TreeProxyModel->mapToSource(mainPrev);
+    if (!curProxy.isValid())
 	{
 		return;
 	}
 
-    if (mainPrev.isValid())
+    if (mainPrevProxy.isValid())
 	{
         if (m_TableModel->isNew() && m_LdapTree->updatesEnabled())
 		{
@@ -206,14 +215,14 @@ void MainWindow::onTreeItemChanged(const QModelIndex& current, const QModelIndex
                                              QMessageBox::Yes | QMessageBox::No);
 			if (ret != QMessageBox::Yes)
 			{
-                ldapcore::CLdapEntry* prevEntry = static_cast<ldapcore::CLdapEntry*>(mainPrev.internalPointer());
+                ldapcore::CLdapEntry* prevEntry = static_cast<ldapcore::CLdapEntry*>(mainPrevProxy.internalPointer());
 				if (prevEntry != nullptr)
 				{
 					auto parent = prevEntry->parent();
 					if (parent)
 					{
                         QtUiLocker locker(m_LdapTree);
-                        auto previous = mainPrev.parent();
+                        auto previous = mainPrevProxy.parent();
                         parent->removeChild(prevEntry);
                         m_LdapTree->collapse(previous);
                         m_LdapTree->expand(previous);
@@ -237,9 +246,9 @@ void MainWindow::onTreeItemChanged(const QModelIndex& current, const QModelIndex
 			QVector<ldapcore::CLdapAttribute> newRows, deleteRows, updateRows;
 			m_TableModel->GetChangedRows(newRows, deleteRows, updateRows);
             // first check
-			bool hasChanges = !(!newRows.size() && !deleteRows.size() && !updateRows.size());
+            bool hasChanges = !(newRows.empty() && deleteRows.empty() && updateRows.empty());
             // second check
-            hasChanges |= m_TableModel->isEdit() ? 1 : 0;
+            hasChanges |= m_TableModel->isEdit();
             if (hasChanges && m_LdapTree->updatesEnabled())
 			{
                 const QString s1(tr("You have changes in attributes.\nDo you want to save these changes to server?"));
@@ -255,7 +264,7 @@ void MainWindow::onTreeItemChanged(const QModelIndex& current, const QModelIndex
 		}
 	}
 
-	ldapcore::CLdapEntry* currentEntry = static_cast<ldapcore::CLdapEntry*>(current.internalPointer());
+    ldapcore::CLdapEntry* currentEntry = static_cast<ldapcore::CLdapEntry*>(curProxy.internalPointer());
 	if (currentEntry)
 	{
 		m_TableModel->setLdapEntry(currentEntry);

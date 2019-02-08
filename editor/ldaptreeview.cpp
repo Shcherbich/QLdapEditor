@@ -1,4 +1,6 @@
 #include "ldaptreeview.h"
+#include "ldaptreemodel.h"
+
 #include "CLdapData.h"
 #include "CLdapEntry.h"
 #include "ldapeditordefines.h"
@@ -24,7 +26,11 @@ CLdapTreeView::CLdapTreeView(QWidget* parent, ldapcore::CLdapData& data)
     connect(this, &QTreeView::customContextMenuRequested, this, &CLdapTreeView::customContextMenuRequested);
     connect(m_newEntry, &QAction::triggered, this, &CLdapTreeView::onNewEntry);
     connect(m_editEntry, &QAction::triggered, this, &CLdapTreeView::onEditEntry);
+
+    setSortingEnabled(true);
+    sortByColumn(0, Qt::SortOrder::AscendingOrder);
 }
+
 void CLdapTreeView::currentChanged(const QModelIndex& current, const QModelIndex& previous)
 {
     emit treeItemChanged(current, previous);
@@ -34,7 +40,7 @@ void CLdapTreeView::onNewEntry()
 {
     using namespace ldapcore;
 
-    auto index = currentIndex();
+    auto index = static_cast<CLdapTreeProxyModel*>(model())->mapToSource(currentIndex());
     if (!index.isValid())
     {
         return;
@@ -77,14 +83,14 @@ void CLdapTreeView::onNewEntry()
         return;
     }
 
-    QModelIndex addIndex = Items.first();
+    QModelIndex addIndex =static_cast<CLdapTreeProxyModel*>(model())->mapFromSource(Items.first()); ;
     setCurrentIndex(addIndex);
 }
 
 void CLdapTreeView::onEditEntry()
 {
     using namespace ldapcore;
-    auto index = currentIndex();
+    auto index = static_cast<CLdapTreeProxyModel*>(model())->mapToSource(currentIndex());
     if (!index.isValid())
     {
         return;
@@ -176,7 +182,7 @@ void CLdapTreeView::onEditEntry()
             return strcasecmp(a.name().toStdString().c_str(), currA.name().toStdString().c_str()) == 0;
         }) != theseAttributes.end();
 
-        if (false == bThese) {
+        if (!bThese) {
             QMetaObject::invokeMethod(model(), "addAttribute", Qt::ConnectionType::QueuedConnection, Q_ARG(QString, currA.name()));
             continue;
         }
@@ -188,24 +194,29 @@ void CLdapTreeView::onEditEntry()
 
 void CLdapTreeView::customContextMenuRequested(QPoint pos)
 {
-    QModelIndex index = indexAt(pos);
+   // QModelIndex index = static_cast<CLdapTreeProxyModel*>(model())->mapToSource(indexAt(pos));
     m_contextMenu.popup(viewport()->mapToGlobal(pos));
 }
 
 std::tuple<QModelIndex, ldapcore::CLdapEntry*> CLdapTreeView::findByDn(QString dn)
 {
     QTreeView& tv(*this);
-    QModelIndex modelIndex = tv.indexAt(tv.rect().topLeft());
-    while (modelIndex.isValid()) {
+   // QModelIndex modelIndex = tv.indexAt(tv.rect().topLeft());
+    QModelIndex modelIndex = static_cast<CLdapTreeProxyModel*>(model())->mapToSource(tv.indexAt(tv.rect().topLeft()));
+    while (modelIndex.isValid())
+    {
         modelIndex = tv.indexBelow(modelIndex);
-        if (!modelIndex.isValid()) {
+        if (!modelIndex.isValid())
+        {
             continue;
         }
         ldapcore::CLdapEntry* entry = static_cast<ldapcore::CLdapEntry*>(modelIndex.internalPointer());
-        if (entry == nullptr) {
+        if (!entry)
+        {
             continue;
         }
-        if (dn == entry->dn()) {
+        if (dn == entry->dn())
+        {
             return std::make_tuple(modelIndex, entry);
         }
     }

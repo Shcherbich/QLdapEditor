@@ -34,6 +34,7 @@ class CLdapData;
 namespace ldapeditor
 {
     class CLdapTreeModel;
+    class CLdapTreeProxyModel;
     class CLdapAttributesModel;
     class CLdapSettings;
 
@@ -157,6 +158,11 @@ namespace ldapeditor
           @brief member pointer to LDAP tree model
          */
         CLdapTreeModel* m_TreeModel{nullptr};
+
+        /*!
+          @brief member pointer to LDAP tree proxy model
+         */
+        CLdapTreeProxyModel* m_TreeProxyModel{nullptr};
 
         /*!
           @brief member pointer to LDAP table model
