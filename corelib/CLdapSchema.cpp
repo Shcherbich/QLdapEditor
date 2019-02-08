@@ -283,19 +283,15 @@ QVector<CLdapAttribute> CLdapSchema::attributeByClasses(QVector<QString>& classe
 QVector<QString> CLdapSchema::classesByAttributeName(std::string attrName, QVector<QString>& classesOfEntry)
 {
 	QVector<QString> classes;
-	for (auto& c : m_impl->classesSchema.object_classes)
-	{
-		QString cl = c.first.c_str();
-		if (!classesOfEntry.contains(cl) || classes.contains(cl))
-		{
-			continue;
-		}
-		if (c.second.getMay().contains(attrName) || c.second.getMust().contains(attrName))
-		{
-			classes << cl;
-		}
-	}
-	return classes;
+    for (auto& c : classesOfEntry)
+    {
+        auto classByName = m_impl->classesSchema.getObjectClassByName(c.toStdString());
+        if (classByName.getMay().contains(attrName) || classByName.getMust().contains(attrName))
+        {
+            classes << c;
+        }
+    }
+    return classes;
 }
 
 QString CLdapSchema::supByClass(QString c)
