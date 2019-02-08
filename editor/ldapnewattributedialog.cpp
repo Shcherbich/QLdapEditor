@@ -13,6 +13,11 @@ CLdapNewAttributeDialog::CLdapNewAttributeDialog(ldapcore::CLdapData &ldapData, 
     connect(ui->classCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(onCurrentClassChanged(int)));
     connect(ui->attrCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(onCurrentAttributeChanged(int)));
 
+    ui->classCombo->setStyleSheet("QComboBox{ padding-left: 6px; }");
+    ui->attrCombo->setStyleSheet("QComboBox{ padding-left: 6px; }");
+    ui->typeEdit->setStyleSheet("QLineEdit{ padding-left: 6px; }");
+    ui->valueEdit->setStyleSheet("QLineEdit{ padding-left: 6px; }");
+
     QStringList itemsList;
     for(auto s : m_entry->classes())
         itemsList << s;
