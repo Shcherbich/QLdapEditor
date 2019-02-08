@@ -1,3 +1,10 @@
+/*!
+\file
+\brief Implementation file for attribute helper class
+
+File contains  implementation for attribute helper class
+*/
+
 #include "attributemodelhelper.h"
 #include "ldapeditordefines.h"
 #include <QDateTime>
