@@ -18,6 +18,11 @@ namespace ldapeditor
         AttrTypeRole,
         AttrSizeRole
     } ;
+
+    enum LdapTreeRoles
+    {
+        TreeDnRole  = Qt::UserRole + 1,
+    } ;
 }
 
 //#define AttributesList  Qt::UserRole + 1

@@ -50,6 +50,15 @@ struct QtUiLocker
 
 };
 
+void loadAttributes (QVector<ldapcore::CLdapEntry*> entries)
+{
+    for(auto e : entries)
+    {
+        QVector<ldapcore::CLdapAttribute> attrs;
+        e->loadAttributes(attrs);
+        loadAttributes(e->children());
+    }
+};
 
 MainWindow::MainWindow(CLdapSettings& settings, ldapcore::CLdapData& ldapData, QWidget* parent)
 	: QMainWindow(parent)
@@ -76,6 +85,7 @@ MainWindow::MainWindow(CLdapSettings& settings, ldapcore::CLdapData& ldapData, Q
     m_AttributesList->horizontalHeader()->setDefaultSectionSize(100);
     m_AttributesList->horizontalHeader()->setStretchLastSection(true);
 
+    loadAttributes(m_LdapData.topList());
     m_TreeModel->setTopItems(m_LdapData.topList());
 
     m_TableModel->setBaseDN(baseDN);

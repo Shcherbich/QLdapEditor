@@ -296,7 +296,7 @@ bool CLdapAttributesModel::SaveNewEntry()
     try
     {
         auto parent = m_entry->parent();
-        if (parent != nullptr)
+        if (parent)
         {
             parent->saveNewChild();
         }

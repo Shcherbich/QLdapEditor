@@ -89,28 +89,35 @@ namespace ldapeditor
         ldapcore::CLdapEntry* item = static_cast<ldapcore::CLdapEntry*>(index.internalPointer());
         if(!item) return QVariant();
 
-        if(role == Qt::DisplayRole)
+        if(role == LdapTreeRoles::TreeDnRole)
+        {
+            return item->dn();
+        }
+        else if(role == Qt::DisplayRole)
         {
             return item->rDn();
         }
-        if(role == Qt::DecorationRole)
+        else if(role == Qt::DecorationRole)
         {
             if(!item->parent()) return QIcon(":/home");
-            for(auto& a: *item->attributes())
+
+            QStringList classes;
+            for(auto& c: item->classes())
+                classes.append(c);
+
+            // icon is defined by top + one of other classes
+            if(classes.contains("top",Qt::CaseInsensitive))
             {
-                QStringList group = a.value().split(";");
-                if(group.contains("top",Qt::CaseInsensitive))
-                {
-                    if(group.contains("group",Qt::CaseInsensitive))
-                        return QIcon(":/group");
-                    else if(group.contains("person",Qt::CaseInsensitive))
-                        return QIcon(":/person");
-                    else if(group.contains("organizationalUnit",Qt::CaseInsensitive))
-                        return QIcon(":/diagram");
-                    else
-                        return QIcon(":/folder");
-                }
+                if(classes.contains("group",Qt::CaseInsensitive))
+                    return QIcon(":/group");
+                else if(classes.contains("person",Qt::CaseInsensitive))
+                    return QIcon(":/person");
+                else if(classes.contains("organizationalUnit",Qt::CaseInsensitive))
+                    return QIcon(":/diagram");
+                else
+                    return QIcon(":/folder");
             }
+
         }
 
         return QVariant();
@@ -135,7 +142,6 @@ namespace ldapeditor
              ldapcore::CLdapEntry* item = static_cast<ldapcore::CLdapEntry*>(index.internalPointer());
              if(item)
              {
-                 //item->itemRDN =value.toStringList().join(", ");
                  emit dataChanged(index, index, QVector<int>() << Qt::DisplayRole << role);
                  return true;
              }
@@ -145,8 +151,9 @@ namespace ldapeditor
 
     bool CLdapTreeModel::setTopItems(QVector<ldapcore::CLdapEntry*> topItems)
     {
+        beginResetModel();
         m_topItems = topItems;
-        emit dataChanged(createIndex(0,0), createIndex(m_topItems.size(), 0));
+        endResetModel();
         return true;
     }
 
@@ -158,6 +165,34 @@ namespace ldapeditor
     void CLdapTreeModel::addAttribute(QString name)
     {
         emit onAddAttribute(name);
+    }
+
+    QModelIndex CLdapTreeModel::addNewEntry(QModelIndex parent, QString rdn, QString dn, QVector<QString>& classes, QVector<ldapcore::CLdapAttribute>& attributes)
+    {
+        ldapcore::CLdapEntry* parentEntry = static_cast<ldapcore::CLdapEntry*>(parent.internalPointer());
+        if (!parentEntry)
+        {
+            return QModelIndex();
+        }
+
+        int  row = rowCount(parent);
+        int count = 1;
+
+        ldapcore::CLdapEntry* addEntry = new ldapcore::CLdapEntry(parentEntry, rdn, dn, classes, nullptr);
+        addEntry->addAttributes(attributes);
+
+        //beginResetModel();
+        beginInsertRows(parent, row, row + count - 1);
+        parentEntry->addNewChild(addEntry);
+        //parentEntry->saveNewChild();
+        endInsertRows();
+        //endResetModel();
+
+        QModelIndex idxAdd = index(row, 0, parent);
+//        QModelIndex idxFrom = index(0, 0, parent);
+//        QModelIndex idxTo = index(row + count - 1, 0, parent);
+        emit dataChanged(idxAdd, idxAdd, QVector<int>() << Qt::DisplayRole << Qt::DecorationRole << LdapTreeRoles::TreeDnRole);
+        return idxAdd;
     }
 
 } //namespace ldapeditor

@@ -230,9 +230,9 @@ void CLdapEntry::construct(CLdapData* data, LDAPConnection* conn, QString baseDn
     try
     {
         auto ls = conn->search(dn().toStdString(), LDAPAsynConnection::SEARCH_ONE);
-        if (ls != nullptr)
+        if (ls)
         {
-            for (LDAPEntry* le = ls->getNext(); le != nullptr; le = ls->getNext())
+            for (LDAPEntry* le = ls->getNext(); le; le = ls->getNext())
             {
                 m_pChildren.push_back(new CLdapEntry(this, le, nullptr));
                 m_pChildren.back()->construct(data, conn, baseDn);
@@ -281,13 +281,13 @@ void CLdapEntry::prepareAttributes()
 }
 void CLdapEntry::loadAttributes(QVector<CLdapAttribute>& vRet, bool needToLoadSystemAttributes)
 {
-    if (m_pEntry == nullptr || m_isNew)
+    if (!m_pEntry || m_isNew)
     {
         return;
     }
     const LDAPAttributeList* al = m_pEntry->getAttributes();
     const LDAPAttribute* pObjectClass = al->getAttributeByName("objectClass");
-    if (pObjectClass != nullptr)
+    if (pObjectClass )
     {
         QVector<QString> classes;
         for (const auto& cl : pObjectClass->getValues())
@@ -622,7 +622,7 @@ void CLdapEntry::update() noexcept(false)
             }
 
             // add modification
-            if (value.size())
+            if (!value.empty())
             {
                 if (f == realAttributes.end())
                 {
@@ -639,7 +639,8 @@ void CLdapEntry::update() noexcept(false)
 
 
         std::set<QString> setOfAttributes;
-        for (auto& a: m_attributes) {
+        for (auto& a: m_attributes)
+        {
             setOfAttributes.insert(a.name());
         }
 
@@ -648,7 +649,8 @@ void CLdapEntry::update() noexcept(false)
                                       [&](const ldapcore::CLdapAttribute& o)
                                       { return setOfAttributes.find(o.name()) != setOfAttributes.end() || !o.isMust() ; });
         realAttributes.erase(new_end, realAttributes.end());
-        for (auto& a: realAttributes) {
+        for (auto& a: realAttributes)
+        {
             mod->addModification(LDAPModification(LDAPAttribute(a.name().toStdString(), a.value().toStdString()),
                                                   LDAPModification::OP_DELETE));
         }

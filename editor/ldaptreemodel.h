@@ -8,6 +8,7 @@
 
 namespace ldapcore {
 class CLdapEntry;
+class CLdapAttribute;
 }
 
 namespace ldapeditor
@@ -47,6 +48,8 @@ namespace ldapeditor
 
         Q_INVOKABLE void removeAttribute(QString name);
         Q_INVOKABLE void addAttribute(QString name);
+
+        QModelIndex addNewEntry(QModelIndex parent, QString rdn, QString dn, QVector<QString>& classes, QVector<ldapcore::CLdapAttribute>& attributes);
 
     private:
         ldapcore::CLdapEntry*           m_invisibleRoot{nullptr};

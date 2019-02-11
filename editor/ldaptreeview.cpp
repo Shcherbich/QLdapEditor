@@ -40,25 +40,20 @@ void CLdapTreeView::onNewEntry()
 {
     using namespace ldapcore;
 
-    auto index = static_cast<CLdapTreeProxyModel*>(model())->mapToSource(currentIndex());
-    if (!index.isValid())
+    CLdapTreeProxyModel* proxyModel = static_cast<CLdapTreeProxyModel*>(model());
+    QModelIndex curIndex = proxyModel->mapToSource(currentIndex());
+    if (!curIndex.isValid())
     {
         return;
     }
 
-    CLdapEntry* currentEntry = static_cast<CLdapEntry*>(index.internalPointer());
-    if (!currentEntry)
-    {
-        return;
-    }
-
-    auto dn = currentEntry->dn();
+    QString dn = curIndex.data(LdapTreeRoles::TreeDnRole).toString();
     ldapeditor::CLdapNewEntryDialog dialog(nullptr, dn, m_LdapData);
     if (dialog.exec() == QDialog::Rejected)
     {
         return;
     }
-    auto rdn = dialog.rdn();
+    QString rdn = dialog.rdn();
     std::string delim = "=";
     auto v = split(rdn.toStdString(), delim);
 
@@ -67,24 +62,19 @@ void CLdapTreeView::onNewEntry()
     {
         a2v[v[0]] = v[1];
     }
-
-    auto classes = dialog.selectedClasses();
-    auto attributes = m_LdapData.schema().attributeByClasses(classes, a2v);
-
-    CLdapEntry* addEntry = new CLdapEntry(currentEntry, rdn, dn, classes, nullptr);
-    addEntry->addAttributes(attributes);
-    currentEntry->addNewChild(addEntry);
-    model()->dataChanged(index, index);
-    setExpanded(index, true);
-
-    QModelIndexList Items = model()->match(index, Qt::DisplayRole, QVariant::fromValue(rdn), 2, Qt::MatchRecursive);
-    if (Items.count() == 0)
+    QVector<QString> classes = dialog.selectedClasses();
+    QVector<ldapcore::CLdapAttribute> attributes = m_LdapData.schema().attributeByClasses(classes, a2v);
+    for(ldapcore::CLdapAttribute& a: attributes)
     {
-        return;
+        QVector<QString> attrClasses;
+        attrClasses = m_LdapData.schema().classesByAttributeName(a.name().toStdString(), classes);
+        a.setClasses(attrClasses);
     }
 
-    QModelIndex addIndex =static_cast<CLdapTreeProxyModel*>(model())->mapFromSource(Items.first()); ;
-    setCurrentIndex(addIndex);
+
+    QModelIndex addIndex = static_cast<CLdapTreeModel*>(proxyModel->sourceModel())->addNewEntry(curIndex, rdn, dn, classes, attributes);
+    setCurrentIndex(proxyModel->mapFromSource(addIndex));
+    setExpanded(curIndex, true);
 }
 
 void CLdapTreeView::onEditEntry()
@@ -194,7 +184,6 @@ void CLdapTreeView::onEditEntry()
 
 void CLdapTreeView::customContextMenuRequested(QPoint pos)
 {
-   // QModelIndex index = static_cast<CLdapTreeProxyModel*>(model())->mapToSource(indexAt(pos));
     m_contextMenu.popup(viewport()->mapToGlobal(pos));
 }
 
