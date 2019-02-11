@@ -1,3 +1,10 @@
+/*!
+\file
+\brief Implementation file for LDAP tree models
+
+File contains  implementation for LDAP tree models
+*/
+
 #include "ldaptreemodel.h"
 #include "ldapeditordefines.h"
 #include "CLdapEntry.h"
