@@ -1,3 +1,9 @@
+/*!
+\file
+\brief Implementation file for LDAP tree view
+
+File contains  implementation for LDAP tree view
+*/
 #include "ldaptreeview.h"
 #include "ldaptreemodel.h"
 
@@ -14,11 +20,11 @@ extern std::vector<std::string> split(const std::string& str, const std::string&
 namespace ldapeditor
 {
 
-CLdapTreeView::CLdapTreeView(QWidget* parent, ldapcore::CLdapData& data)
+CLdapTreeView::CLdapTreeView(QWidget* parent, ldapcore::CLdapData& ldapData)
     : QTreeView(parent)
-    , m_LdapData(data)
-    , m_newEntry(new QAction("New entry", this))
-    , m_editEntry(new QAction("Edit entry", this))
+    , m_LdapData(ldapData)
+    , m_newEntry(new QAction(tr("New entry"), this))
+    , m_editEntry(new QAction(tr("Edit entry"), this))
 {
     m_contextMenu.addAction(m_newEntry);
     m_contextMenu.addAction(m_editEntry);
