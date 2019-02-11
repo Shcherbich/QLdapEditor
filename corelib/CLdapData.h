@@ -50,6 +50,7 @@ private:
     std::unique_ptr<LDAPConnection> m_Connection;
     CLdapSchema                 m_Schema;
     std::string                 m_baseDN;
+    bool                        m_CanUseUntrustedConnection {false};
 
     friend class CLdapEntry;
 };

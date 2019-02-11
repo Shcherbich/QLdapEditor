@@ -55,11 +55,11 @@ void CLdapData::connect(const tConnectionOptions& connectOptions)
             std::unique_ptr<LDAPConnection> localConn(new LDAPConnection(connectOptions.host, connectOptions.port));
             if (connectOptions.useTLS)
             {
-                localConn->start_tls([](std::string err)
+                localConn->start_tls([&](std::string err)
                 {
                     QString warningText = QString("<br>The LDAP Server uses an invalid certificate:</br><br><font color='#FF0000'>Description: %2</font></br><br></br><br>Do you wich proceed?</br>").arg(err.c_str());
-                    bool canContinue = QMessageBox::warning(0, "Certificate trust", warningText, QMessageBox::Yes|QMessageBox::No) == QMessageBox::Yes;
-                    return canContinue;
+                    m_CanUseUntrustedConnection = QMessageBox::warning(0, "Certificate trust", warningText, QMessageBox::Yes|QMessageBox::No) == QMessageBox::Yes;
+                    return m_CanUseUntrustedConnection;
                 });
             }
             if (connectOptions.useAnonymous)
@@ -113,11 +113,9 @@ void CLdapData::reconnect()
     std::unique_ptr<LDAPConnection> localConn(new LDAPConnection(m_connectOptions.host, m_connectOptions.port));
     if (m_connectOptions.useTLS)
     {
-        localConn->start_tls([](std::string err)
+        localConn->start_tls([&](std::string err)
         {
-            QString warningText = QString("<br>The LDAP Server uses an invalid certificate:</br><br><font color='#FF0000'>Description: %2</font></br><br></br><br>Do you wich proceed?</br>").arg(err.c_str());
-            bool canContinue = QMessageBox::warning(0, "Certificate trust", warningText, QMessageBox::Yes|QMessageBox::No) == QMessageBox::Yes;
-            return canContinue;
+            return m_CanUseUntrustedConnection;
         });
     }
     if (m_connectOptions.useAnonymous)
