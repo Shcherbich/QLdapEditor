@@ -63,16 +63,21 @@ void CLdapTreeView::onNewEntry()
         a2v[v[0]] = v[1];
     }
     QVector<QString> classes = dialog.selectedClasses();
-    QVector<ldapcore::CLdapAttribute> attributes = m_LdapData.schema().attributeByClasses(classes, a2v);
-    for(ldapcore::CLdapAttribute& a: attributes)
+    QVector<ldapcore::CLdapAttribute> all_attributes = m_LdapData.schema().attributeByClasses(classes, a2v);
+    QVector<ldapcore::CLdapAttribute> must_attributes ;
+    for(ldapcore::CLdapAttribute& a: all_attributes)
     {
+        if(!a.isMust())
+            continue;
+
         QVector<QString> attrClasses;
         attrClasses = m_LdapData.schema().classesByAttributeName(a.name().toStdString(), classes);
         a.setClasses(attrClasses);
+        must_attributes.push_back(a);
     }
 
 
-    QModelIndex addIndex = static_cast<CLdapTreeModel*>(proxyModel->sourceModel())->addNewEntry(curIndex, rdn, dn, classes, attributes);
+    QModelIndex addIndex = static_cast<CLdapTreeModel*>(proxyModel->sourceModel())->addNewEntry(curIndex, rdn, dn, classes, must_attributes);
     setCurrentIndex(proxyModel->mapFromSource(addIndex));
     setExpanded(curIndex, true);
 }

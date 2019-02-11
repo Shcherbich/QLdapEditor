@@ -181,16 +181,11 @@ namespace ldapeditor
         ldapcore::CLdapEntry* addEntry = new ldapcore::CLdapEntry(parentEntry, rdn, dn, classes, nullptr);
         addEntry->addAttributes(attributes);
 
-        //beginResetModel();
         beginInsertRows(parent, row, row + count - 1);
         parentEntry->addNewChild(addEntry);
-        //parentEntry->saveNewChild();
         endInsertRows();
-        //endResetModel();
 
         QModelIndex idxAdd = index(row, 0, parent);
-//        QModelIndex idxFrom = index(0, 0, parent);
-//        QModelIndex idxTo = index(row + count - 1, 0, parent);
         emit dataChanged(idxAdd, idxAdd, QVector<int>() << Qt::DisplayRole << Qt::DecorationRole << LdapTreeRoles::TreeDnRole);
         return idxAdd;
     }
