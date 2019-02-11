@@ -111,12 +111,12 @@ void CLdapAttribute::setValue(const QString& value)
 {
 	if (editState() != AttributeState::AttributeReadOnly)
 	{
-		if (!validateValue(value))
-		{
-			throw std::invalid_argument("can't set value due to wrong data format");
-		}
+        if (!validateValue(value))
+        {
+            throw std::invalid_argument("can't set value due to wrong data format");
+        }
 
-		m_Value = value;
+        m_Value = value;
 		m_isModified = true;
 	}
 }
@@ -134,7 +134,7 @@ void CLdapAttribute::setEditState(AttributeState state)
 
 bool CLdapAttribute::validateValue(const QString& value)
 {
-	return true;
+    return true;
 }
 
 QString CLdapAttribute::description() const

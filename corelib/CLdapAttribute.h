@@ -8,8 +8,14 @@
 
 namespace ldapcore
 {
-
-enum  class AttrType
+/*!
+ * @ingroup ldapcore
+ * @brief The AttrType enumeration
+ *
+ * Presents all openldap attribute types.
+ * according rfc2252
+ */
+enum class AttrType
 {
 	UnknownText = 0,
 	ACIItem = 1,
@@ -72,6 +78,12 @@ enum  class AttrType
 	UtcTime = 53,
 };
 
+/*!
+ * @ingroup ldapcore
+ * @brief The AttributeState enumeration
+ *
+ * Presents all states of attribute.
+ */
 enum  class AttributeState
 {
 	AttributeReadOnly = 0,
@@ -79,50 +91,195 @@ enum  class AttributeState
 	AttributeValueReadWrite
 };
 
+/*!
+ * @ingroup ldapcore
+ * @brief The ldap attribute class
+ *
+ * The ldap attribute class provides information about attribute e.g. name, value, type etc.
+ */
+
 class CLdapAttribute
 {
 public:
 
+    /*!
+     * \brief Constructor CLdapAttribute by default
+     */
 	explicit CLdapAttribute();
+
+    /*!
+     * \brief Constructor CLdapAttribute
+     * \param name name of attribute
+     * \param value value of attribute
+     * \param type type of attribute
+     * \param isMust true if is must-attribute, false if is may-attribute
+     * \param desc description of attribute
+     * \param classes list of classes which can contain this attribute
+     * \param editState current editable state of attribute
+     */
     explicit CLdapAttribute(QString name, QString value, AttrType type, bool isMust, QString desc, QVector<QString>& classes,
                             AttributeState editState = AttributeState::AttributeValueReadWrite);
+
+    /*!
+     * \brief Constructor Copy constructor of CLdapAttribute
+     * \param src Source for coping
+     */
     CLdapAttribute(const CLdapAttribute& src);
+
+    /*!
+     * \brief Constructor Move constructor of CLdapAttribute
+     * \param temp Source for coping
+     */
     CLdapAttribute(CLdapAttribute&& temp);
 
+    /*!
+     * \brief Operator Assignment operator
+     * \param o Source for assignment
+     */
     CLdapAttribute& operator = (const CLdapAttribute& o);
+
+    /*!
+     * \brief Operator Move assignment operator
+     * \param o Temporary object for assignment
+     */
     CLdapAttribute& operator = (CLdapAttribute&& o);
 
 public:
 
+    /*!
+     * @brief Method returns QString representation of attribute name
+     * @return QString name
+     */
 	QString name() const;
+
+    /*!
+     * @brief Method returns QString representation of attribute value
+     * @return QString value
+     */
 	QString value() const;
+
+    /*!
+     * @brief Method returns AttrType representation of attribute type
+     * @return AttrType type
+     */
 	AttrType type() const;
+
+    /*!
+     * @brief Method returns AttributeState representation of attribute editState
+     * @return AttributeState editState
+     */
 	AttributeState editState() const;
+
+    /*!
+     * @brief Method returns QString representation of attribute description
+     * @return QString description
+     */
     QString description() const;
+
+    /*!
+     * @brief Method returns bool representation of attribute modified state
+     * @return bool isModified
+     */
 	bool isModified() const;
+
+    /*!
+     * @brief Method returns true if is must-attribute, false if is may-attribute
+     * @return bool isMust
+     */
     bool isMust() const;
+
+    /*!
+     * @brief Method returns list of classes which can contain this attribute
+     * @return QVector<QString> classes
+     */
     QVector<QString> classes() const;
 
+    /*!
+     * @brief Method sets name of attribute
+     * @param name name to set
+     */
 	void setName(const QString& name);
+
+    /*!
+     * @brief Method sets value of attribute
+     * @param value value to set
+     */
 	void setValue(const QString& value);
+
+    /*!
+     * @brief Method sets type of attribute
+     * @param type type to set
+     */
 	void setType(AttrType type);
+
+    /*!
+     * @brief Method sets editable state of attribute
+     * @param state state to set
+     */
     void setEditState(AttributeState state);
+
+    /*!
+     * @brief Method sets description of attribute
+     * @param desc desc to set
+     */
     void setDescription(QString& desc);
-    void setClasses(QVector<QString>&);
+
+
+    /*!
+     * @brief Method sets list of classes which can contain this attribute
+     * @param list classes to set
+     */
+    void setClasses(QVector<QString>& list);
 
 private:
+    /*!
+     * @brief member Name object
+     */
     QString     m_Name;
+
+    /*!
+     * @brief member Value string
+     */
     QString     m_Value;
+
+    /*!
+     * @brief member Type enumeration
+     */
     AttrType    m_Type{AttrType::UnknownText};
+
+    /*!
+     * @brief member Editable state enumeration
+     */
 	AttributeState    m_editState;
+
+    /*!
+     * @brief member Description string
+     */
     QString     m_Description;
+
+    /*!
+     * @brief member Must bool
+     */
     bool        m_isMust{false};
+
+    /*!
+     * @brief member Modified bool
+     */
     bool        m_isModified{false};
+
+    /*!
+     * @brief member list of classes which can contain this attribute
+     */
     QVector<QString> m_Classes;
 
-
 private:
-	bool validateValue(const QString& value);
+
+    /*!
+     * @brief Method To validate new value to set
+     * @param value New value to set
+     * @return bool true if validation is rights, false if validation is bad
+     */
+    bool validateValue(const QString& value);
 
 signals:
 
