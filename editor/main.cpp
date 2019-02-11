@@ -5,9 +5,13 @@
 
 #include <QApplication>
 #include <QSettings>
+#include <signal.h>
 
 int main(int argc, char *argv[])
 {
+    // Do by default to ignore this interrupt
+    ::signal(SIGPIPE, SIG_IGN);
+
     QApplication a(argc, argv);
 
     ldapeditor::CLdapSettings settings;
