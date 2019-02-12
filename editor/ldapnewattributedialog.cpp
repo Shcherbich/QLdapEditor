@@ -31,23 +31,23 @@ CLdapNewAttributeDialog::CLdapNewAttributeDialog(ldapcore::CLdapData &ldapData, 
     QVector<ldapcore::CLdapAttribute>  mayAttributes = m_entry->availableAttributesMay();
     QVector<ldapcore::CLdapAttribute>  mustAttributes = m_entry->availableAttributesMust();
 
-    for(auto ma : mustAttributes)
+    for(auto ma1 : mustAttributes)
     {
         if (std::find_if(std::begin(*realAttributes), std::end(*realAttributes), [&](const ldapcore::CLdapAttribute& ra) {
-            return ma.name().compare( ra.name(),Qt::CaseInsensitive) == 0;
+            return ma1.name().compare( ra.name(),Qt::CaseInsensitive) == 0;
         }) == std::end(*realAttributes))
         {
-            m_addMust.insert(ma.name());
+            m_addMust.insert(ma1.name());
         }
     }
 
-    for(auto ma : mayAttributes)
+    for(auto ma2 : mayAttributes)
     {
         if (std::find_if(std::begin(*realAttributes), std::end(*realAttributes), [&](const ldapcore::CLdapAttribute& ra) {
-            return ma.name().compare( ra.name(),Qt::CaseInsensitive) == 0;
+            return ma2.name().compare( ra.name(),Qt::CaseInsensitive) == 0;
         }) == std::end(*realAttributes))
         {
-            m_addMay.insert(ma.name());
+            m_addMay.insert(ma2.name());
         }
     }
 
@@ -100,8 +100,9 @@ void CLdapNewAttributeDialog::onCurrentAttributeChanged(int index)
     if(index != -1)
     {
         CAttributeModelHelper helper(m_LdapData);
-        ui->typeEdit->setText(helper.attributeType2String(m_attributes[index].type()));
-        ui->valueEdit->setText(m_attributes[index].value());
+        int attrIdx = ui->attrCombo->itemData(index).toInt();
+        ui->typeEdit->setText(helper.attributeType2String(m_attributes[attrIdx].type()));
+        ui->valueEdit->setText(m_attributes[attrIdx].value());
     }
 }
 
