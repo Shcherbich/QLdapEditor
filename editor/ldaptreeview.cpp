@@ -47,7 +47,8 @@ void CLdapTreeView::onNewEntry()
     using namespace ldapcore;
 
     CLdapTreeProxyModel* proxyModel = static_cast<CLdapTreeProxyModel*>(model());
-    QModelIndex curIndex = proxyModel->mapToSource(currentIndex());
+    QModelIndex currentIdx = currentIndex();
+    QModelIndex curIndex = proxyModel->mapToSource(currentIdx);
     if (!curIndex.isValid())
     {
         return;
@@ -84,8 +85,9 @@ void CLdapTreeView::onNewEntry()
 
 
     QModelIndex addIndex = static_cast<CLdapTreeModel*>(proxyModel->sourceModel())->addNewEntry(curIndex, rdn, dn, classes, must_attributes);
+    setExpanded(currentIdx, true);
     setCurrentIndex(proxyModel->mapFromSource(addIndex));
-    setExpanded(curIndex, true);
+    scrollTo(addIndex);
 }
 
 void CLdapTreeView::onEditEntry()
