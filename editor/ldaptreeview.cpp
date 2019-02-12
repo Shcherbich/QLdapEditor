@@ -87,7 +87,7 @@ void CLdapTreeView::onNewEntry()
     QModelIndex addIndex = static_cast<CLdapTreeModel*>(proxyModel->sourceModel())->addNewEntry(curIndex, rdn, dn, classes, must_attributes);
     setExpanded(currentIdx, true);
     setCurrentIndex(proxyModel->mapFromSource(addIndex));
-    scrollTo(addIndex);
+    scrollTo(proxyModel->mapFromSource(addIndex), QAbstractItemView::PositionAtCenter);
 }
 
 void CLdapTreeView::onEditEntry()
