@@ -94,6 +94,7 @@ void CLdapData::rebuild()
 		delete en;
 	}
 	m_Entries.clear();
+    m_Schema.build(m_Connection.get(), m_baseDN);
 	build();
 }
 

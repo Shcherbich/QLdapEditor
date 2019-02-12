@@ -34,6 +34,9 @@ void CLdapDataEditDelegate::setLdapEntry(ldapcore::CLdapEntry* entry)
 
 QWidget* CLdapDataEditDelegate::createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
+    if(!m_entry)
+        return nullptr;
+
     editor = nullptr;
     if(index.column() == static_cast<int>(AttributeColumn::Attribute))
     {

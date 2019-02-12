@@ -32,7 +32,7 @@ namespace ldapeditor
     void CLdapTableView::setLdapEntry(ldapcore::CLdapEntry* entry)
     {
         m_entry = entry;
-        m_ldapDataDelegate.setLdapEntry(entry);
+        m_ldapDataDelegate.setLdapEntry(m_entry);
     }
 
     void CLdapTableView::RestoreView()

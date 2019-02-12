@@ -239,7 +239,7 @@ void MainWindow::onTreeItemChanged(const QModelIndex& current, const QModelIndex
 			if (ret != QMessageBox::Yes)
 			{
                 ldapcore::CLdapEntry* prevEntry = static_cast<ldapcore::CLdapEntry*>(mainPrevProxy.internalPointer());
-				if (prevEntry != nullptr)
+                if (prevEntry)
 				{
 					auto parent = prevEntry->parent();
 					if (parent)
@@ -331,6 +331,15 @@ void MainWindow::onReconnect()
 
 void MainWindow::onReload()
 {
+    onSaveData();
+
+    m_TableModel->setLdapEntry(nullptr);
+    m_AttributesList->setLdapEntry(nullptr);
+
+    m_LdapData.rebuild();
+    m_TreeModel->setTopItems(m_LdapData.topList());
+    //m_LdapTree->setCurrentIndex(m_RootIndex);
+
    // m_TableModel->Save();
     //m_LdapData.rebuild();
 

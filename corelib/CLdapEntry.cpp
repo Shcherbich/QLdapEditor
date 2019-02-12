@@ -382,7 +382,8 @@ QVector<CLdapAttribute> CLdapEntry::availableAttributesMay()
 
 void CLdapEntry::availableAttributesMustImpl()
 {
-    m_Must.clear();
+    QVector<CLdapAttribute>tmp;
+    m_Must.swap(tmp);
     auto av = GetAvailableAttributes(*m_pData->schema().classesSchema(), connectionPtr(), dn().toStdString());
     for (const auto& must : std::get<0>(av))
     {
@@ -397,7 +398,8 @@ void CLdapEntry::availableAttributesMustImpl()
 
 void CLdapEntry::availableAttributesMayImpl()
 {
-    m_May.clear();
+    QVector<CLdapAttribute>tmp;
+    m_May.swap(tmp);
     auto av = GetAvailableAttributes(*m_pData->schema().classesSchema(), connectionPtr(), dn().toStdString());
     for (const auto& may : std::get<1>(av))
     {
