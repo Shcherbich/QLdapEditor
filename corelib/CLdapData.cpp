@@ -55,6 +55,20 @@ void CLdapData::connect(const tConnectionOptions& connectOptions)
             std::unique_ptr<LDAPConnection> localConn(new LDAPConnection(connectOptions.host, connectOptions.port));
             if (connectOptions.useTLS)
             {
+                auto tls = localConn->getTlsOptions();
+                //const_cast<tConnectionOptions&>(connectOptions).cacertfile = "/home/centosuser/tls/ca.pem";
+                if (connectOptions.cacertfile.size())
+                {
+                    tls.setOption(TlsOptions::CACERTFILE, connectOptions.cacertfile);
+                }
+                if (connectOptions.certfile.size())
+                {
+                    tls.setOption(TlsOptions::CERTFILE, connectOptions.certfile);
+                }
+                if (connectOptions.keyfile.size())
+                {
+                    tls.setOption(TlsOptions::KEYFILE, connectOptions.keyfile);
+                }
                 localConn->start_tls([&](std::string err)
                 {
                     QString warningText = QString("<br>The LDAP Server uses an invalid certificate:</br><br><font color='#FF0000'>Description: %2</font></br><br></br><br>Do you wich proceed?</br>").arg(err.c_str());
@@ -94,7 +108,6 @@ void CLdapData::rebuild()
 		delete en;
 	}
 	m_Entries.clear();
-    m_Schema.build(m_Connection.get(), m_baseDN);
 	build();
 }
 
@@ -114,6 +127,19 @@ void CLdapData::reconnect()
     std::unique_ptr<LDAPConnection> localConn(new LDAPConnection(m_connectOptions.host, m_connectOptions.port));
     if (m_connectOptions.useTLS)
     {
+        auto tls = localConn->getTlsOptions();
+        if (m_connectOptions.cacertfile.size())
+        {
+            tls.setOption(TlsOptions::CACERTFILE, m_connectOptions.cacertfile);
+        }
+        if (m_connectOptions.certfile.size())
+        {
+            tls.setOption(TlsOptions::CERTFILE, m_connectOptions.certfile);
+        }
+        if (m_connectOptions.keyfile.size())
+        {
+            tls.setOption(TlsOptions::KEYFILE, m_connectOptions.keyfile);
+        }
         localConn->start_tls([&](std::string err)
         {
             return m_CanUseUntrustedConnection;

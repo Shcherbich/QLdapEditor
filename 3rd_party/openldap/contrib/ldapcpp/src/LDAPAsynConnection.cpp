@@ -154,13 +154,8 @@ void LDAPAsynConnection::start_tls(std::function< bool(std::string)> funcToConfi
 
 void LDAPAsynConnection::configureTimeouts()
 {
-    struct timeval tcp = {0};
-    tcp.tv_sec = 10;
-    int ret = ldap_set_option(cur_session, LDAP_OPT_NETWORK_TIMEOUT, &tcp);
-    assert(ret == LDAP_SUCCESS);
-
     int value = 120;
-    ret = ldap_set_option(cur_session, LDAP_OPT_X_KEEPALIVE_IDLE, &value);
+    int ret = ldap_set_option(cur_session, LDAP_OPT_X_KEEPALIVE_IDLE, &value);
     assert(ret == LDAP_SUCCESS);
 
     value = 4000;
@@ -173,6 +168,11 @@ void LDAPAsynConnection::configureTimeouts()
 
     value = 120;
     ret = ldap_set_option(cur_session, LDAP_OPT_RESTART, &value);
+    assert(ret == LDAP_SUCCESS);
+
+    struct timeval tcp = {0};
+    tcp.tv_sec = 10;
+    ret = ldap_set_option(cur_session, LDAP_OPT_NETWORK_TIMEOUT, &tcp);
     assert(ret == LDAP_SUCCESS);
 }
 

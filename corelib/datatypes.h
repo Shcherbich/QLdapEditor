@@ -24,10 +24,15 @@ typedef struct _tConnectionOptions
 	std::string password;
 	bool simpleAuth{true};
 	bool useSSL{false};
-	bool useTLS{false};
 	bool useSASL{false};
 	bool useAnonymous{false};
 	int  timeout{60}; // seconds
+
+    bool useTLS{false};
+    std::string cacertfile;
+    std::string certfile;
+    std::string keyfile;
+
 } tConnectionOptions;
 
 typedef struct _tSearchOptions
