@@ -17,7 +17,7 @@ namespace ldapeditor
     {
         QString dnLeft = sourceModel()->data(source_left,Qt::DisplayRole).toString();
         QString dnRight = sourceModel()->data(source_right,Qt::DisplayRole).toString();
-        return dnLeft < dnRight;
+        return dnLeft.compare(dnRight, Qt::CaseInsensitive) < 0;
     }
 
     CLdapTreeModel::CLdapTreeModel(const QString &baseDN, QObject *parent)
