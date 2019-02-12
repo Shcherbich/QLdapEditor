@@ -37,6 +37,10 @@ namespace ldapeditor
         explicit CLdapTreeProxyModel(QObject *parent = nullptr):QSortFilterProxyModel(parent)
         {
         }
+
+        QModelIndexList getPersistentIndexList() {
+            return persistentIndexList();
+        }
     protected:
         /*!
          * @brief Protected method, used for sort model itens

@@ -47,6 +47,9 @@ public:
      */
 	std::tuple<QModelIndex, ldapcore::CLdapEntry*> findByDn(QString dn);
 
+//    void saveState();
+//    void restoreState();
+
 signals:
     /*!
      * @brief Signal about changing current item in tree
@@ -85,6 +88,9 @@ private:
     QAction*    m_newEntry{nullptr};    ///< 'New Entry' action member
     QAction*    m_editEntry{nullptr};   ///< 'Edit Entry' action member
     ldapcore::CLdapData& m_LdapData;   ///< ldapcore::CLdapData reference member
+
+//    QString m_currentItem;
+//    QStringList m_itemsList;
 
 };
 } //namespace ldapeditor

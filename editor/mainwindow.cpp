@@ -236,7 +236,14 @@ void MainWindow::onTreeItemChanged(const QModelIndex& current, const QModelIndex
             auto ret = QMessageBox::question(this, tr("Question"),
                                              tr("The new entry was added.\nDo you want to save new entry to server?"),
                                              QMessageBox::Yes | QMessageBox::No);
-			if (ret != QMessageBox::Yes)
+            if (ret == QMessageBox::Yes)
+            {
+                if (!m_TableModel->Save())
+                {
+                    return;
+                }
+            }
+            else
 			{
                 ldapcore::CLdapEntry* prevEntry = static_cast<ldapcore::CLdapEntry*>(mainPrevProxy.internalPointer());
                 if (prevEntry)
@@ -252,16 +259,11 @@ void MainWindow::onTreeItemChanged(const QModelIndex& current, const QModelIndex
                         m_LdapTree->setCurrentIndex(previous);
                         m_TableModel->setLdapEntry(parent);
                         m_AttributesList->setLdapEntry(parent);
+                        onReload();
                         return;
 					}
 				}
-			}
-			else
-			{
-                if (!m_TableModel->Save())
-                {
-                    return;
-                }
+
 			}
 		}
 		else
@@ -283,6 +285,10 @@ void MainWindow::onTreeItemChanged(const QModelIndex& current, const QModelIndex
 				{
 					m_TableModel->Save();
 				}
+                else
+                {
+                    onReload();
+                }
 			}
 		}
 	}
@@ -333,17 +339,19 @@ void MainWindow::onReload()
 {
     onSaveData();
 
+    //m_LdapTree->saveState();
+
     m_TableModel->setLdapEntry(nullptr);
     m_AttributesList->setLdapEntry(nullptr);
 
     m_LdapData.rebuild();
     m_TreeModel->setTopItems(m_LdapData.topList());
-    //m_LdapTree->setCurrentIndex(m_RootIndex);
 
-   // m_TableModel->Save();
-    //m_LdapData.rebuild();
+    m_RootIndex = m_TreeProxyModel->index(0, 0);
+    m_LdapTree->expand(m_RootIndex);
+    m_LdapTree->setCurrentIndex(m_RootIndex);
 
-    //QMessageBox::information(this, tr("Reload operation"), tr("The operation has been completed successfully!"), QMessageBox::Ok);
+    //m_LdapTree->restoreState();
 }
 
 }// namespace ldapeditor

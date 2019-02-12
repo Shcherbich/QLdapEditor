@@ -224,5 +224,33 @@ std::tuple<QModelIndex, ldapcore::CLdapEntry*> CLdapTreeView::findByDn(QString d
     }
     return std::make_tuple(QModelIndex(), nullptr);
 }
+/*
+void CLdapTreeView::saveState()
+{
+    m_itemsList.clear();
+    foreach(QModelIndex index, static_cast<CLdapTreeProxyModel*>(model())->getPersistentIndexList())
+    {
+        if(isExpanded(index))
+            m_itemsList << index.data(Qt::DisplayRole).toString();
+    }
+    m_currentItem = currentIndex().data(Qt::DisplayRole).toString();
+}
+void CLdapTreeView::restoreState()
+{
+    QModelIndex startIdx = model()->index(0,0);
+    foreach(QString item, m_itemsList)
+    {
+        QModelIndexList items = model()->match(startIdx, Qt::DisplayRole, QVariant::fromValue(item));
+        if(!items.isEmpty())
+        {
+            startIdx = items.first();
+            setExpanded(startIdx, true);
+        }
+    }
 
+    QModelIndexList items = model()->match(startIdx, Qt::DisplayRole, QVariant::fromValue(m_currentItem));
+    if(!items.isEmpty())
+        setCurrentIndex(items.first());
+}
+*/
 } //namespace ldapeditor
