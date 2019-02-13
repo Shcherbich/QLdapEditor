@@ -32,6 +32,7 @@ CLdapTreeView::CLdapTreeView(QWidget* parent, ldapcore::CLdapData& ldapData)
     connect(this, &QTreeView::customContextMenuRequested, this, &CLdapTreeView::customContextMenuRequested);
     connect(m_newEntry, &QAction::triggered, this, &CLdapTreeView::onNewEntry);
     connect(m_editEntry, &QAction::triggered, this, &CLdapTreeView::onEditEntry);
+    connect(this, &QTreeView::expanded, this, &CLdapTreeView::expand );
 
     setSortingEnabled(true);
     sortByColumn(0, Qt::SortOrder::AscendingOrder);
@@ -197,6 +198,34 @@ void CLdapTreeView::onEditEntry()
 
     thisEntry->setClasses(classes);
     thisEntry->setEditable(true);
+}
+
+void  CLdapTreeView::expand(const QModelIndex &index)
+{
+    if (!index.isValid())
+    {
+        return;
+    }
+
+    auto srcIndex = static_cast<CLdapTreeProxyModel*>(model())->mapToSource(index);
+    if (!srcIndex.isValid())
+    {
+        return;
+    }
+
+    ldapcore::CLdapEntry* thisEntry = static_cast<ldapcore::CLdapEntry*>(srcIndex.internalPointer());
+    if (!thisEntry)
+    {
+        return;
+    }
+
+    for(auto e : thisEntry->children())
+    {
+        QVector<ldapcore::CLdapAttribute> attrs;
+        e->loadAttributes(attrs);
+    }
+
+    return QTreeView::expand(index);
 }
 
 void CLdapTreeView::customContextMenuRequested(QPoint pos)

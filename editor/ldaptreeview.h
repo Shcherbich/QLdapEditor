@@ -41,14 +41,11 @@ public:
     CLdapTreeView(QWidget* parent, ldapcore::CLdapData& ldapData);
 
     /*!
-     * @brief MEthods finds item By DN string
+     * @brief Methods finds item By DN string
      * @param dn string DN
      * @return std::tuple<QModelIndex, ldapcore::CLdapEntry*> of found item if success, or Invalid Index with nullptr, if item not found
      */
 	std::tuple<QModelIndex, ldapcore::CLdapEntry*> findByDn(QString dn);
-
-//    void saveState();
-//    void restoreState();
 
 signals:
     /*!
@@ -66,9 +63,16 @@ protected :
      */
 	virtual void currentChanged(const QModelIndex& current, const QModelIndex& previous) override;
 
+public slots:
+    /*!
+     * \brief protected slot, Expands the model item specified by the index.
+     * \param index index of item to expand
+     */
+    void  expand(const QModelIndex &index);
+
 protected slots:
     /*!
-     * @brief MEthod is called when custom contect menu is requested (e.g. by mouse right click)
+     * @brief Method is called when custom contect menu is requested (e.g. by mouse right click)
      * @param pos point where click has happened
      */
 	void customContextMenuRequested(QPoint pos);
@@ -88,11 +92,8 @@ private:
     QAction*    m_newEntry{nullptr};    ///< 'New Entry' action member
     QAction*    m_editEntry{nullptr};   ///< 'Edit Entry' action member
     ldapcore::CLdapData& m_LdapData;   ///< ldapcore::CLdapData reference member
-
-//    QString m_currentItem;
-//    QStringList m_itemsList;
-
 };
+
 } //namespace ldapeditor
 
 
