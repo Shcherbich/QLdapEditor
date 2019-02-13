@@ -6,6 +6,7 @@
 //#include <QSortFilterProxyModel>
 #include <QMenu>
 #include <QAction>
+#include <QMouseEvent>
 #include "ldapdataeditdelegate.h"
 #include "CLdapEntry.h"
 #include "ldapsettings.h"
@@ -29,6 +30,7 @@ namespace ldapeditor
         void onDeleteAttribute();
     protected:
         virtual bool edit(const QModelIndex& index, QAbstractItemView::EditTrigger trigger, QEvent* event)override;
+        void mousePressEvent(QMouseEvent *event)override;
 
         void OnHeaderChanged(int logicalIndex, int oldSize, int newSize);
 

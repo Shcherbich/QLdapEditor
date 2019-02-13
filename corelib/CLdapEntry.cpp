@@ -570,10 +570,10 @@ void CLdapEntry::saveNewChild() noexcept(false)
 
         for (auto& a : child->m_attributes)
         {
-            auto value = a.value().toStdString();
-            if (value.size())
+            auto value = a.value();
+            if (!value.isEmpty())
             {
-                attrs->addAttribute(LDAPAttribute(a.name().toStdString(), value));
+                attrs->addAttribute(LDAPAttribute(a.name().toStdString(), value.toStdString()));
             }
         }
         std::shared_ptr<LDAPEntry> entry(new LDAPEntry(child->m_pEntry->getDN(), attrs.get()));
@@ -607,7 +607,8 @@ void CLdapEntry::update() noexcept(false)
         mod->addModification(LDAPModification(LDAPAttribute("objectClass", objectClasses), LDAPModification::OP_REPLACE));
         for (auto& a : m_attributes) {
 
-            if (a.name() == "objectClass"){
+            if (a.name() == "objectClass")
+            {
                 continue;
             }
 

@@ -341,6 +341,8 @@ void MainWindow::onReload()
     m_LdapTree->setCurrentIndex(m_RootIndex);
 
     //m_LdapTree->restoreState();
+
+    statusBar()->showMessage(tr("Data reloaded"));
 }
 
 }// namespace ldapeditor

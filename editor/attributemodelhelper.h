@@ -22,7 +22,8 @@ namespace ldapeditor
  * Set of values Attribute column IDs for using instead of raw indexes
  */
 enum class AttributeColumn:int {
-    Name = 0,   ///< Attribute's DN column
+    Ignore = 0, ///< Ignore attibute's value (for New entity and must attributes only)
+    Name,       ///< Attribute's DN column
     Class,      ///< Attribute's Class column
     Attribute,  ///< Attribute's Title column
     Value,      ///< Attribute's Value column
@@ -153,6 +154,23 @@ private:
      * @return QVariant of data for font
      */
     QVariant fontRoleData(const ldapcore::CLdapAttribute &attr, const QModelIndex &index)const;
+
+    /*!
+     * \brief Method returns checked state
+     * \param attr reference to ldapcore::CLdapAttribute
+     * \param index index of item for getting data
+     * \return Qt::Checked or Qt::Unchecked value
+     */
+    QVariant checkStateRoleData(const ldapcore::CLdapAttribute &attr, const QModelIndex &index)const;
+
+    /*!
+     * \brief sets checked state data
+     * \param attr reference to ldapcore::CLdapAttribute
+     * \param value new Qt::Checked or Qt::Unchecked value
+     * \param index index of item for getting data
+     * \return  true if data set succefully
+     */
+    bool setCheckStateRoleData(ldapcore::CLdapAttribute &attr, const QVariant& value, const QModelIndex &index);
 
     /*!
      * @brief Method for set data into model after edit

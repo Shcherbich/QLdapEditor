@@ -231,6 +231,18 @@ public:
      */
     void setClasses(QVector<QString>& list);
 
+    /*!
+     * @brief Method returns boolean flag is atrribute explicitly marked as ignored
+     * @return QVector<QString> classes
+     */
+    inline bool isIgnore() const {return m_isIgnore;}
+
+    /*!
+     * @brief Method sets is attribute marked as ignored
+     * @param ignore ignore or not attribute
+     */
+    inline void setIsIgnore(bool ignore) {m_isIgnore = ignore;}
+
 private:
     /*!
      * @brief member Name object
@@ -271,6 +283,11 @@ private:
      * @brief member list of classes which can contain this attribute
      */
     QVector<QString> m_Classes;
+
+    /*!
+     * @brief member is attribute explicitly marked as ignored
+     */
+    bool        m_isIgnore{false};
 
 private:
 
