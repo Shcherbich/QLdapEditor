@@ -280,16 +280,28 @@ QString CLdapAttributesModel::dn() const
 
 bool CLdapAttributesModel::Save()
 {
+    bool saved = false;
     if (isNew())
     {
-        return SaveNewEntry();
+        saved = SaveNewEntry();
+        if (saved)
+        {
+            setLdapEntry(m_entry);
+        }
+        return saved;
     }
 
     if (isEdit())
     {
-        return SaveUpdatedEntry();
+        saved = SaveUpdatedEntry();
+        return saved;
     }
-    return SaveAttributes();
+    saved = SaveAttributes();
+    if (saved)
+    {
+        setLdapEntry(m_entry);
+    }
+    return saved;
 }
 
 bool CLdapAttributesModel::SaveNewEntry()

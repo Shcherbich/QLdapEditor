@@ -491,6 +491,7 @@ void CLdapEntry::flushAttributeCache()
         if (entry.get() != nullptr)
         {
             *m_pEntry = *entry.get();
+            prepareAttributes();
         }
     }
 }
@@ -580,6 +581,7 @@ void CLdapEntry::saveNewChild() noexcept(false)
         auto dn = m_pEntry->getDN();
         connectionPtr()->add(entry.get());
         child->m_isNew = false;
+        child->flushAttributeCache();
     }
     catch (const std::exception& ex)
     {
