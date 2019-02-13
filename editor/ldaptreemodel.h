@@ -70,7 +70,7 @@ namespace ldapeditor
         explicit CLdapTreeModel(const QString& baseDN, QObject *parent = nullptr);
 
         /*!
-         * @brief MEthod sets top items for model
+         * @brief Method sets top items for model
          * @param topItems vector of pointers to top items of dapcore::CLdapEntry*
          * @return true if success, false if error
          */

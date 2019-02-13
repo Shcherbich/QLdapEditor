@@ -1,6 +1,6 @@
 /*!
-\file
-\brief Header file for attribute helper class
+@file
+@brief Header file for attribute helper class
 
 File contains  declarations for attribute helper class
 */

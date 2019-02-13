@@ -1,3 +1,10 @@
+/*!
+@file
+@brief Implementation file for may/must attributes model class
+
+File contains  imlementations for may/must attributes model class
+*/
+
 #include <algorithm>
 #include <QColor>
 #include "cmustmaymodel.h"
