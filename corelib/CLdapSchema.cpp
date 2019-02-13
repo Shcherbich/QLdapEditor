@@ -314,5 +314,38 @@ QString CLdapSchema::classDescription(const QString& cls)
 	return QString(QObject::tr("%1 class")).arg(desc.empty() ? cls : desc.c_str());
 }
 
+QVector<CLdapAttribute> CLdapSchema::mayAttributesByClass(QString cl)
+{
+    QVector<CLdapAttribute> vector;
+    LDAPObjClass ldapObjClass = classesSchema()->getObjectClassByName(cl.toStdString());
+    for (const auto& attributeName: ldapObjClass.getMay())
+    {
+        auto info = attributeInfoByName(attributeName);
+        auto attr = m_impl->attributesSchema.getAttributeTypeByName(attributeName);
+        QVector<QString> classes;
+        CLdapAttribute a(attributeName.c_str(), "", std::get<0>(info), false, attr.getDesc().c_str(), classes,
+                         AttributeState::AttributeValueReadWrite);
+        vector.push_back(a);
+    }
+    return vector;
+}
+
+QVector<CLdapAttribute> CLdapSchema::mustAttributesByClass(QString cl)
+{
+    QVector<CLdapAttribute> vector;
+    LDAPObjClass ldapObjClass = classesSchema()->getObjectClassByName(cl.toStdString());
+    for (const auto& attributeName: ldapObjClass.getMust())
+    {
+        auto info = attributeInfoByName(attributeName);
+        auto attr = m_impl->attributesSchema.getAttributeTypeByName(attributeName);
+        QVector<QString> classes;
+        CLdapAttribute a(attributeName.c_str(), "", std::get<0>(info), true, attr.getDesc().c_str(), classes,
+                         AttributeState::AttributeValueReadWrite);
+        vector.push_back(a);
+    }
+    return vector;
+}
+
+
 }
 
