@@ -10,7 +10,7 @@ namespace ldapeditor {
 CLdapAttributesModel::CLdapAttributesModel(ldapcore::CLdapData &ldapData, QObject* parent)
     : QAbstractTableModel(parent)
     , m_LdapData(ldapData)
-    , m_SectionsList { tr("Name"), tr("Class"), tr("Attribute"), tr("Value"), tr("Type"), tr("Size") }
+    , m_SectionsList { tr("Ignore"), tr("Name"), tr("Class"), tr("Attribute"), tr("Value"), tr("Type"), tr("Size") }
     , m_attrHelper(m_LdapData)
 {
 }
@@ -100,10 +100,13 @@ bool CLdapAttributesModel::setData(const QModelIndex& index, const QVariant& val
         return false;
 
     ldapcore::CLdapAttribute& attr = (*m_pAttributes)[index.row()];
-    if (role == Qt::EditRole) {
-        if (data(index, role) != value) {
+    if (role == Qt::EditRole)
+    {
+        if (data(index, role) != value)
+        {
             bool bRet { true };
-            try {
+            try
+            {
                 if (index.column() == static_cast<int>(AttributeColumn::Value)) // changing value
                 {
                     ldapcore::CLdapAttribute temp(attr);
@@ -112,14 +115,30 @@ bool CLdapAttributesModel::setData(const QModelIndex& index, const QVariant& val
                 }
                 bRet = m_attrHelper.setData(attr, index, value, role);
                 emit dataChanged(index, index, QVector<int>() << role << Qt::DisplayRole);
-            } catch (const std::exception& e) {
+            }
+            catch (const std::exception& e)
+            {
                 QMessageBox::critical(nullptr, tr("Error"), e.what(), QMessageBox::Ok);
                 bRet = false;
             }
             return bRet;
         }
     }
-
+    if (role == Qt::CheckStateRole)
+    {
+        bool bRet { true };
+        if (data(index, role) != value)
+        {
+            if (index.column() == static_cast<int>(AttributeColumn::Ignore)) // changing value
+            {
+                bRet = m_attrHelper.setData(attr, index, value, role);
+                emit dataChanged(index, index, QVector<int>() << role  << Qt::CheckStateRole);
+            }
+            else
+                bRet = false;
+        }
+        return bRet;
+    }
     return false;
 }
 
@@ -128,12 +147,25 @@ Qt::ItemFlags CLdapAttributesModel::flags(const QModelIndex& index) const
     if (!m_pAttributes || !index.isValid())
         return Qt::NoItemFlags;
 
+    Qt::ItemFlags checkableFlags { Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsUserCheckable};
     Qt::ItemFlags readonlyFlags { Qt::ItemIsEnabled | Qt::ItemIsSelectable };
     Qt::ItemFlags editFlags { Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsEditable };
-    if (index.row() < m_pAttributes->size()) {
+
+    if (index.row() < m_pAttributes->size())
+    {
         int col = index.column();
         ldapcore::AttributeState editState = (*m_pAttributes)[index.row()].editState();
-        switch (editState) {
+
+        bool checkableItem = col == static_cast<int>(AttributeColumn::Ignore) &&
+                m_entry->isNew() && (*m_pAttributes)[index.row()].isMust() ;
+
+        if(checkableItem)
+        {
+            return checkableFlags;
+        }
+
+        switch (editState)
+        {
         case ldapcore::AttributeState::AttributeReadOnly:
             return readonlyFlags;
             break;
@@ -143,7 +175,10 @@ Qt::ItemFlags CLdapAttributesModel::flags(const QModelIndex& index) const
                     : readonlyFlags;
             break;
         case ldapcore::AttributeState::AttributeValueReadWrite:
-            return col == static_cast<int>(AttributeColumn::Value) ? editFlags : readonlyFlags;
+            if(checkableItem && (*m_pAttributes)[index.row()].isIgnore())
+                return readonlyFlags;
+            else
+                return col == static_cast<int>(AttributeColumn::Value) ? editFlags : readonlyFlags;
             break;
         default:
             break;
@@ -232,7 +267,8 @@ void CLdapAttributesModel::GetChangedRows(QVector<ldapcore::CLdapAttribute>& new
     m_entry->loadAttributes(reallyAttributes);
 
     // first - save new attributes
-    for (auto& a : *m_pAttributes) {
+    for (auto& a : *m_pAttributes)
+    {
         auto f = std::find_if(reallyAttributes.begin(), reallyAttributes.end(), [&](const ldapcore::CLdapAttribute& o) {
             return a.name() == o.name();
         });
@@ -242,21 +278,27 @@ void CLdapAttributesModel::GetChangedRows(QVector<ldapcore::CLdapAttribute>& new
     }
 
     // second - delete attributes
-    for (auto& r : reallyAttributes) {
+    for (auto& r : reallyAttributes)
+    {
         auto f = std::find_if(m_pAttributes->begin(), m_pAttributes->end(), [&](const ldapcore::CLdapAttribute& o) {
             return r.name() == o.name();
         });
-        if (f == m_pAttributes->end()) {
+
+        if (f == m_pAttributes->end())
+        {
             deleteRows.push_back(r);
         }
     }
 
     // second - update attributes
-    for (auto& r : reallyAttributes) {
+    for (auto& r : reallyAttributes)
+    {
         auto f = std::find_if(m_pAttributes->begin(), m_pAttributes->end(), [&](const ldapcore::CLdapAttribute& o) {
             return r.name() == o.name();
         });
-        if (f != m_pAttributes->end() && f->isModified()) {
+
+        if (f != m_pAttributes->end() && f->isModified())
+        {
             updateRows.push_back(*f);
         }
     }
@@ -312,11 +354,10 @@ bool CLdapAttributesModel::SaveNewEntry()
     // check
     for (auto& a : *m_pAttributes)
     {
-        // Known issue: Now Here is doing nothing
-        //if (a.isMust() && a.value().isEmpty())
+        if (a.isMust() && (!a.isIgnore() && a.value().isEmpty()))
         {
-            //QMessageBox::critical(nullptr, tr("Error"), QString(tr("The must attribute '%1' is not filled!")).arg(a.name()), QMessageBox::Ok);
-            //return false;
+            QMessageBox::critical(nullptr, tr("Error"), QString(tr("The must attribute '%1' is not filled or explicitly marked it as ignored!")).arg(a.name()), QMessageBox::Ok);
+            return false;
         }
     }
 
@@ -345,9 +386,9 @@ bool CLdapAttributesModel::SaveUpdatedEntry()
     // check
     for (auto& a : *m_pAttributes)
     {
-        if (a.isMust() && a.value().isEmpty())
+        if (a.isMust() && (!a.isIgnore() && a.value().isEmpty()))
         {
-            QMessageBox::critical(nullptr, tr("Error"), QString(tr("The must attribute '%1' is not filled!")).arg(a.name()), QMessageBox::Ok);
+            QMessageBox::critical(nullptr, tr("Error"), QString(tr("The must attribute '%1' is not filled or explicitly marked it as ignored!")).arg(a.name()), QMessageBox::Ok);
             return false;
         }
     }

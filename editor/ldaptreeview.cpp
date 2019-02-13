@@ -72,20 +72,20 @@ void CLdapTreeView::onNewEntry()
     }
     QVector<QString> classes = dialog.selectedClasses();
     QVector<ldapcore::CLdapAttribute> all_attributes = m_LdapData.schema().attributeByClasses(classes, a2v);
-    QVector<ldapcore::CLdapAttribute> must_attributes ;
+    QVector<ldapcore::CLdapAttribute> newEntryAttributes ;
     for(ldapcore::CLdapAttribute& a: all_attributes)
     {
-        if(!a.isMust())
+        if(!a.isMust() && a.value().isEmpty())
             continue;
 
         QVector<QString> attrClasses;
         attrClasses = m_LdapData.schema().classesByAttributeName(a.name().toStdString(), classes);
         a.setClasses(attrClasses);
-        must_attributes.push_back(a);
+        newEntryAttributes.push_back(a);
     }
 
 
-    QModelIndex addIndex = static_cast<CLdapTreeModel*>(proxyModel->sourceModel())->addNewEntry(curIndex, rdn, dn, classes, must_attributes);
+    QModelIndex addIndex = static_cast<CLdapTreeModel*>(proxyModel->sourceModel())->addNewEntry(curIndex, rdn, dn, classes, newEntryAttributes);
     setExpanded(currentIdx, true);
     setCurrentIndex(proxyModel->mapFromSource(addIndex));
     scrollTo(proxyModel->mapFromSource(addIndex), QAbstractItemView::PositionAtCenter);
