@@ -18,6 +18,8 @@ CLdapNewAttributeDialog::CLdapNewAttributeDialog(ldapcore::CLdapData &ldapData, 
     ui->typeEdit->setStyleSheet("QLineEdit{ padding-left: 6px; }");
     ui->valueEdit->setStyleSheet("QLineEdit{ padding-left: 6px; }");
 
+    ui->typeEdit->setReadOnly(true);
+
     QStringList itemsList;
     for(auto s : m_entry->classes())
         itemsList << s;
@@ -26,30 +28,6 @@ CLdapNewAttributeDialog::CLdapNewAttributeDialog(ldapcore::CLdapData &ldapData, 
 
     for(auto s : itemsList)
         ui->classCombo->addItem(s);
-
-    QVector<ldapcore::CLdapAttribute>* realAttributes = m_entry->attributes();
-    QVector<ldapcore::CLdapAttribute>  mayAttributes = m_entry->availableAttributesMay();
-    QVector<ldapcore::CLdapAttribute>  mustAttributes = m_entry->availableAttributesMust();
-
-    for(auto ma1 : mustAttributes)
-    {
-        if (std::find_if(std::begin(*realAttributes), std::end(*realAttributes), [&](const ldapcore::CLdapAttribute& ra) {
-            return ma1.name().compare( ra.name(),Qt::CaseInsensitive) == 0;
-        }) == std::end(*realAttributes))
-        {
-            m_addMust.insert(ma1.name());
-        }
-    }
-
-    for(auto ma2 : mayAttributes)
-    {
-        if (std::find_if(std::begin(*realAttributes), std::end(*realAttributes), [&](const ldapcore::CLdapAttribute& ra) {
-            return ma2.name().compare( ra.name(),Qt::CaseInsensitive) == 0;
-        }) == std::end(*realAttributes))
-        {
-            m_addMay.insert(ma2.name());
-        }
-    }
 
     ui->classCombo->setCurrentIndex(0);
     onCurrentClassChanged(0);
@@ -70,18 +48,18 @@ void CLdapNewAttributeDialog::onCurrentClassChanged(int index)
         m_attributes = m_LdapData.schema().attributeByClasses(classes, a2v);
         ui->attrCombo->clear();
 
-
         qSort(m_attributes.begin(), m_attributes.end(),[](const ldapcore::CLdapAttribute& a1, const ldapcore::CLdapAttribute& a2){
             return a1.name().toLower() < a2.name().toLower();
         });
 
+        QSet<QString> attrSet;
+        QVector<ldapcore::CLdapAttribute>* entryAttributes = m_entry->attributes();
+        for(const auto& a : *entryAttributes)
+            attrSet.insert(a.name());
+
         for(int i=0; i< m_attributes.size(); i++)
         {
-            if(m_addMust.contains(m_attributes[i].name()))
-            {
-                ui->attrCombo->addItem(m_attributes[i].name(), i);
-            }
-            else if(m_addMay.contains(m_attributes[i].name()))
+            if(!attrSet.contains(m_attributes[i].name()))
             {
                 ui->attrCombo->addItem(m_attributes[i].name(), i);
             }
@@ -94,9 +72,6 @@ void CLdapNewAttributeDialog::onCurrentClassChanged(int index)
 
 void CLdapNewAttributeDialog::onCurrentAttributeChanged(int index)
 {
-    ui->typeEdit->setEnabled(index != -1);
-    ui->valueEdit->setEnabled(index != -1);
-
     if(index != -1)
     {
         CAttributeModelHelper helper(m_LdapData);
