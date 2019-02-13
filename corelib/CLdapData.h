@@ -27,6 +27,7 @@ public:
 public:
 	void connect(const tConnectionOptions& connectOptions);
     void reconnect();
+    bool hardReconnect();
     void rebuild();
 
 	QVector<CLdapEntry*> topList();

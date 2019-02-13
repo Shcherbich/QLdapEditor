@@ -465,3 +465,19 @@ void  LDAPAsynConnection::modify_s(const string& dn, LDAPModList *mod)
         throw LDAPException(err);
     }
 }
+
+void LDAPAsynConnection::setHardResetFunc(std::function< bool() > f)
+{
+    hardResetFunc = std::move(f);
+}
+
+bool LDAPAsynConnection::hardReset()
+{
+    if (hardResetFunc == nullptr)
+    {
+        return false;
+    }
+    cur_session = nullptr;
+    setConstraints(new LDAPConstraints());
+    return hardResetFunc();
+}

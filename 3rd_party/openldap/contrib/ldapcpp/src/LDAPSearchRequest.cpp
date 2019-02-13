@@ -67,9 +67,23 @@ LDAPMessageQueue* LDAPSearchRequest::sendRequest(){
     int aliasDeref = m_cons->getAliasDeref();
     ldap_set_option(m_connection->getSessionHandle(), LDAP_OPT_DEREF, 
             &aliasDeref);
-    int err=ldap_search_ext(m_connection->getSessionHandle(), m_base.c_str(),
+    int err = ldap_search_ext(m_connection->getSessionHandle(), m_base.c_str(),
             m_scope, m_filter.c_str(), tmpattrs, m_attrsOnly, tmpSrvCtrl,
             tmpClCtrl, tmptime, m_cons->getSizeLimit(), &msgID );
+
+    // LDAP_SERVER_DOWN
+    // Try to hard reconnect to server
+    if (err == LDAP_SERVER_DOWN)
+    {
+        if (m_connection->hardReset())
+        {
+            err = ldap_search_ext(m_connection->getSessionHandle(), m_base.c_str(),
+                        m_scope, m_filter.c_str(), tmpattrs, m_attrsOnly, tmpSrvCtrl,
+                        tmpClCtrl, tmptime, m_cons->getSizeLimit(), &msgID );
+        }
+    }
+
+
     delete tmptime;
     ber_memvfree((void**)tmpattrs);
     LDAPControlSet::freeLDAPControlArray(tmpSrvCtrl);

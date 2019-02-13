@@ -239,6 +239,8 @@ class LDAPConnection : public LDAPAsynConnection {
         
         const LDAPConstraints* getConstraints() const ;
         TlsOptions getTlsOptions() const;
+
+        void setHardResetFunc(std::function< bool() >);
 };
 
 #endif //LDAP_CONNECTION_H

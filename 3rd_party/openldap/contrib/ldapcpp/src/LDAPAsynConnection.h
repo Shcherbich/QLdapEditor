@@ -274,6 +274,10 @@ class LDAPAsynConnection{
          */
         int getPort() const;
 
+        bool hardReset();
+
+        void setHardResetFunc(std::function< bool() >);
+
         /** Change the default constraints of the connection
          *
          * @parameter cons cons New LDAPConstraints to use with the connection
@@ -342,6 +346,8 @@ class LDAPAsynConnection{
          * Is caching enabled?
          */
         bool m_cacheEnabled;
+
+        std::function< bool() > hardResetFunc;
 };
 #endif //LDAP_ASYN_CONNECTION_H
 

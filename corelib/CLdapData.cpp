@@ -85,8 +85,9 @@ void CLdapData::connect(const tConnectionOptions& connectOptions)
                 localConn->bind(connectOptions.username, connectOptions.password);
             }
             m_baseDN = connectOptions.basedn;
-            m_Connection = std::move(localConn);
             m_connectOptions = connectOptions;
+            m_Connection = std::move(localConn);
+            m_Connection->setHardResetFunc([&]() { return hardReconnect(); });
             m_Schema.build(m_Connection.get(), m_baseDN);
             build();
             emit this->onConnectionCompleted(true, "");
@@ -122,6 +123,48 @@ void CLdapData::build()
 	m_Entries.back()->construct(this, m_Connection.get(), m_baseDN.c_str());
 }
 
+bool CLdapData::hardReconnect()
+{
+    try
+    {
+        m_Connection->init(m_connectOptions.host, m_connectOptions.port);
+        if (m_connectOptions.useTLS)
+        {
+            auto tls = m_Connection->getTlsOptions();
+            if (m_connectOptions.cacertfile.size())
+            {
+                tls.setOption(TlsOptions::CACERTFILE, m_connectOptions.cacertfile);
+            }
+            if (m_connectOptions.certfile.size())
+            {
+                tls.setOption(TlsOptions::CERTFILE, m_connectOptions.certfile);
+            }
+            if (m_connectOptions.keyfile.size())
+            {
+                tls.setOption(TlsOptions::KEYFILE, m_connectOptions.keyfile);
+            }
+            m_Connection->start_tls([&](std::string err)
+            {
+                return m_CanUseUntrustedConnection;
+            });
+        }
+        if (m_connectOptions.useAnonymous)
+        {
+            m_Connection->bind();
+        }
+        else
+        {
+            m_Connection->bind(m_connectOptions.username, m_connectOptions.password);
+        }
+        return true;
+    }
+    catch (const LDAPException& e)
+    {
+
+    }
+    return false;
+}
+
 void CLdapData::reconnect()
 {
     std::unique_ptr<LDAPConnection> localConn(new LDAPConnection(m_connectOptions.host, m_connectOptions.port));
@@ -154,7 +197,7 @@ void CLdapData::reconnect()
         localConn->bind(m_connectOptions.username, m_connectOptions.password);
     }
     m_Connection = std::move(localConn);
-
+    m_Connection->setHardResetFunc([&]() { return hardReconnect(); });
 }
 
 void CLdapData::resetConnection()
