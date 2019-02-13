@@ -54,6 +54,7 @@ public:
     void                    availableAttributesMayImpl();
     void                    availableAttributesMustImpl();
 
+    QString                  structuralClass();
 
 public:
 	QString dn();

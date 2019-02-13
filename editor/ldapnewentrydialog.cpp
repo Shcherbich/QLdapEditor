@@ -73,9 +73,9 @@ CLdapNewEntryDialog::CLdapNewEntryDialog(QWidget* parent, QString dn, QString rd
     connect(ui->removeButton, &QAbstractButton::clicked, this, &CLdapNewEntryDialog::onRemoveClicked);
     ui->structuralCombo->addItem(structuralClass.c_str());
     ui->structuralCombo->setEnabled(false);
-    ui->parentdnEdit->setText(rdn);
+    ui->parentdnEdit->setText(dn);
+    ui->rdnEdit->setText(rdn);
     ui->parentdnEdit->setReadOnly(true);
-    ui->rdnEdit->setText(dn);
     ui->rdnEdit->setReadOnly(true);
     setWindowTitle(tr("Edit entry"));
 
@@ -175,7 +175,7 @@ QVector<QString> CLdapNewEntryDialog::selectedClasses() const
 
 void CLdapNewEntryDialog::onStructuralComboChanged(const QString&)
 {
-    ui->rdnEdit->setText("");
+    //ui->rdnEdit->setText("");
     QString selected = ui->structuralCombo->currentText();
     auto& schema = m_LdapData.schema();
 

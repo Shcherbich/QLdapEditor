@@ -110,30 +110,29 @@ void CLdapTreeView::onEditEntry()
 
     auto fObjectClass = std::find_if(reallyAttributes.begin(), reallyAttributes.end(), [&](const ldapcore::CLdapAttribute& a)
     {
-        return QString::compare(a.name(), "objectClass", Qt::CaseInsensitive);
+        return a.name().compare("objectClass", Qt::CaseInsensitive) == 0;
     });
-    auto fStructuralObjectClass = std::find_if(reallyAttributes.begin(), reallyAttributes.end(), [&](const ldapcore::CLdapAttribute& a)
-    {
-        return QString::compare(a.name(), "structuralObjectClass", Qt::CaseInsensitive);
-    });
+
+    QString fStructuralObjectClass = thisEntry->structuralClass();
 
     if (fObjectClass == reallyAttributes.end())
     {
-        QMessageBox::critical(this, tr("Error"), tr("No found attribut 'objectClass'"), QMessageBox::Ok);
+        QMessageBox::critical(this, tr("Edit Entry Error"), tr("No found attribut 'objectClass'"), QMessageBox::Ok);
         return;
     }
-    if (fStructuralObjectClass == reallyAttributes.end())
+    if (fStructuralObjectClass.isEmpty())
     {
-        QMessageBox::critical(this, tr("Error"), tr("No found attribut 'structuralObjectClass'"),QMessageBox::Ok);
+        QMessageBox::critical(this, tr("Edit Entry Error"), tr("'structuralObjectClass' is not found"),QMessageBox::Ok);
         return;
     }
 
-    auto structuralObjectClass = fStructuralObjectClass->value().toStdString();
+    auto structuralObjectClass = fStructuralObjectClass.toStdString();
     std::string delim = ";";
     auto prevClasses = split(fObjectClass->value().toStdString(), delim);
     prevClasses.erase(std::remove(prevClasses.begin(), prevClasses.end(), structuralObjectClass), prevClasses.end());
-    auto dn = thisEntry->dn();
-    auto rdn = thisEntry->rDn();
+
+    QString dn = thisEntry->dn();
+    QString rdn = thisEntry->rDn();
     ldapeditor::CLdapNewEntryDialog dialog(nullptr, dn, rdn, structuralObjectClass, prevClasses, m_LdapData);
     if (dialog.exec() == QDialog::Rejected)
     {
@@ -141,12 +140,15 @@ void CLdapTreeView::onEditEntry()
     }
     QVector<ldapcore::CLdapAttribute> theseAttributes;
     thisEntry->loadAttributes(theseAttributes, false);
+
     auto fDelete = std::find_if(theseAttributes.begin(), theseAttributes.end(), [&](const ldapcore::CLdapAttribute& a) {
-        return strcasecmp(a.name().toStdString().c_str(), "objectClass") == 0;
+        return a.name().compare("objectClass", Qt::CaseInsensitive) == 0;
     });
+
     if (theseAttributes.end() != fDelete)
         theseAttributes.remove(std::distance(theseAttributes.begin(), fDelete));
-    auto classes = dialog.selectedClasses();
+
+    QVector<QString> classes = dialog.selectedClasses();
     QVector<QString> tmp;
     for (auto& c : split(fObjectClass->value().toStdString(), delim))
         tmp << c.c_str();
@@ -159,10 +161,11 @@ void CLdapTreeView::onEditEntry()
     for (auto& thisA : theseAttributes)
     {
         auto bPrev = std::find_if(prevAttributes.begin(), prevAttributes.end(), [&](const ldapcore::CLdapAttribute& a) {
-            return strcasecmp(a.name().toStdString().c_str(), thisA.name().toStdString().c_str()) == 0;
+            return a.name().compare(thisA.name(), Qt::CaseInsensitive) == 0;
         }) != prevAttributes.end();
+
         auto bCurr = std::find_if(currAttributes.begin(), currAttributes.end(), [&](const ldapcore::CLdapAttribute& a) {
-            return strcasecmp(a.name().toStdString().c_str(), thisA.name().toStdString().c_str()) == 0;
+            return a.name().compare(thisA.name(), Qt::CaseInsensitive) == 0;
         }) != currAttributes.end();
 
         if (!bCurr)
@@ -182,10 +185,11 @@ void CLdapTreeView::onEditEntry()
     {
 
         auto bThese = std::find_if(theseAttributes.begin(), theseAttributes.end(), [&](const ldapcore::CLdapAttribute& a) {
-            return strcasecmp(a.name().toStdString().c_str(), currA.name().toStdString().c_str()) == 0;
+            return a.name().compare(a.name(), Qt::CaseInsensitive) == 0;
         }) != theseAttributes.end();
 
-        if (!bThese) {
+        if (!bThese)
+        {
             QMetaObject::invokeMethod(model(), "addAttribute", Qt::ConnectionType::QueuedConnection, Q_ARG(QString, currA.name()));
             continue;
         }

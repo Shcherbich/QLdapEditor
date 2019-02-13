@@ -667,5 +667,16 @@ void CLdapEntry::update() noexcept(false)
     }
 }
 
+QString  CLdapEntry::structuralClass()
+{
+    for(const QString& c : classes())
+    {
+        if(c.compare("top",Qt::CaseInsensitive) == 0)
+            continue;
+        return c;
+    }
+    return "???";
+}
+
 }
 
