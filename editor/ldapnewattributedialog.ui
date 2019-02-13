@@ -2,6 +2,9 @@
 <ui version="4.0">
  <class>CLdapNewAttributeDialog</class>
  <widget class="QDialog" name="CLdapNewAttributeDialog">
+  <property name="windowModality">
+   <enum>Qt::ApplicationModal</enum>
+  </property>
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -10,8 +13,29 @@
     <height>176</height>
    </rect>
   </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>400</width>
+    <height>176</height>
+   </size>
+  </property>
+  <property name="maximumSize">
+   <size>
+    <width>400</width>
+    <height>176</height>
+   </size>
+  </property>
   <property name="windowTitle">
    <string>New Attribute</string>
+  </property>
+  <property name="modal">
+   <bool>true</bool>
   </property>
   <widget class="QDialogButtonBox" name="buttonBox">
    <property name="geometry">
@@ -35,7 +59,7 @@
      <x>0</x>
      <y>0</y>
      <width>401</width>
-     <height>141</height>
+     <height>142</height>
     </rect>
    </property>
    <layout class="QFormLayout" name="formLayout">
@@ -60,6 +84,12 @@
     </item>
     <item row="0" column="1">
      <widget class="QComboBox" name="classCombo">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
       <property name="editable">
        <bool>false</bool>
       </property>
@@ -77,6 +107,12 @@
       <property name="enabled">
        <bool>false</bool>
       </property>
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
      </widget>
     </item>
     <item row="2" column="0">
@@ -90,6 +126,12 @@
      <widget class="QLineEdit" name="typeEdit">
       <property name="enabled">
        <bool>false</bool>
+      </property>
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
       </property>
       <property name="readOnly">
        <bool>true</bool>
@@ -107,6 +149,12 @@
      <widget class="QLineEdit" name="valueEdit">
       <property name="enabled">
        <bool>false</bool>
+      </property>
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
       </property>
      </widget>
     </item>
