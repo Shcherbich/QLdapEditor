@@ -92,7 +92,6 @@ void CLdapSchema::build(LDAPConnection* lc, std::string& baseDn)
 	StringList stringList;
 	stringList.add("objectClasses");
 	stringList.add("attributeTypes");
-	stringList.add("matchingRules");
 	entries = lc->search(schemabase, LDAPConnection::SEARCH_BASE, "(objectClass=*)", stringList);
 	if (entries == 0)
 	{
