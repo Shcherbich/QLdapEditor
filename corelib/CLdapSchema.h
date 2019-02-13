@@ -38,6 +38,7 @@ public:
     QString classDescription(const QString& cls);
     QVector<CLdapAttribute> mayAttributesByClass(QString cl);
     QVector<CLdapAttribute> mustAttributesByClass(QString cl);
+    QVector<QString> consistentClassesByStructuralAndOther(QString structuralCl, QVector<QString> allClasses);
 
 private:
 	void build(LDAPConnection* lc, std::string& baseDn);

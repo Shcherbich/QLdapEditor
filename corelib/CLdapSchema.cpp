@@ -347,5 +347,34 @@ QVector<CLdapAttribute> CLdapSchema::mustAttributesByClass(QString cl)
 }
 
 
+QVector<QString> CLdapSchema::consistentClassesByStructuralAndOther(QString structuralCl, QVector<QString> allClasses)
+{
+    QSet<QString> uniqueClasses;
+    QVector<QString> result;
+    const auto& schema = *classesSchema();
+    for (;;)
+    {
+        if (!uniqueClasses.contains(structuralCl))
+        {
+            uniqueClasses << structuralCl;
+            result << structuralCl;
+        }
+        auto sup = supByClass(structuralCl);
+        if (sup.isEmpty() || sup == structuralCl)
+        {
+            break;
+        }
+        structuralCl = sup;
+    }
+    for (auto& c: allClasses)
+    {
+        if (!uniqueClasses.contains(c))
+        {
+            result << c;
+        }
+    }
+    return result;
+}
+
 }
 
