@@ -341,7 +341,7 @@ void CLdapEntry::loadAttributes(QVector<CLdapAttribute>& vRet, bool needToLoadSy
                         auto name = i->getName();
                         auto attributeTypeByName = m_pData->schema().attributesSchema()->getAttributeTypeByName(name);
                         auto attrClasses = m_pData->schema().classesByAttributeName(name, m_classes);
-                        CLdapAttribute attr(name.c_str(), i->toString().c_str(), tp, true, attributeTypeByName.getDesc().c_str(), attrClasses, AttributeState::AttributeReadOnly);
+                        CLdapAttribute attr(name.c_str(), i->toString().c_str(), tp, isMust(name), attributeTypeByName.getDesc().c_str(), attrClasses, AttributeState::AttributeReadOnly);
                         vRet.push_back(attr);
                         m_Must.push_back(attr);
                     }
