@@ -87,11 +87,17 @@ protected slots:
      */
     void onEditEntry();
 
+    /*!
+     * @brief Method is called by 'Delete Entry' command
+     */
+    void onDeleteEntry();
+
 private:    
     QMenu       m_contextMenu;          ///< Context menu pointer member
     QAction*    m_newEntry{nullptr};    ///< 'New Entry' action member
     QAction*    m_editEntry{nullptr};   ///< 'Edit Entry' action member
-    ldapcore::CLdapData& m_LdapData;   ///< ldapcore::CLdapData reference member
+    QAction*    m_deleteEntry{nullptr}; ///< 'Delete Entry' action member
+    ldapcore::CLdapData& m_LdapData;    ///< ldapcore::CLdapData reference member
 };
 
 } //namespace ldapeditor

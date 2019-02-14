@@ -197,6 +197,28 @@ namespace ldapeditor
         return idxAdd;
     }
 
+    bool CLdapTreeModel::removeRows(int row, int count, const QModelIndex &parent)
+    {
+        ldapcore::CLdapEntry* parentEntry = static_cast<ldapcore::CLdapEntry*>(parent.internalPointer());
+        if(parentEntry)
+        {
+            QModelIndex childIdx = index(row, 0, parent);
+            if(childIdx.isValid())
+            {
+                ldapcore::CLdapEntry* childEntry = static_cast<ldapcore::CLdapEntry*>(childIdx.internalPointer());
+                if(childEntry)
+                {
+                    beginRemoveRows(parent, row, row + count -1);
+                    parentEntry->removeChild(childEntry);
+                    endRemoveRows();
+
+                    emit dataChanged(parent, parent);
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
 } //namespace ldapeditor
 
 

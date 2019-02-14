@@ -143,7 +143,7 @@ namespace ldapeditor
         Q_INVOKABLE void addAttribute(QString name);
 
         /*!
-         * @brief Metthod adds new Entity
+         * @brief Method adds new Entity
          * @param parent parent entity
          * @param rdn RDN string
          * @param dn  DN string
@@ -153,6 +153,14 @@ namespace ldapeditor
          */
         QModelIndex addNewEntry(QModelIndex parent, QString rdn, QString dn, QVector<QString>& classes, QVector<ldapcore::CLdapAttribute>& attributes);
 
+        /*!
+         * \brief Method removes entity from LDAP Tree
+         * \param row start row for deleting
+         * \param count count of rows for deleting
+         * \param parent parent index
+         * \return true if success, false if else
+         */
+        bool removeRows(int row, int count, const QModelIndex &parent = QModelIndex());
     private:
         ldapcore::CLdapEntry*           m_invisibleRoot{nullptr}; ///< hidden root item for LDAP tree
         QVector<ldapcore::CLdapEntry*>  m_topItems;               ///< Top items for LDAP tree

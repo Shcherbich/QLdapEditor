@@ -25,13 +25,18 @@ CLdapTreeView::CLdapTreeView(QWidget* parent, ldapcore::CLdapData& ldapData)
     , m_LdapData(ldapData)
     , m_newEntry(new QAction(tr("New entry"), this))
     , m_editEntry(new QAction(tr("Edit entry"), this))
+    , m_deleteEntry(new QAction(tr("Delete entry"), this))
 {
     m_contextMenu.addAction(m_newEntry);
     m_contextMenu.addAction(m_editEntry);
+    m_contextMenu.addAction(m_deleteEntry);
     setContextMenuPolicy(Qt::CustomContextMenu);
+
     connect(this, &QTreeView::customContextMenuRequested, this, &CLdapTreeView::customContextMenuRequested);
     connect(m_newEntry, &QAction::triggered, this, &CLdapTreeView::onNewEntry);
     connect(m_editEntry, &QAction::triggered, this, &CLdapTreeView::onEditEntry);
+    connect(m_deleteEntry, &QAction::triggered, this, &CLdapTreeView::onDeleteEntry);
+
     connect(this, &QTreeView::expanded, this, &CLdapTreeView::expand );
 
     setSortingEnabled(true);
@@ -203,6 +208,24 @@ void CLdapTreeView::onEditEntry()
 
     thisEntry->setClasses(classes);
     thisEntry->setEditable(true);
+}
+
+void CLdapTreeView::onDeleteEntry()
+{
+    QModelIndex index = currentIndex();
+    if (!index.isValid())
+    {
+        return;
+    }
+
+    QModelIndex parent = index.parent();
+    if(model()->removeRows(index.row(), 1, parent))
+    {
+        setCurrentIndex(parent);
+        scrollTo(parent, QAbstractItemView::PositionAtCenter);
+    }
+
+    // ToDo: implement deleteting from server
 }
 
 void  CLdapTreeView::expand(const QModelIndex &index)
