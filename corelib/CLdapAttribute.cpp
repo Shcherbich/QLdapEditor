@@ -31,12 +31,14 @@ CLdapAttribute::CLdapAttribute(const CLdapAttribute& src)
         m_isMust = src.m_isMust;
         m_Description = src.m_Description;
         m_Classes << src.m_Classes;
+        m_isIgnore = src.m_isIgnore;
 	}
 }
 
 CLdapAttribute::CLdapAttribute(CLdapAttribute&& temp)
  : m_Name(std::move(temp.m_Name)), m_Value(std::move(temp.m_Value)), m_Description(std::move(temp.m_Description)),
-   m_Type(temp.m_Type), m_editState(temp.m_editState), m_isMust(temp.m_isMust), m_Classes(std::move(temp.m_Classes))
+   m_Type(temp.m_Type), m_editState(temp.m_editState), m_isMust(temp.m_isMust), m_Classes(std::move(temp.m_Classes)),
+   m_isIgnore(std::move(temp.m_isIgnore))
 {
 
 }
@@ -53,6 +55,7 @@ CLdapAttribute& CLdapAttribute::operator = (const CLdapAttribute& src)
     m_isMust = src.m_isMust;
     m_Description = src.m_Description;
     m_Classes << src.m_Classes;
+    m_isIgnore = src.m_isIgnore;
     return * this;
 }
 
@@ -66,6 +69,7 @@ CLdapAttribute& CLdapAttribute::operator = (CLdapAttribute&& src)
     m_isMust = src.m_isMust;
     m_Description = src.m_Description;
     m_Classes = std::move(src.m_Classes);
+    m_isIgnore = src.m_isIgnore;
     return * this;
 }
 

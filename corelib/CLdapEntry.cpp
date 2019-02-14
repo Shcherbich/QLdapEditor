@@ -307,7 +307,7 @@ void CLdapEntry::loadAttributes(QVector<CLdapAttribute>& vRet, bool needToLoadSy
         auto name = i->getName();
         auto attributeTypeByName = m_pData->schema().attributesSchema()->getAttributeTypeByName(name);
         auto attrClasses = m_pData->schema().classesByAttributeName(name, m_classes);
-        CLdapAttribute attr(name.c_str(), i->toString().c_str(), tp, isMust(name), attributeTypeByName.getDesc().c_str(), attrClasses, editState);
+        CLdapAttribute attr(name.c_str(), i->toString().c_str(), tp, isMust(name), attributeTypeByName.getDesc().c_str(), attrClasses, (isMust(name) && !isNew()) ? AttributeState::AttributeReadOnly : editState);
         vRet.push_back(attr);
     }
 
@@ -687,13 +687,7 @@ void CLdapEntry::deleteSelf() noexcept(false)
 
 QString  CLdapEntry::structuralClass()
 {
-    for(const QString& c : classes())
-    {
-        if(c.compare("top",Qt::CaseInsensitive) == 0)
-            continue;
-        return c;
-    }
-    return "???";
+    return classes().isEmpty()? "???" : classes().last();
 }
 
 }

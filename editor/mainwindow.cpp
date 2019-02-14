@@ -211,14 +211,14 @@ QString MainWindow::normilizeDN(const QString& dn)
 
 void MainWindow::onTreeItemChanged(const QModelIndex& current, const QModelIndex& mainPrev)
 {
-    QModelIndex curProxy = m_TreeProxyModel->mapToSource(current);
-    QModelIndex mainPrevProxy = m_TreeProxyModel->mapToSource(mainPrev);
-    if (!curProxy.isValid())
+    QModelIndex srcCur = m_TreeProxyModel->mapToSource(current);
+    QModelIndex srcPrev = m_TreeProxyModel->mapToSource(mainPrev);
+    if (!srcCur.isValid())
 	{
 		return;
 	}
 
-    if (mainPrevProxy.isValid())
+    if (srcPrev.isValid())
 	{
         if (m_TableModel->isNew() && m_LdapTree->updatesEnabled())
 		{
@@ -234,25 +234,24 @@ void MainWindow::onTreeItemChanged(const QModelIndex& current, const QModelIndex
             }
             else
 			{
-                ldapcore::CLdapEntry* prevEntry = static_cast<ldapcore::CLdapEntry*>(mainPrevProxy.internalPointer());
+                ldapcore::CLdapEntry* prevEntry = static_cast<ldapcore::CLdapEntry*>(srcPrev.internalPointer());
                 if (prevEntry)
 				{
-					auto parent = prevEntry->parent();
-					if (parent)
+                    ldapcore::CLdapEntry* parentEntry = prevEntry->parent();
+                    if (parentEntry)
 					{
                         QtUiLocker locker(m_LdapTree);
-                        auto previous = mainPrevProxy.parent();
-                        parent->removeChild(prevEntry);
-                        m_LdapTree->collapse(previous);
-                        m_LdapTree->expand(previous);
-                        m_LdapTree->setCurrentIndex(previous);
-                        m_TableModel->setLdapEntry(parent);
-                        m_AttributesList->setLdapEntry(parent);
+                        QModelIndex parentIndex = mainPrev.parent();
+                        parentEntry->removeChild(prevEntry);
+                        m_LdapTree->collapse(parentIndex);
+                        m_LdapTree->expand(parentIndex);
+                        m_LdapTree->setCurrentIndex(parentIndex);
+                        m_TableModel->setLdapEntry(parentEntry);
+                        m_AttributesList->setLdapEntry(parentEntry);
                         onReload();
                         return;
 					}
 				}
-
 			}
 		}
 		else
@@ -282,7 +281,7 @@ void MainWindow::onTreeItemChanged(const QModelIndex& current, const QModelIndex
 		}
 	}
 
-    ldapcore::CLdapEntry* currentEntry = static_cast<ldapcore::CLdapEntry*>(curProxy.internalPointer());
+    ldapcore::CLdapEntry* currentEntry = static_cast<ldapcore::CLdapEntry*>(srcCur.internalPointer());
 	if (currentEntry)
 	{
 		m_TableModel->setLdapEntry(currentEntry);
@@ -298,7 +297,7 @@ void MainWindow::onLdapSearch()
 
 void MainWindow::onSaveData()
 {
-    if(m_TableModel->Save())
+    if(m_AttributesList->SaveData())
     {
         statusBar()->showMessage(tr("Data saved"));
     }

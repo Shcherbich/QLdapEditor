@@ -38,7 +38,9 @@ void CLdapAttributesModel::setLdapEntry(ldapcore::CLdapEntry* entry)
     endResetModel();
 
     if(m_pAttributes)
+    {
         emit dataChanged(index(0, 0), index(m_pAttributes->size(), m_SectionsList.size()), QVector<int>() << Qt::DisplayRole);
+    }
     m_IsChanged = false;
 }
 

@@ -20,6 +20,7 @@ namespace ldapeditor
         explicit CLdapTableView(QWidget *parent, ldapcore::CLdapData&, CLdapSettings&);
         void setLdapEntry(ldapcore::CLdapEntry* entry);
         void RestoreView();
+        bool SaveData();
 
     signals:
 

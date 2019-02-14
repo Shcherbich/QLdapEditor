@@ -271,7 +271,7 @@ QVariant CAttributeModelHelper::foregroundRoleData(const ldapcore::CLdapAttribut
 {
     if (attr.isMust())
     {
-        return QColor(Qt::blue);
+        return m_LdapEntry->isNew() ? QColor(Qt::blue) : QColor("#126180");
     }
     switch(attr.editState())
     {

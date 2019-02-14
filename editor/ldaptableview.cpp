@@ -146,4 +146,15 @@ namespace ldapeditor
         }
         return QTableView::mousePressEvent(event);
     }
+
+    bool CLdapTableView::SaveData()
+    {
+        bool isNew = m_entry->isNew();
+        bool bRet = static_cast<CLdapAttributesModel*>(model())->Save();
+        if(isNew)
+        {
+            hideColumn(static_cast<int>(AttributeColumn::Ignore));
+        }
+        return bRet;
+    }
 } //namespace ldapeditor

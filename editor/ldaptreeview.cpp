@@ -45,6 +45,7 @@ CLdapTreeView::CLdapTreeView(QWidget* parent, ldapcore::CLdapData& ldapData)
 
 void CLdapTreeView::currentChanged(const QModelIndex& current, const QModelIndex& previous)
 {
+
     emit treeItemChanged(current, previous);
 }
 
@@ -88,6 +89,7 @@ void CLdapTreeView::onNewEntry()
         if(!a.isMust() && a.value().isEmpty())
             continue;
 
+        a.setIsIgnore(a.isMust() && a.value().isEmpty());
         QVector<QString> attrClasses;
         attrClasses = m_LdapData.schema().classesByAttributeName(a.name().toStdString(), classes);
         a.setClasses(attrClasses);
@@ -306,6 +308,8 @@ std::tuple<QModelIndex, ldapcore::CLdapEntry*> CLdapTreeView::findByDn(QString d
     }
     return std::make_tuple(QModelIndex(), nullptr);
 }
+
+
 /*
 void CLdapTreeView::saveState()
 {

@@ -25,17 +25,20 @@ CLdapNewAttributeDialog::CLdapNewAttributeDialog(ldapcore::CLdapData &ldapData, 
     ui->labelValue->hide();
     ui->valueEdit->hide();
 
-    QStringList itemsList;
-    for(auto s : m_entry->classes())
-        itemsList << s;
+    QVector<QString> classes = m_LdapData.schema().consistentClassesByStructuralAndOther(m_entry->structuralClass(), m_entry->classes());
 
-    itemsList.sort();
+    int structuraClassIdx=-1;
+    for(int i=0; i< classes.size();i++)
+    {
+        ui->classCombo->addItem(classes[i]);
+        if(m_entry->structuralClass() == classes[i])
+            structuraClassIdx = i;
+    }
 
-    for(auto s : itemsList)
-        ui->classCombo->addItem(s);
+    if(structuraClassIdx!= -1)
+        ui->classCombo->setCurrentIndex(structuraClassIdx);
 
-    ui->classCombo->setCurrentIndex(0);
-    onCurrentClassChanged(0);
+    onCurrentClassChanged(structuraClassIdx);
 }
 
 CLdapNewAttributeDialog::~CLdapNewAttributeDialog()
