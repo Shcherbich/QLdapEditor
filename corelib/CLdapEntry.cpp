@@ -15,6 +15,7 @@
 #include "LDAPMessage.h"
 
 static StringList systemAttrs;
+using uEntry = std::shared_ptr<LDAPEntry>;
 
 struct comp
 {
@@ -40,7 +41,7 @@ std::vector<std::string> GetObjectClasses(LDAPConnection* le, std::string dn)
         {
             return vRet;
         }
-        LDAPEntry* en = finds->getNext();
+        uEntry en(finds->getNext());
         if (en == nullptr)
         {
             return vRet;
