@@ -212,9 +212,32 @@ void CLdapTreeView::onEditEntry()
 
 void CLdapTreeView::onDeleteEntry()
 {
-    QModelIndex index = currentIndex();
-    if (!index.isValid())
+    auto index = currentIndex();
+    auto indexSource = static_cast<CLdapTreeProxyModel*>(model())->mapToSource(index);
+    if (!index.isValid() || !indexSource.isValid())
     {
+        return;
+    }
+
+    ldapcore::CLdapEntry* thisEntry = static_cast<ldapcore::CLdapEntry*>(indexSource.internalPointer());
+    if (!thisEntry)
+    {
+        return;
+    }
+
+    auto ret = QMessageBox::question(this, tr("Question"), QString(tr("Do you really want to delete '%1' entry?").arg(thisEntry->dn())), QMessageBox::Yes|QMessageBox::No);
+    if (ret != QMessageBox::Yes)
+    {
+        return;
+    }
+
+    try
+    {
+        thisEntry->deleteSelf();
+    }
+    catch (const std::exception& ex)
+    {
+        QMessageBox::critical(this, tr("Delete Entry Error"), ex.what(), QMessageBox::Ok);
         return;
     }
 
@@ -224,8 +247,6 @@ void CLdapTreeView::onDeleteEntry()
         setCurrentIndex(parent);
         scrollTo(parent, QAbstractItemView::PositionAtCenter);
     }
-
-    // ToDo: implement deleteting from server
 }
 
 void  CLdapTreeView::expand(const QModelIndex &index)

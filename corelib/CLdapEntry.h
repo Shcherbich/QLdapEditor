@@ -51,10 +51,11 @@ public:
 	void                    addAttributes(QVector<CLdapAttribute>&);
     void                    saveNewChild() noexcept(false);
     void                    update() noexcept(false);
+    void                    deleteSelf() noexcept(false);
     void                    availableAttributesMayImpl();
     void                    availableAttributesMustImpl();
 
-    QString                  structuralClass();
+    QString                 structuralClass();
 
 public:
 	QString dn();

@@ -670,6 +670,20 @@ void CLdapEntry::update() noexcept(false)
     }
 }
 
+void CLdapEntry::deleteSelf() noexcept(false)
+{
+    try
+    {
+        std::unique_ptr<LDAPConstraints> cons = std::unique_ptr<LDAPConstraints>(new LDAPConstraints());
+        auto& dn = m_pEntry->getDN();
+        connectionPtr()->del(dn, cons.get());
+    }
+    catch (const std::exception& ex)
+    {
+        throw CLdapServerException(ex.what());
+    }
+}
+
 QString  CLdapEntry::structuralClass()
 {
     for(const QString& c : classes())
