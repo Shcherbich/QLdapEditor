@@ -129,7 +129,7 @@ std::string ReplaceAttributeOnServer(LDAPConnection* conn, LDAPEntry* le, std::s
         LDAPModification::mod_op op = LDAPModification::OP_REPLACE;
         LDAPModList* mod = new LDAPModList();
         auto q = conn->search(le->getDN(), LDAPAsynConnection::SEARCH_SUB, "objectClass=*", StringList());
-        auto en = q->getNext();
+        uEntry en(q->getNext());
         auto find = en->getAttributeByName(name);
         if (find == nullptr)
         {
