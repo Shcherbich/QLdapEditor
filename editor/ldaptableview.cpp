@@ -113,7 +113,11 @@ namespace ldapeditor
         ldapeditor::CLdapNewAttributeDialog dlg(m_LdapData, m_entry);
         if(dlg.exec() == QDialog::Accepted)
         {
-            static_cast<CLdapAttributesModel*>(model())->addAttribute(dlg.attribute());
+            QModelIndex newAttr = static_cast<CLdapAttributesModel*>(model())->addAttribute(dlg.attribute());
+            if(newAttr.isValid())
+            {
+                setCurrentIndex(newAttr);
+            }
         }
 
     }

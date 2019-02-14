@@ -205,10 +205,10 @@ bool CLdapAttributesModel::insertRows(int row, int count, const QModelIndex& par
     return true;
 }
 
-bool CLdapAttributesModel::addAttribute(const ldapcore::CLdapAttribute& attribute)
+QModelIndex CLdapAttributesModel::addAttribute(const ldapcore::CLdapAttribute& attribute)
 {
     if(!m_pAttributes || !m_entry)
-        return false;
+        return QModelIndex();
 
     auto aNew = m_entry->createEmptyAttribute(attribute.name().toStdString());
     aNew->setType(attribute.type());
@@ -232,7 +232,7 @@ bool CLdapAttributesModel::addAttribute(const ldapcore::CLdapAttribute& attribut
     QModelIndex idxFrom = index(row, 0, parent);
     QModelIndex idxTo = index(row + count - 1, m_SectionsList.size() - 1, parent);
     emit dataChanged(idxFrom, idxTo, QVector<int>() << Qt::DisplayRole);
-    return true;
+    return idxFrom;
 }
 
 bool CLdapAttributesModel::insertColumns(int column, int count, const QModelIndex& parent)
