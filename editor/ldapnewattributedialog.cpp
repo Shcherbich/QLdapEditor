@@ -1,6 +1,7 @@
 #include "ldapnewattributedialog.h"
 #include "ui_ldapnewattributedialog.h"
 #include "attributemodelhelper.h"
+#include <QDateTime>
 
 namespace ldapeditor {
 
@@ -18,7 +19,11 @@ CLdapNewAttributeDialog::CLdapNewAttributeDialog(ldapcore::CLdapData &ldapData, 
     ui->typeEdit->setStyleSheet("QLineEdit{ padding-left: 6px; }");
     ui->valueEdit->setStyleSheet("QLineEdit{ padding-left: 6px; }");
 
+
     ui->typeEdit->setReadOnly(true);
+
+    ui->labelValue->hide();
+    ui->valueEdit->hide();
 
     QStringList itemsList;
     for(auto s : m_entry->classes())
@@ -76,8 +81,35 @@ void CLdapNewAttributeDialog::onCurrentAttributeChanged(int index)
     {
         CAttributeModelHelper helper(m_LdapData);
         int attrIdx = ui->attrCombo->itemData(index).toInt();
-        ui->typeEdit->setText(helper.attributeType2String(m_attributes[attrIdx].type()));
-        ui->valueEdit->setText(m_attributes[attrIdx].value());
+
+        ldapcore::AttrType type = m_attributes[attrIdx].type();
+        QString value = m_attributes[attrIdx].value();
+
+        ui->typeEdit->setText(helper.attributeType2String(type));
+
+
+        if(value.isEmpty() && type == ldapcore::AttrType::Boolean)
+        {
+            value = "FALSE";
+            QRegExp rx("TRUE|FALSE$");
+            QRegExpValidator v(rx, 0);
+            ui->valueEdit->setValidator(&v);
+        }
+        if(value.isEmpty() && type == ldapcore::AttrType::Integer)
+        {
+            value = "0";
+            QRegExp rx("^\\d+$");
+            QRegExpValidator v(rx, 0);
+            ui->valueEdit->setValidator(&v);
+        }
+        if(value.isEmpty() && type == ldapcore::AttrType::GeneralizedTime)
+        {
+            value = QDateTime::currentDateTime().toString("yyyyMMddHHmmss.zzz")+"Z";
+            QRegExp rx("^\\d{4}\\d{2}\\d{2}([0-9]|0[0-9]|1[0-9]|2[0-3])[0-5][0-9][0-5][0-9](\\.\\d{3})?$");
+            QRegExpValidator v(rx, 0);
+            ui->valueEdit->setValidator(&v);
+        }
+        ui->valueEdit->setText(value);
     }
 }
 
