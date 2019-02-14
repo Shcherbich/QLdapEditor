@@ -572,7 +572,7 @@ void CLdapEntry::saveNewChild() noexcept(false)
         for (auto& a : child->m_attributes)
         {
             auto value = a.value();
-            if (!value.isEmpty())
+            if (!value.isEmpty() && a.name() != "objectClass")
             {
                 attrs->addAttribute(LDAPAttribute(a.name().toStdString(), value.toStdString()));
             }

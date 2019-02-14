@@ -61,16 +61,21 @@ void CLdapTreeView::onNewEntry()
     {
         return;
     }
+    QVector<QString> classes = dialog.selectedClasses();
+    QVector<QString> consistentClasses = m_LdapData.schema().consistentClassesByStructuralAndOther(dialog.structuralClass(), classes);
     QString rdn = dialog.rdn();
     std::string delim = "=";
     auto v = split(rdn.toStdString(), delim);
-
     std::map<std::string, std::string> a2v;
+    QStringList list;
+    for (auto cl: consistentClasses)
+        list << cl;
+    a2v["objectClass"] = list.join(";").toStdString();
     if (v.size() > 1)
     {
         a2v[v[0]] = v[1];
     }
-    QVector<QString> classes = dialog.selectedClasses();
+
     QVector<ldapcore::CLdapAttribute> all_attributes = m_LdapData.schema().attributeByClasses(classes, a2v);
     QVector<ldapcore::CLdapAttribute> newEntryAttributes ;
     for(ldapcore::CLdapAttribute& a: all_attributes)

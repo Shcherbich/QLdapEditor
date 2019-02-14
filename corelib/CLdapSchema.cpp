@@ -225,7 +225,7 @@ QVector<QString> CLdapSchema::auxiliaryClassesBySup(QString sup)
 
 QVector<CLdapAttribute> CLdapSchema::attributeByClasses(QVector<QString>& classes, std::map<std::string, std::string>& a2v)
 {
-    static std::set<std::string> excludedAttributeNames {"objectClass"};
+    static std::set<std::string> excludedAttributeNames;
 	std::set<std::string> uniqueAttributes;
 	QVector<CLdapAttribute> vector;
 	for (auto& c : classes)

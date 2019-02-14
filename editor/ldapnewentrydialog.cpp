@@ -133,6 +133,7 @@ void CLdapNewEntryDialog::onOkClicked()
         vSelectedClasses << "top";
     }
     vSelectedClasses << structuralClass;
+    m_structuralClass = structuralClass;
     for (int i = 0; i < ui->listNeeded->count(); ++i)
     {
         vSelectedClasses << ui->listNeeded->item(i)->text();
@@ -207,6 +208,11 @@ void CLdapNewEntryDialog::fillListAll(QString structuralClass)
     ui->listNeeded->clear();
     for (auto& c : v)
         ui->listAll->addItem(c);
+}
+
+QString CLdapNewEntryDialog::structuralClass() const
+{
+    return m_structuralClass;
 }
 
 } //namespace ldapeditor

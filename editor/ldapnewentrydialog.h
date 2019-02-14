@@ -25,6 +25,7 @@ namespace ldapeditor
 
         QString rdn() const;
         QVector<QString> selectedClasses() const;
+        QString structuralClass() const;
         void fillListAll(QString structuralClass);
 
     private slots:
@@ -39,6 +40,7 @@ namespace ldapeditor
         QString          m_rdn;
         QVector<QString> vSelectedClasses;
         ldapcore::CLdapData& m_LdapData;
+        QString          m_structuralClass;
         bool m_editMode {false};
     };
 }//namespace ldapeditor
