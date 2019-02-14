@@ -94,9 +94,9 @@ std::string AddAttributeToServer(LDAPConnection* conn, LDAPEntry* le, std::strin
         LDAPAttribute newattr(name);
         newattr.addValue(value);
         LDAPModification::mod_op op = LDAPModification::OP_ADD;
-        LDAPModList* mod = new LDAPModList();
+        std::unique_ptr<LDAPModList>  mod(new LDAPModList());
         mod->addModification(LDAPModification(newattr, op));
-        conn->modify_s(le->getDN(), mod);
+        conn->modify_s(le->getDN(), mod.get());
         return "";
     }
     catch (const std::exception& ex)
@@ -111,9 +111,9 @@ std::string DeleteAttributeFromServer(LDAPConnection* conn, LDAPEntry* le, std::
     {
         LDAPAttribute newattr(name);
         LDAPModification::mod_op op = LDAPModification::OP_DELETE;
-        LDAPModList* mod = new LDAPModList();
+        std::unique_ptr<LDAPModList> mod(new LDAPModList());
         mod->addModification(LDAPModification(newattr, op));
-        conn->modify_s(le->getDN(), mod);
+        conn->modify_s(le->getDN(), mod.get());
         return "";
     }
     catch (const std::exception& ex)
