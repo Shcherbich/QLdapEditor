@@ -29,6 +29,7 @@ public:
     void validateAttributeByName(std::string attributeName, std::string value) noexcept(false);
     QVector<QString> classes();
     QVector<QString> structuralClasses();
+    QVector<QString> auxiliaryClasses();
     QString supByClass(QString c);
     QString startRdn(QString c);
     QVector<QString> auxiliaryClassesBySup(QString sup);

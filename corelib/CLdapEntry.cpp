@@ -507,6 +507,18 @@ QVector<QString> CLdapEntry::classes()
     return m_classes;
 }
 
+QVector<QString> CLdapEntry::auxiliaryClasses()
+{
+    QVector<QString> vector;
+    auto auxiliaryClasses = m_pData->schema().auxiliaryClasses();
+    for (auto& cl: m_classes)
+    {
+        if (auxiliaryClasses.contains(cl))
+            vector << cl;
+    }
+    return vector;
+}
+
 void CLdapEntry::setClasses(QVector<QString>& cList)
 {
     m_classes.clear();

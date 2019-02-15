@@ -34,9 +34,6 @@ public:
     bool                    isEdit();
     void                    setEditable(bool isEdit);
 	std::shared_ptr<CLdapAttribute> createEmptyAttribute(std::string attributeName);
-    QVector<QString>        classes();
-    void                    setClasses(QVector<QString>&);
-	QVector<QString>        availableClasses();
 
 	void                    validateAttribute(CLdapAttribute& attr);
     void                    loadAttributes(QVector<CLdapAttribute>&, bool needToLoadSystemAttributes = true);
@@ -55,7 +52,11 @@ public:
     void                    availableAttributesMayImpl();
     void                    availableAttributesMustImpl();
 
+    QVector<QString>        classes();
+    void                    setClasses(QVector<QString>&);
+    QVector<QString>        availableClasses();
     QString                 structuralClass();
+    QVector<QString>        auxiliaryClasses();
 
 public:
 	QString dn();

@@ -205,6 +205,19 @@ QVector<QString> CLdapSchema::structuralClasses()
 	return r;
 }
 
+QVector<QString> CLdapSchema::auxiliaryClasses()
+{
+    QVector<QString> r;
+    for (auto& c : m_impl->classesSchema.object_classes)
+    {
+        if (c.second.getKind() == 2)
+        {
+            r << c.second.getName().c_str();
+        }
+    }
+    return r;
+}
+
 QVector<QString> CLdapSchema::auxiliaryClassesBySup(QString sup)
 {
 	QVector<QString> r;
