@@ -141,12 +141,20 @@ void CLdapTreeView::onEditEntry()
 
     auto structuralObjectClass = fStructuralObjectClass.toStdString();
     std::string delim = ";";
-    auto prevClasses = split(fObjectClass->value().toStdString(), delim);
-    prevClasses.erase(std::remove(prevClasses.begin(), prevClasses.end(), structuralObjectClass), prevClasses.end());
+    //auto prevClasses = split(fObjectClass->value().toStdString(), delim);
+     //prevClasses.erase(std::remove(prevClasses.begin(), prevClasses.end(), structuralObjectClass), prevClasses.end());
+
+    QVector<QString> auxEntryClasses = thisEntry->auxiliaryClasses();
+    std::vector<std::string> auxClasses;
+    for(QString c: auxEntryClasses)
+    {
+        if(c.compare(fStructuralObjectClass))
+            auxClasses.push_back(c.toStdString());
+    }
 
     QString dn = thisEntry->dn();
     QString rdn = thisEntry->rDn();
-    ldapeditor::CLdapNewEntryDialog dialog(nullptr, dn, rdn, structuralObjectClass, prevClasses, m_LdapData);
+    ldapeditor::CLdapNewEntryDialog dialog(nullptr, dn, rdn, structuralObjectClass, auxClasses, m_LdapData);
     if (dialog.exec() == QDialog::Rejected)
     {
         return;
@@ -210,6 +218,7 @@ void CLdapTreeView::onEditEntry()
 
     thisEntry->setClasses(classes);
     thisEntry->setEditable(true);
+    update(index);
 }
 
 void CLdapTreeView::onDeleteEntry()
