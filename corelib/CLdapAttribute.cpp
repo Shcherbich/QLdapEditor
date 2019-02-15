@@ -36,8 +36,13 @@ CLdapAttribute::CLdapAttribute(const CLdapAttribute& src)
 }
 
 CLdapAttribute::CLdapAttribute(CLdapAttribute&& temp)
- : m_Name(std::move(temp.m_Name)), m_Value(std::move(temp.m_Value)), m_Description(std::move(temp.m_Description)),
-   m_Type(temp.m_Type), m_editState(temp.m_editState), m_isMust(temp.m_isMust), m_Classes(std::move(temp.m_Classes)),
+ : m_Name(std::move(temp.m_Name)),
+   m_Value(std::move(temp.m_Value)),
+   m_Type(temp.m_Type),
+   m_isMust(temp.m_isMust),
+   m_Description(std::move(temp.m_Description)),
+   m_Classes(std::move(temp.m_Classes)),
+   m_editState(temp.m_editState),
    m_isIgnore(std::move(temp.m_isIgnore))
 {
 
