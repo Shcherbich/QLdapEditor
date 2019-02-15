@@ -19,8 +19,8 @@ vector<string> split(const string& str, const string& delim)
 	do
 	{
 		pos = str.find(delim, prev);
-		if (pos == string::npos)
-		{
+        if (pos == string::npos)
+        {
 			pos = str.length();
 		}
 		string token = str.substr(prev, pos - prev);
@@ -56,7 +56,6 @@ void CLdapData::connect(const tConnectionOptions& connectOptions)
             if (connectOptions.useTLS)
             {
                 auto tls = localConn->getTlsOptions();
-                //const_cast<tConnectionOptions&>(connectOptions).cacertfile = "/home/centosuser/tls/ca.pem";
                 if (connectOptions.cacertfile.size())
                 {
                     tls.setOption(TlsOptions::CACERTFILE, connectOptions.cacertfile);
@@ -72,7 +71,7 @@ void CLdapData::connect(const tConnectionOptions& connectOptions)
                 localConn->start_tls([&](std::string err)
                 {
                     QString warningText = QString("<br>The LDAP Server uses an invalid certificate:</br><br><font color='#FF0000'>Description: %2</font></br><br></br><br>Do you wich proceed?</br>").arg(err.c_str());
-                    m_CanUseUntrustedConnection = QMessageBox::warning(0, "Certificate trust", warningText, QMessageBox::Yes|QMessageBox::No) == QMessageBox::Yes;
+                    m_CanUseUntrustedConnection = QMessageBox::warning(0, "Certificate trust", warningText, QMessageBox::Yes | QMessageBox::No) == QMessageBox::Yes;
                     return m_CanUseUntrustedConnection;
                 });
             }
