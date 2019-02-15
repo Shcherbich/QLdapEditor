@@ -67,10 +67,24 @@ CLdapNewEntryDialog::CLdapNewEntryDialog(QWidget* parent, QString dn, QString rd
 {
     ui->setupUi(this);
 
+    ui->addButton->setEnabled(false);
+    ui->removeButton->setEnabled(false);
+
     connect(ui->closeButton, &QAbstractButton::clicked, this, &CLdapNewEntryDialog::onCloseClicked);
     connect(ui->okButton, &QAbstractButton::clicked, this, &CLdapNewEntryDialog::onOkClicked);
     connect(ui->addButton, &QAbstractButton::clicked, this, &CLdapNewEntryDialog::onAddClicked);
     connect(ui->removeButton, &QAbstractButton::clicked, this, &CLdapNewEntryDialog::onRemoveClicked);
+
+
+    connect(ui->listAll, &QListWidget::currentItemChanged, this, [this](QListWidgetItem* current, QListWidgetItem* previous){
+        Q_UNUSED(previous);
+        ui->addButton->setEnabled(current != nullptr);
+    });
+    connect(ui->listNeeded, &QListWidget::currentItemChanged, this, [this](QListWidgetItem* current, QListWidgetItem* previous){
+        Q_UNUSED(previous);
+        ui->removeButton->setEnabled(current != nullptr);
+    });
+
     ui->structuralCombo->addItem(structuralClass.c_str());
     ui->structuralCombo->setEnabled(false);
     ui->parentdnEdit->setText(dn);
@@ -128,11 +142,11 @@ void CLdapNewEntryDialog::onOkClicked()
 
     vSelectedClasses.clear();
     QString structuralClass = ui->structuralCombo->currentText();
-    if (structuralClass != "top")
-    {
-        vSelectedClasses << "top";
-    }
-    vSelectedClasses << structuralClass;
+//    if (structuralClass != "top")
+//    {
+//        vSelectedClasses << "top";
+//    }
+//    vSelectedClasses << structuralClass;
     m_structuralClass = structuralClass;
     for (int i = 0; i < ui->listNeeded->count(); ++i)
     {

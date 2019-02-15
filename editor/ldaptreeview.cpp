@@ -141,16 +141,21 @@ void CLdapTreeView::onEditEntry()
 
     auto structuralObjectClass = fStructuralObjectClass.toStdString();
     std::string delim = ";";
-    //auto prevClasses = split(fObjectClass->value().toStdString(), delim);
-     //prevClasses.erase(std::remove(prevClasses.begin(), prevClasses.end(), structuralObjectClass), prevClasses.end());
 
+    QVector<QString> originalClasses = thisEntry->classes();
     QVector<QString> auxEntryClasses = thisEntry->auxiliaryClasses();
+    QVector<QString> structClasses            ;
     std::vector<std::string> auxClasses;
     for(QString c: auxEntryClasses)
     {
-        if(c.compare(fStructuralObjectClass))
-            auxClasses.push_back(c.toStdString());
+         auxClasses.push_back(c.toStdString());
     }
+
+    // fill struct classes
+    std::for_each(originalClasses.constBegin(), originalClasses.constEnd(), [&structClasses,&auxClasses](const QString& c){
+      if(std::find(auxClasses.begin(),auxClasses.end(),c.toStdString()) == auxClasses.end())
+          structClasses.append(c);
+    });
 
     QString dn = thisEntry->dn();
     QString rdn = thisEntry->rDn();
@@ -169,14 +174,13 @@ void CLdapTreeView::onEditEntry()
     if (theseAttributes.end() != fDelete)
         theseAttributes.remove(std::distance(theseAttributes.begin(), fDelete));
 
-    QVector<QString> classes = dialog.selectedClasses();
-    QVector<QString> tmp;
-    for (auto& c : split(fObjectClass->value().toStdString(), delim))
-        tmp << c.c_str();
+    QVector<QString> newClasses = structClasses ;
+    newClasses << dialog.selectedClasses();
+
 
     std::map<std::string, std::string> a2v;
-    auto prevAttributes = m_LdapData.schema().attributeByClasses(tmp, a2v);
-    auto currAttributes = m_LdapData.schema().attributeByClasses(classes, a2v);
+    auto prevAttributes = m_LdapData.schema().attributeByClasses(originalClasses, a2v);
+    auto currAttributes = m_LdapData.schema().attributeByClasses(newClasses, a2v);
 
     // delete attributes, which are not needed now
     for (auto& thisA : theseAttributes)
@@ -191,7 +195,7 @@ void CLdapTreeView::onEditEntry()
 
         if (!bCurr)
         {
-            QMetaObject::invokeMethod(model(), "removeAttribute", Qt::ConnectionType::QueuedConnection, Q_ARG(QString, thisA.name()));
+            emit onRemoveAttribute(thisA);
             continue;
         }
 
@@ -211,14 +215,13 @@ void CLdapTreeView::onEditEntry()
 
         if (!bThese)
         {
-            QMetaObject::invokeMethod(model(), "addAttribute", Qt::ConnectionType::QueuedConnection, Q_ARG(QString, currA.name()));
+            emit onAddAttribute(currA);
             continue;
         }
     }
 
-    thisEntry->setClasses(classes);
+    thisEntry->setClasses(newClasses);
     thisEntry->setEditable(true);
-    update(index);
 }
 
 void CLdapTreeView::onDeleteEntry()

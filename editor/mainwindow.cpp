@@ -93,8 +93,8 @@ MainWindow::MainWindow(CLdapSettings& settings, ldapcore::CLdapData& ldapData, Q
     m_LdapTree->expand(m_RootIndex);
     m_LdapTree->setCurrentIndex(m_RootIndex);
 
-    connect(m_TreeModel, SIGNAL(onRemovingAttribute(QString)), m_TableModel, SLOT(onRemovingAttribute(QString)));
-    connect(m_TreeModel, SIGNAL(onAddAttribute(QString)), m_TableModel, SLOT(onAddAttribute(QString)));
+    connect(m_LdapTree, &CLdapTreeView::onRemoveAttribute, m_TableModel, &CLdapAttributesModel::onRemoveAttribute);
+    connect(m_LdapTree, &CLdapTreeView::onAddAttribute, m_TableModel, &CLdapAttributesModel::onAddAttribute);
 }
 
 MainWindow::~MainWindow()

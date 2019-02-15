@@ -58,8 +58,8 @@ namespace ldapeditor
         QModelIndex addAttribute(const ldapcore::CLdapAttribute& attribute);
 
     public slots:
-        void onRemovingAttribute(QString name);
-        void onAddAttribute(QString name);
+        void onRemoveAttribute(const ldapcore::CLdapAttribute& attr);
+        void onAddAttribute(const ldapcore::CLdapAttribute& attr);
 
     protected:
         bool  SaveAttributes();

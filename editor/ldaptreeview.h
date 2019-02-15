@@ -55,6 +55,9 @@ signals:
      */
     void treeItemChanged(const QModelIndex& current, const QModelIndex& previous);
 
+    void onAddAttribute(const ldapcore::CLdapAttribute& attr);
+    void onRemoveAttribute(const ldapcore::CLdapAttribute& attr);
+
 protected :
     /*!
      * @brief protected method called when current item is changed

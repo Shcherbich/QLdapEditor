@@ -462,16 +462,16 @@ bool CLdapAttributesModel::SaveAttributes()
     return true;
 }
 
-void CLdapAttributesModel::onRemovingAttribute(QString name)
+void CLdapAttributesModel::onRemoveAttribute(const ldapcore::CLdapAttribute& attr)
 {
     if(!m_pAttributes || !m_entry)
         return ;
 
     for (int i = 0; i < rowCount(); ++i)
     {
-        auto index = createIndex(i, 1);
-        auto displayText = data(index, Qt::DisplayRole);
-        if (displayText == name)
+        QModelIndex index = createIndex(i, static_cast<int>(ldapeditor::AttributeColumn::Attribute));
+        auto displayText = index.data(Qt::DisplayRole);
+        if (displayText == attr.name())
         {
             removeRows(i, 1);
             return;
@@ -479,16 +479,19 @@ void CLdapAttributesModel::onRemovingAttribute(QString name)
     }
 }
 
-void CLdapAttributesModel::onAddAttribute(QString name)
+void CLdapAttributesModel::onAddAttribute(const ldapcore::CLdapAttribute &attr)
 {
     if(!m_pAttributes || !m_entry)
         return ;
 
-    int row = rowCount();
+    addAttribute(attr);
+    /*
+    int row = rowCount();    
     insertRows(row, 1);
-    auto i = index(row, 1);
-    setData(i, name, Qt::EditRole);
+    QModelIndex index = createIndex(row, static_cast<int>(ldapeditor::AttributeColumn::Attribute));
+    setData(index, attr, Qt::EditRole);
     sortData();
+    */
 }
 
 void CLdapAttributesModel::sortData()
