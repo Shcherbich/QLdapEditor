@@ -1,5 +1,5 @@
 @startuml
 class User
-class Role Type
+class "Role Type" as Type
 class Role
 @enduml
