@@ -653,29 +653,29 @@ void CLdapEntry::update() noexcept(false)
                 {
                     mod->addModification(LDAPModification(LDAPAttribute(a.name().toStdString(), value),
                                                           LDAPModification::OP_ADD));
+
                 }
                 else
                 {
                     mod->addModification(LDAPModification(LDAPAttribute(a.name().toStdString(), value),
                                                           LDAPModification::OP_REPLACE));
+
                 }
             }
         }
 
-
+        // 2. Delete attributes
         std::set<QString> setOfAttributes;
         for (auto& a : m_attributes)
         {
             setOfAttributes.insert(a.name());
         }
-
-        // 2. Delete attributes
-        auto new_end = std::remove_if(realAttributes.begin(), realAttributes.end(),
-                                      [&](const ldapcore::CLdapAttribute & o)
-        { return setOfAttributes.find(o.name()) != setOfAttributes.end() || !o.isMust() ; });
-        realAttributes.erase(new_end, realAttributes.end());
         for (auto& a : realAttributes)
         {
+            if (setOfAttributes.find(a.name()) != setOfAttributes.end())
+            {
+                continue;
+            }
             mod->addModification(LDAPModification(LDAPAttribute(a.name().toStdString(), a.value().toStdString()),
                                                   LDAPModification::OP_DELETE));
         }
