@@ -12,6 +12,8 @@ include_directories(../3rd_party/openldap/contrib/ldapcpp/src)
 add_compile_options(-DLDAPEDITORCORE_SO)
 add_compile_options(-DLDAPEDITORCORE_SO_EXPORTS)
 add_compile_options(-std=c++11)
+add_compile_options(-Wall)
+add_compile_options(-Wextra)
 
 FIND_PACKAGE(Qt5Core CONFIG REQUIRED)
 FIND_PACKAGE(Qt5Widgets CONFIG REQUIRED)

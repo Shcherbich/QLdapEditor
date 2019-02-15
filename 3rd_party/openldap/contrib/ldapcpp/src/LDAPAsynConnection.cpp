@@ -107,14 +107,14 @@ static int verify_callback(int ok, X509_STORE_CTX* ctx)
 {
 	//return 0 - stop verification
 	//       1 - OK. continue
-	X509* cert = X509_STORE_CTX_get_current_cert(ctx);
+    //X509* cert = X509_STORE_CTX_get_current_cert(ctx);
 	if (ok)
 	{
 		return ok;
 	}
 
-	long serialNum = ASN1_INTEGER_get(X509_get_serialNumber(cert));
-	char* subjectid = X509_NAME_oneline(X509_get_subject_name(cert), NULL, 0);
+    //long serialNum = ASN1_INTEGER_get(X509_get_serialNumber(cert));
+    //char* subjectid = X509_NAME_oneline(X509_get_subject_name(cert), NULL, 0);
 	int sslRet = X509_STORE_CTX_get_error(ctx);
 	const char* err = NULL;
 	switch (sslRet)
@@ -139,7 +139,7 @@ static int verify_callback(int ok, X509_STORE_CTX* ctx)
 	return 0;
 }
 
-static void ldap_tls_cb(LDAP* ld, SSL* ssl, SSL_CTX* ctx, void* arg)
+static void ldap_tls_cb(LDAP*, SSL* ssl, SSL_CTX* ctx, void*)
 {
 	SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER, verify_callback);
 	SSL_set_verify(ssl, SSL_VERIFY_PEER, verify_callback);
@@ -179,7 +179,7 @@ void LDAPAsynConnection::configureTimeouts()
 	ret = ldap_set_option(cur_session, LDAP_OPT_RESTART, &value);
 	assert(ret == LDAP_SUCCESS);
 
-	struct timeval tcp = {0};
+    struct timeval tcp = {0, 0};
 	tcp.tv_sec = 10;
 	ret = ldap_set_option(cur_session, LDAP_OPT_NETWORK_TIMEOUT, &tcp);
 	assert(ret == LDAP_SUCCESS);

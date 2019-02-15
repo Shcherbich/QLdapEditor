@@ -122,7 +122,7 @@ LDAPSaslInteractiveBind::LDAPSaslInteractiveBind( const std::string& mech,
 {
 }
 
-static int my_sasl_interact(LDAP *l, unsigned flags, void *cbh, void *interact)
+static int my_sasl_interact(LDAP *, unsigned, void *cbh, void *interact)
 {
     DEBUG(LDAP_DEBUG_TRACE, "LDAPSaslInteractiveBind::my_sasl_interact()" 
             << std::endl );

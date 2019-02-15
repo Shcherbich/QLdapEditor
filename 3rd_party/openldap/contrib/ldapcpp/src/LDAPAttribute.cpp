@@ -217,7 +217,7 @@ std::string LDAPAttribute::toString() const
 	if (!hexData.empty())
 	{
 		std::stringstream ss;
-		for(int i = 0; i < hexData.size(); ++i)
+        for(unsigned i = 0; i < hexData.size(); ++i)
 			ss << std::hex << (int)hexData[i];
 		return ss.str();
 	}

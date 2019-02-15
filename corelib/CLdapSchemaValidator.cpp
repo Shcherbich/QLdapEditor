@@ -93,7 +93,7 @@ std::string CheckOctet(std::string value)
 std::string ChecUTF8(std::string value)
 {
     QString temp = QString::fromUtf8(value.c_str());
-    return temp.length() == value.size() ? "" : "Invalid input string";
+    return temp.length() == (int)value.size() ? "" : "Invalid input string";
 }
 
 std::string CheckGeneralizedTime(std::string value)
@@ -152,7 +152,7 @@ std::string CheckIA5String(std::string value)
 std::string Check62Integer(std::string value)
 {
     bool ok;
-    long dec = QString(value.c_str()).toLong(&ok, 10);
+    QString(value.c_str()).toLong(&ok, 10);
     return ok ? "" : "There is not a +/- 62 digit integer";
 }
 
@@ -162,7 +162,7 @@ std::string ChecNumericString(std::string value)
     for (auto item : list)
     {
         bool ok;
-        long dec = item.toLong(&ok, 10);
+        item.toLong(&ok, 10);
         if (!ok)
         {
             return QString("%1 is not a +/- 62 digit integer").arg(item).toStdString();

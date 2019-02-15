@@ -260,9 +260,9 @@ private:
     AttrType    m_Type{AttrType::UnknownText};
 
     /*!
-     * @brief member Editable state enumeration
+     * @brief member Must bool
      */
-	AttributeState    m_editState;
+    bool        m_isMust{false};
 
     /*!
      * @brief member Description string
@@ -270,19 +270,20 @@ private:
     QString     m_Description;
 
     /*!
-     * @brief member Must bool
+     * @brief member list of classes which can contain this attribute
      */
-    bool        m_isMust{false};
+    QVector<QString> m_Classes;
+
+    /*!
+     * @brief member Editable state enumeration
+     */
+	AttributeState    m_editState;
 
     /*!
      * @brief member Modified bool
      */
     bool        m_isModified{false};
 
-    /*!
-     * @brief member list of classes which can contain this attribute
-     */
-    QVector<QString> m_Classes;
 
     /*!
      * @brief member is attribute explicitly marked as ignored

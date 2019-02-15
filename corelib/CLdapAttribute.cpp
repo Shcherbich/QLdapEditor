@@ -11,7 +11,7 @@ CLdapAttribute::CLdapAttribute()
 }
 
 CLdapAttribute::CLdapAttribute(QString name, QString value, AttrType type, bool isMust, QString desc, QVector<QString>& classes, AttributeState editState)
-    : m_Name(name), m_Value(value), m_Type(type), m_editState(editState), m_isMust(isMust), m_Description(desc), m_Classes(classes)
+    : m_Name(name), m_Value(value), m_Type(type), m_isMust(isMust), m_Description(desc), m_Classes(classes), m_editState(editState)
 {
 	if (m_editState == AttributeState::AttributeReadWrite)
 	{
@@ -136,7 +136,7 @@ void CLdapAttribute::setEditState(AttributeState state)
     m_editState = state;
 }
 
-bool CLdapAttribute::validateValue(const QString& value)
+bool CLdapAttribute::validateValue(const QString&)
 {
     return true;
 }

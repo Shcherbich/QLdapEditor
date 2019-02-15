@@ -321,7 +321,7 @@ private :
 	/**
 	 * Private copy constructor. So nobody can call it.
 	 */
-	LDAPAsynConnection(const LDAPAsynConnection& lc) {};
+    LDAPAsynConnection(const LDAPAsynConnection&) {};
 
 	/**
 	 * A pointer to the C-API LDAP-structure that is associated with

@@ -88,7 +88,7 @@ void CLdapData::connect(const tConnectionOptions& connectOptions)
             m_connectOptions = connectOptions;
             m_Connection = std::move(localConn);
             m_Connection->setHardResetFunc([&]() { return hardReconnect(); });
-            m_Schema.build(m_Connection.get(), m_baseDN);
+            m_Schema.build(m_Connection.get());
             build();
             emit this->onConnectionCompleted(true, "");
         }
@@ -143,7 +143,7 @@ bool CLdapData::hardReconnect()
             {
                 tls.setOption(TlsOptions::KEYFILE, m_connectOptions.keyfile);
             }
-            m_Connection->start_tls([&](std::string err)
+            m_Connection->start_tls([&](std::string)
             {
                 return m_CanUseUntrustedConnection;
             });
@@ -183,7 +183,7 @@ void CLdapData::reconnect()
         {
             tls.setOption(TlsOptions::KEYFILE, m_connectOptions.keyfile);
         }
-        localConn->start_tls([&](std::string err)
+        localConn->start_tls([&](std::string)
         {
             return m_CanUseUntrustedConnection;
         });

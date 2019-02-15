@@ -25,7 +25,6 @@ public:
 	~CLdapSchema();
 
     std::tuple<AttrType, bool> attributeInfoByName(std::string attrName);
-
     bool isNameExist(std::string attributeName) noexcept(false);
     void validateAttributeByName(std::string attributeName, std::string value) noexcept(false);
     QVector<QString> classes();
@@ -41,7 +40,7 @@ public:
     QVector<QString> consistentClassesByStructuralAndOther(QString structuralCl, QVector<QString> allClasses);
 
 private:
-	void build(LDAPConnection* lc, std::string& baseDn);
+    void build(LDAPConnection* lc);
 	LDAPSchema* classesSchema();
 	LDAPSchema* attributesSchema();
 

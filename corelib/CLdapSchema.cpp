@@ -76,7 +76,7 @@ CLdapSchema::~CLdapSchema()
 
 }
 
-void CLdapSchema::build(LDAPConnection* lc, std::string& baseDn)
+void CLdapSchema::build(LDAPConnection* lc)
 {
 	StringList tmp;
 	tmp.add("subschemasubentry");
@@ -350,7 +350,6 @@ QVector<QString> CLdapSchema::consistentClassesByStructuralAndOther(QString stru
 {
     QSet<QString> uniqueClasses;
     QVector<QString> result;
-    const auto& schema = *classesSchema();
     for (;;)
     {
         if (!uniqueClasses.contains(structuralCl))
