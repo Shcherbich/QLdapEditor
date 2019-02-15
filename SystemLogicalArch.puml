@@ -1,3 +1,5 @@
 @startuml
-Dima -> Dima : Hi
+class User
+class Role Type
+class Role
 @enduml
