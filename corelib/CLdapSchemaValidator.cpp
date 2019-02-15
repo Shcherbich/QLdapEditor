@@ -18,7 +18,7 @@ std::string CheckBitString(std::string value)
 {
     if (value.size() < 3)
     {
-       return "The value is very small";
+        return "The value is very small";
     }
     if (value[0] != '\'' ||
         value[value.size() - 2] != '\'' ||
@@ -90,7 +90,7 @@ std::string CheckOctet(std::string value)
 	return std::string("");
 }
 
-std::string ChecUTF8(std::string value)
+std::string CheckUTF8(std::string value)
 {
     QString temp = QString::fromUtf8(value.c_str());
     return temp.length() == (int)value.size() ? "" : "Invalid input string";
@@ -133,7 +133,7 @@ std::string CheckUTCTime(std::string value)
 }
 
 
-#define LDAP_ASCII(c)		(!((c) & 0x80))
+#define LDAP_ASCII(c)       (!((c) & 0x80))
 
 std::string CheckIA5String(std::string value)
 {
@@ -183,8 +183,8 @@ static std::map<std::string, validateInfo > syntaxNumber2toCheckFunction
     {"1.3.6.1.4.1.1466.115.121.1.6",  {"Bit String", CheckBitString}},
     {"1.3.6.1.4.1.1466.115.121.1.7",  {"Boolean", CheckBool}},
     {"1.3.6.1.4.1.1466.115.121.1.11", {"Country String", std::bind(CheckCountryStringImpl, _1, validSetOfCountry, true)}},
-    {"1.3.6.1.4.1.1466.115.121.1.14", {"Delivery Method", ChecUTF8}},
-    {"1.3.6.1.4.1.1466.115.121.1.15", {"Directory String", ChecUTF8}},
+    {"1.3.6.1.4.1.1466.115.121.1.14", {"Delivery Method", CheckUTF8}},
+    {"1.3.6.1.4.1.1466.115.121.1.15", {"Directory String", CheckUTF8}},
     {"1.3.6.1.4.1.1466.115.121.1.22", {"Facsimile Telephone Number", std::bind(CheckCountryStringImpl, _1, validSetOfCountry2, false)}},
     {"1.3.6.1.4.1.1466.115.121.1.24", {"Generalized Time	", CheckGeneralizedTime}},
     {"1.3.6.1.4.1.1466.115.121.1.26", {"IA5 String", CheckIA5String}},
@@ -212,7 +212,7 @@ void CLdapSchema::validateAttributeByName(std::string attributeName, std::string
 		if (!checkReturn.empty())
 		{
             auto err = QString("The '%1' is not '%2' of '%3'.\nDescription: %4")
-                    .arg(value.c_str()).arg(f->second.type.c_str()).arg(attributeName.c_str()).arg(checkReturn.c_str());
+                       .arg(value.c_str()).arg(f->second.type.c_str()).arg(attributeName.c_str()).arg(checkReturn.c_str());
             throw CLdapMatchRuleException(err.toStdString().c_str());
 		}
 	}
