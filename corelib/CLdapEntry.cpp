@@ -288,7 +288,7 @@ void CLdapEntry::loadAttributes(QVector<CLdapAttribute>& vRet, bool needToLoadSy
     }
     const LDAPAttributeList* al = m_pEntry->getAttributes();
     const LDAPAttribute* pObjectClass = al->getAttributeByName("objectClass");
-    if (pObjectClass )
+    if (pObjectClass && !m_classes.size())
     {
         QVector<QString> classes;
         for (const auto& cl : pObjectClass->getValues())
@@ -499,7 +499,7 @@ void CLdapEntry::flushAttributeCache()
 
 void CLdapEntry::sortAttributes()
 {
-   std::sort(m_attributes.begin(), m_attributes.end(), comp());
+    std::sort(m_attributes.begin(), m_attributes.end(), comp());
 }
 
 QVector<QString> CLdapEntry::classes()
@@ -511,10 +511,12 @@ QVector<QString> CLdapEntry::auxiliaryClasses()
 {
     QVector<QString> vector;
     auto auxiliaryClasses = m_pData->schema().auxiliaryClasses();
-    for (auto& cl: m_classes)
+    for (auto& cl : m_classes)
     {
         if (auxiliaryClasses.contains(cl))
+        {
             vector << cl;
+        }
     }
     return vector;
 }
@@ -618,9 +620,12 @@ void CLdapEntry::update() noexcept(false)
         // 1. Add/Modify attributes
         StringList objectClasses;
         for (auto& c : m_classes)
+        {
             objectClasses.add(c.toStdString());
+        }
         mod->addModification(LDAPModification(LDAPAttribute("objectClass", objectClasses), LDAPModification::OP_REPLACE));
-        for (auto& a : m_attributes) {
+        for (auto& a : m_attributes)
+        {
 
             if (a.name() == "objectClass")
             {
@@ -628,14 +633,16 @@ void CLdapEntry::update() noexcept(false)
             }
 
             auto f = std::find_if(realAttributes.begin(), realAttributes.end(),
-                [&](const ldapcore::CLdapAttribute& o) {
-                    return strcasecmp(o.name().toStdString().c_str(), a.name().toStdString().c_str()) == 0;
-                });
+                                  [&](const ldapcore::CLdapAttribute & o)
+            {
+                return strcasecmp(o.name().toStdString().c_str(), a.name().toStdString().c_str()) == 0;
+            });
 
             auto value = a.value().toStdString();
 
             // no modification
-            if (f != realAttributes.end() && f->value() == a.value()) {
+            if (f != realAttributes.end() && f->value() == a.value())
+            {
                 continue;
             }
 
@@ -657,17 +664,17 @@ void CLdapEntry::update() noexcept(false)
 
 
         std::set<QString> setOfAttributes;
-        for (auto& a: m_attributes)
+        for (auto& a : m_attributes)
         {
             setOfAttributes.insert(a.name());
         }
 
         // 2. Delete attributes
         auto new_end = std::remove_if(realAttributes.begin(), realAttributes.end(),
-                                      [&](const ldapcore::CLdapAttribute& o)
-                                      { return setOfAttributes.find(o.name()) != setOfAttributes.end() || !o.isMust() ; });
+                                      [&](const ldapcore::CLdapAttribute & o)
+        { return setOfAttributes.find(o.name()) != setOfAttributes.end() || !o.isMust() ; });
         realAttributes.erase(new_end, realAttributes.end());
-        for (auto& a: realAttributes)
+        for (auto& a : realAttributes)
         {
             mod->addModification(LDAPModification(LDAPAttribute(a.name().toStdString(), a.value().toStdString()),
                                                   LDAPModification::OP_DELETE));
@@ -699,7 +706,7 @@ void CLdapEntry::deleteSelf() noexcept(false)
 
 QString  CLdapEntry::structuralClass()
 {
-    return classes().isEmpty()? "???" : classes().last();
+    return classes().isEmpty() ? "???" : classes().last();
 }
 
 }
