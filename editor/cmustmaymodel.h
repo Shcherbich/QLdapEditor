@@ -45,7 +45,7 @@ public:
 
    /*!
     * @brief Returns the data stored under the given role for the item referred to by the index.
-    * @param index item idex
+    * @param index item index
     * @param role  role id ,reference to requested data
     * @return Returns the QVariant of data stored under the given role for the item referred to by the index.
     */

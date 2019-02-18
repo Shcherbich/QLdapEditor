@@ -1,3 +1,10 @@
+/*!
+@file
+@brief |Implementation file for LDAP Entity's attributes  model class
+
+File contains  implementations for LDAP Entity's attributes model class
+*/
+
 #include "ldapattributesmodel.h"
 #include "ldapeditordefines.h"
 #include <QApplication>
