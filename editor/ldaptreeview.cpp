@@ -69,17 +69,14 @@ void CLdapTreeView::onNewEntry()
     }
 
 
-    QVector<QString> classes = dialog.selectedClasses();
-    QVector<QString> consistentClasses = m_LdapData.schema().consistentClassesByStructuralAndOther(dialog.structuralClass(), classes);
-    QVector<QString> newClasses = consistentClasses ;
-    newClasses << classes;
+    QVector<QString> classes = m_LdapData.schema().consistentClassesByStructuralAndOther(dialog.structuralClass(), dialog.selectedClasses());
 
     QString rdn = dialog.rdn();
     std::string delim = "=";
     auto v = split(rdn.toStdString(), delim);
     std::map<std::string, std::string> a2v;
     QStringList list;
-    for (auto cl: newClasses)
+    for (auto cl: classes)
         list << cl;
     a2v["objectClass"] = list.join(";").toStdString();
     if (v.size() > 1)
@@ -87,7 +84,7 @@ void CLdapTreeView::onNewEntry()
         a2v[v[0]] = v[1];
     }
 
-    QVector<ldapcore::CLdapAttribute> all_attributes = m_LdapData.schema().attributeByClasses(newClasses, a2v);
+    QVector<ldapcore::CLdapAttribute> all_attributes = m_LdapData.schema().attributeByClasses(classes, a2v);
     QVector<ldapcore::CLdapAttribute> newEntryAttributes ;
     for(ldapcore::CLdapAttribute& a: all_attributes)
     {
@@ -96,7 +93,7 @@ void CLdapTreeView::onNewEntry()
 
         a.setIsIgnore(a.isMust() && a.value().isEmpty());
         QVector<QString> attrClasses;
-        attrClasses = m_LdapData.schema().classesByAttributeName(a.name().toStdString(), newClasses);
+        attrClasses = m_LdapData.schema().classesByAttributeName(a.name().toStdString(), classes);
         a.setClasses(attrClasses);
         newEntryAttributes.push_back(a);
     }

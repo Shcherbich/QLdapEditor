@@ -359,7 +359,7 @@ QVector<CLdapAttribute> CLdapSchema::mustAttributesByClass(QString cl)
 }
 
 
-QVector<QString> CLdapSchema::consistentClassesByStructuralAndOther(QString structuralCl, const QVector<QString>& allClasses)
+QVector<QString> CLdapSchema::consistentClassesByStructuralAndOther(QString structuralCl, QVector<QString> allClasses)
 {
     QSet<QString> uniqueClasses;
     QVector<QString> result;
