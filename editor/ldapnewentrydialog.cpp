@@ -1,3 +1,10 @@
+/*!
+\file
+\brief Implementation file for dialog 'Add/Edit LDAP Entity' class
+
+File contains  implementations for dialog 'Add/EditLDPA Entity' class
+*/
+
 #include "ldapnewentrydialog.h"
 #include "ui_ldapnewentrydialog.h"
 #include <QComboBox>

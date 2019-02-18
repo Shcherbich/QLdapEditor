@@ -1,3 +1,10 @@
+/*!
+\file
+\brief Implementation file for dialog 'Add Attribute' class
+
+File contains  implementations for dialog 'Add Attribute' class
+*/
+
 #include "ldapnewattributedialog.h"
 #include "ui_ldapnewattributedialog.h"
 #include "attributemodelhelper.h"
