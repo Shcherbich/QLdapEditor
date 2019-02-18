@@ -387,5 +387,26 @@ QVector<QString> CLdapSchema::consistentClassesByStructuralAndOther(QString stru
     return result;
 }
 
+QString CLdapSchema::deductStructuralClass(QVector<QString> classes)
+{
+    QVector<QString> structuralClasses;
+    for (auto& c: classes)
+    {
+        if (classesSchema()->getObjectClassByName(c.toStdString()).getKind() != 2)
+            structuralClasses << c;
+    }
+    QVector<QString> consistentClasses, tmpList;
+    for (auto& sc: structuralClasses)
+    {
+        auto vector = consistentClassesByStructuralAndOther(sc, tmpList);
+        if (vector.size() > consistentClasses.size())
+        {
+            consistentClasses.swap(vector);
+        }
+    }
+    return consistentClasses.size() ? consistentClasses.first() : "";
+}
+
+
 }
 

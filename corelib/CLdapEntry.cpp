@@ -706,7 +706,7 @@ void CLdapEntry::deleteSelf() noexcept(false)
 
 QString  CLdapEntry::structuralClass()
 {
-    return classes().isEmpty() ? "???" : classes().last();
+    return m_pData->schema().deductStructuralClass(m_classes);
 }
 
 }
