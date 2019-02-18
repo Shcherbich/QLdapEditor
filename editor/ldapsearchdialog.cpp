@@ -1,3 +1,9 @@
+/*!
+\file
+\brief implementation file for dialog 'Search' class
+
+File contains  implementations for dialog 'Search' class
+*/
 #include "ldapsearchdialog.h"
 #include "ui_ldapsearchdialog.h"
 #include "CLdapData.h"

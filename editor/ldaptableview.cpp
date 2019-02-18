@@ -1,3 +1,9 @@
+/*!
+@file
+@brief Implementation file for LDAP attributes view class
+
+File contains  implementations for LDAP attributes view class
+*/
 #include "ldaptableview.h"
 #include "ldapeditordefines.h"
 #include "CLdapAttribute.h"
