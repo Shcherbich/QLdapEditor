@@ -25,7 +25,9 @@ CLdapNewAttributeDialog::CLdapNewAttributeDialog(ldapcore::CLdapData &ldapData, 
     ui->labelValue->hide();
     ui->valueEdit->hide();
 
-    QVector<QString> classes = m_LdapData.schema().consistentClassesByStructuralAndOther(m_entry->structuralClass(), m_entry->classes());
+    QString structuralClass = m_entry->structuralClass();
+    QVector<QString> entryClasses = m_entry->classes();
+    QVector<QString> classes = m_LdapData.schema().consistentClassesByStructuralAndOther(structuralClass, entryClasses);
 
     int structuraClassIdx=-1;
     for(int i=0; i< classes.size();i++)
