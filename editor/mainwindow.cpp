@@ -32,17 +32,31 @@ File contains  implementations for applications's main window
 
 namespace ldapeditor
 {
-
+/*!
+ * @ingroup ldapeditor
+ * @brief The Auxiliary class locks updates of QWidgets
+ *
+ * Auxiliary class locks updates of QWidgets
+ */
 struct QtUiLocker
 {
-    QWidget* m_pWidget;
+    QWidget* m_pWidget; ///< pointer to QWidget to be locked
 
+    /*!
+     * \brief Constructor QtUiLocker
+     * \param pWidget pointer to QWidget which should be locked
+     * Locks updates of QWidget
+     */
     QtUiLocker(QWidget* pWidget)
         : m_pWidget(pWidget)
     {
         m_pWidget->setUpdatesEnabled(false);
     }
 
+    /*!
+      \brief Destructor of QtUiLocker
+      Unlocks QWidget locked in constructor
+    */
     ~QtUiLocker()
     {
         m_pWidget->setUpdatesEnabled(true);
