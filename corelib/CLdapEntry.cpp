@@ -87,69 +87,6 @@ std::tuple< std::vector<std::string>, std::vector<std::string> >  GetAvailableAt
     return std::make_tuple(vMust, vMay);
 }
 
-std::string AddAttributeToServer(LDAPConnection* conn, LDAPEntry* le, std::string name, std::string value)
-{
-    try
-    {
-        LDAPAttribute newattr(name);
-        newattr.addValue(value);
-        LDAPModification::mod_op op = LDAPModification::OP_ADD;
-        std::unique_ptr<LDAPModList>  mod(new LDAPModList());
-        mod->addModification(LDAPModification(newattr, op));
-        conn->modify_s(le->getDN(), mod.get());
-        return "";
-    }
-    catch (const std::exception& ex)
-    {
-        return ex.what();
-    }
-}
-
-std::string DeleteAttributeFromServer(LDAPConnection* conn, LDAPEntry* le, std::string name)
-{
-    try
-    {
-        LDAPAttribute newattr(name);
-        LDAPModification::mod_op op = LDAPModification::OP_DELETE;
-        std::unique_ptr<LDAPModList> mod(new LDAPModList());
-        mod->addModification(LDAPModification(newattr, op));
-        conn->modify_s(le->getDN(), mod.get());
-        return "";
-    }
-    catch (const std::exception& ex)
-    {
-        return ex.what();
-    }
-}
-
-std::string ReplaceAttributeOnServer(LDAPConnection* conn, LDAPEntry* le, std::string name, std::string value)
-{
-    try
-    {
-        LDAPModification::mod_op op = LDAPModification::OP_REPLACE;
-        LDAPModList* mod = new LDAPModList();
-        auto q = conn->search(le->getDN(), LDAPAsynConnection::SEARCH_SUB, "objectClass=*", StringList());
-        uEntry en(q->getNext());
-        auto find = en->getAttributeByName(name);
-        if (find == nullptr)
-        {
-            throw ldapcore::CLdapServerException("No found attribute");
-        }
-        StringList newList;
-        newList.add(value);
-        const_cast<LDAPAttribute*>(find)->setValues(newList);
-        mod->addModification(LDAPModification(*find, op));
-        conn->modify_s(le->getDN(), mod);
-        return "";
-    }
-    catch (const std::exception& ex)
-    {
-        return ex.what();
-    }
-}
-
-
-
 namespace ldapcore
 {
 // supported types for edit
