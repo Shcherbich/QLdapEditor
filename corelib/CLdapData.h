@@ -7,6 +7,7 @@
 #include <QList>
 #include "CLdapObject.h"
 #include "CLdapEntry.h"
+#include "cldapserver.h"
 #include "datatypes.h"
 #include "CLdapSchema.h"
 #include <memory>
@@ -78,6 +79,12 @@ public:
 	CLdapSchema& schema();
 
     /*!
+     * @brief Method returns main instance of server
+     * @return CLdapServer data
+     */
+    CLdapServer& server();
+
+    /*!
      * @brief Method returns host of ldap server
      * @return QString data
      */
@@ -141,6 +148,11 @@ private:
      * @brief member m_Schema Instance of schema
      */
     CLdapSchema                 m_Schema;
+
+    /*!
+     * @brief member m_Schema Instance of server
+     */
+    CLdapServer                 m_Server;
 
     /*!
      * @brief member m_baseDN Distinguished name of ldap server

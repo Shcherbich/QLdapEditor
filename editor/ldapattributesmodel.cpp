@@ -366,11 +366,7 @@ bool CLdapAttributesModel::SaveNewEntry()
     // save to database
     try
     {
-        auto parent = m_entry->parent();
-        if (parent)
-        {
-            parent->saveNewChild();
-        }
+        m_LdapData.server().add(*m_entry);
     }
     catch (const std::exception& e)
     {
@@ -397,7 +393,7 @@ bool CLdapAttributesModel::SaveUpdatedEntry()
 
     try
     {
-        m_entry->update();
+        m_LdapData.server().update(*m_entry);
         m_entry->setEditable(false);
         m_entry->flushAttributeCache();
         setLdapEntry(m_entry);
@@ -425,7 +421,7 @@ bool CLdapAttributesModel::SaveAttributes()
     {
         try
         {
-            m_entry->addAttribute(n);
+            m_LdapData.server().addAttribute(*m_entry, n);
         }
         catch (const std::exception& e)
         {
@@ -436,7 +432,7 @@ bool CLdapAttributesModel::SaveAttributes()
     {
         try
         {
-            m_entry->deleteAttribute(d);
+            m_LdapData.server().delAttribute(*m_entry, d);
         }
         catch (const std::exception& e)
         {
@@ -447,7 +443,7 @@ bool CLdapAttributesModel::SaveAttributes()
     {
         try
         {
-            m_entry->updateAttribute(u);
+            m_LdapData.server().updateAttribute(*m_entry, u);
         }
         catch (const std::exception& e)
         {

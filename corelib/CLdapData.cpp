@@ -235,6 +235,11 @@ CLdapSchema& CLdapData::schema()
 	return m_Schema;
 }
 
+CLdapServer& CLdapData::server()
+{
+    return m_Server;
+}
+
 QStringList CLdapData::search(const _tSearchOptions& searchOptions)
 {
 	QStringList objList;

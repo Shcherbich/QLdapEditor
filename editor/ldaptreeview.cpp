@@ -247,7 +247,7 @@ void CLdapTreeView::onDeleteEntry()
 
     try
     {
-        thisEntry->deleteSelf();
+        m_LdapData.server().del(*thisEntry);
     }
     catch (const std::exception& ex)
     {

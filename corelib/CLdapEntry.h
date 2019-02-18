@@ -35,20 +35,14 @@ public:
     void                    setEditable(bool isEdit);
 	std::shared_ptr<CLdapAttribute> createEmptyAttribute(std::string attributeName);
 
-	void                    validateAttribute(CLdapAttribute& attr);
+	void                    addNewChild(CLdapEntry* child);
+    void                    addAttributes(QVector<CLdapAttribute>&);
+	void                    removeChild(CLdapEntry* child);
     void                    loadAttributes(QVector<CLdapAttribute>&, bool needToLoadSystemAttributes = true);
     void                    sortAttributes();
+    void                    validateAttribute(CLdapAttribute& attr);
+    void                    flushAttributeCache();
 
-    void                    addAttribute(CLdapAttribute& newOb) noexcept(false);
-    void                    deleteAttribute(CLdapAttribute& newOb) noexcept(false);
-    void                    updateAttribute(CLdapAttribute& newOb) noexcept(false);
-	void                    flushAttributeCache();
-	void                    addNewChild(CLdapEntry* child);
-	void                    removeChild(CLdapEntry* child);
-	void                    addAttributes(QVector<CLdapAttribute>&);
-    void                    saveNewChild() noexcept(false);
-    void                    update() noexcept(false);
-    void                    deleteSelf() noexcept(false);
     void                    availableAttributesMayImpl();
     void                    availableAttributesMustImpl();
 
@@ -89,6 +83,7 @@ private:
 	friend class CLdapData;
 	friend class CLdapAttributesModel;
 	friend class CLdapTreeView;
+    friend class CLdapServer;
 };
 
 }
