@@ -27,6 +27,12 @@
 #include <openssl/ssl.h>
 
 
+#if !defined LDAP_OPT_X_TLS_PROTOCOL_TLS1_3
+
+#define LDAP_OPT_X_TLS_PROTOCOL_TLS1_3 ((3 << 8) + 4)
+
+#endif
+
 using namespace std;
 
 LDAPAsynConnection::LDAPAsynConnection(const string& url, int port,
@@ -107,6 +113,7 @@ static int verify_callback(int ok, X509_STORE_CTX* ctx)
 {
 	//return 0 - stop verification
 	//       1 - OK. continue
+
     //X509* cert = X509_STORE_CTX_get_current_cert(ctx);
 	if (ok)
 	{
@@ -141,6 +148,16 @@ static int verify_callback(int ok, X509_STORE_CTX* ctx)
 
 static void ldap_tls_cb(LDAP*, SSL* ssl, SSL_CTX* ctx, void*)
 {
+    const int ssl_min_proto_version = 123;
+    const int ssl_max_proto_version = 124;
+    auto bMin = SSL_CTX_ctrl(ctx, ssl_min_proto_version, LDAP_OPT_X_TLS_PROTOCOL_TLS1_3, NULL);
+    auto bMax = SSL_CTX_ctrl(ctx, ssl_max_proto_version, LDAP_OPT_X_TLS_PROTOCOL_TLS1_3, NULL);
+    assert(bMin == 0);
+    assert(bMax == 0);
+
+    //auto sslVersion = SSL_version(ssl);
+    //bool b1 = sslVersion == TLS1_2_VERSION;
+
 	SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER, verify_callback);
 	SSL_set_verify(ssl, SSL_VERIFY_PEER, verify_callback);
 }
@@ -148,6 +165,11 @@ static void ldap_tls_cb(LDAP*, SSL* ssl, SSL_CTX* ctx, void*)
 
 void LDAPAsynConnection::start_tls(std::function< bool(std::string)> funcToConfirmWarnings)
 {
+    // as least TLS 1.3 will be used
+    int value = LDAP_OPT_X_TLS_PROTOCOL_TLS1_3;
+    int ret = ldap_set_option(cur_session, LDAP_OPT_X_TLS_PROTOCOL_MIN, &value);
+    assert(ret == LDAP_SUCCESS);
+
 	mainFuncToConfirmWarnings = funcToConfirmWarnings;
 
 	void* invalue;
@@ -159,7 +181,6 @@ void LDAPAsynConnection::start_tls(std::function< bool(std::string)> funcToConfi
 		throw LDAPException(this);
 	}
 }
-
 
 void LDAPAsynConnection::configureTimeouts()
 {
