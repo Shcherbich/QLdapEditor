@@ -7,7 +7,7 @@
 
 /*!
  \defgroup ldapcore
- \brief namespace for groupping ldap core related functionality
+ \brief namespace for grouping ldap core related functionality
 
  Namespace ldapeditor wrapes all classes and declarations, related to ldap core functionality
 */

@@ -125,7 +125,7 @@ CLdapEntry::CLdapEntry(CLdapEntry* parentLdapEntry, LDAPEntry* le, QObject* pare
 CLdapEntry::~CLdapEntry()
 {
     delete m_pEntry;
-    foreach (CLdapEntry* en, m_pChildren)
+    foreach (CLdapEntry* en, m_vChildren)
     {
         delete en;
     }
@@ -161,23 +161,29 @@ QString CLdapEntry::rDn()
     return m_rDn;
 }
 
-void CLdapEntry::construct(CLdapData* data, LDAPConnection* conn, QString baseDn)
+void CLdapEntry::initialize(CLdapData* data, QString baseDn)
 {
     m_pData = data;
     m_baseDn = baseDn;
+}
+
+void CLdapEntry::construct(CLdapData* data, QString baseDn)
+{
+    initialize(data, baseDn);
     try
     {
-        auto ls = conn->search(dn().toStdString(), LDAPAsynConnection::SEARCH_ONE);
+        auto ls = connectionPtr()->search(dn().toStdString(), LDAPAsynConnection::SEARCH_ONE);
         if (ls)
         {
             for (LDAPEntry* le = ls->getNext(); le; le = ls->getNext())
             {
-                m_pChildren.push_back(new CLdapEntry(this, le, nullptr));
-                m_pChildren.back()->construct(data, conn, baseDn);
+                auto en = new CLdapEntry(this, le, nullptr);
+                en->construct(data, baseDn);
+                m_vChildren << en;
             }
         }
     }
-    catch (LDAPException& ex)
+    catch (const LDAPException& ex)
     {
 
     }
@@ -195,7 +201,7 @@ CLdapEntry* CLdapEntry::parent()
 
 QVector<CLdapEntry*> CLdapEntry::children()
 {
-    return m_pChildren;
+    return m_vChildren;
 }
 
 void CLdapEntry::prepareAttributes()
@@ -439,20 +445,20 @@ QVector<QString> CLdapEntry::availableClasses()
     return m_pData->schema().classes();
 }
 
-void CLdapEntry::addNewChild(CLdapEntry* child)
+void CLdapEntry::addChild(CLdapEntry* child)
 {
-    m_pChildren << child;
-    child->construct(m_pData, connectionPtr(), m_baseDn);
+    child->initialize(m_pData, m_baseDn);
+    m_vChildren << child;
 }
 
 void CLdapEntry::removeChild(CLdapEntry* child)
 {
-    for (int i = 0; i < m_pChildren.size(); ++i)
+    for (int i = 0; i < m_vChildren.size(); ++i)
     {
-        if (m_pChildren[i] == child)
+        if (m_vChildren[i] == child)
         {
             //Known issue: delete child;
-            m_pChildren.remove(i);
+            m_vChildren.remove(i);
             return;
         }
     }

@@ -189,7 +189,7 @@ namespace ldapeditor
         addEntry->addAttributes(attributes);
 
         beginInsertRows(parent, row, row + count - 1);
-        parentEntry->addNewChild(addEntry);
+        parentEntry->addChild(addEntry);
         endInsertRows();
 
         QModelIndex idxAdd = index(row, 0, parent);

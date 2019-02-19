@@ -154,8 +154,6 @@ std::tuple<AttrType, bool> CLdapSchema::attributeInfoByName(std::string attrName
 	{
 		return std::tuple<AttrType, bool>(std::get<0>(f->second), std::get<1>(f->second));
 	}
-
-	qDebug() << attrName.c_str() << '\n';
 	return std::tuple<AttrType, bool> { AttrType::UnknownText, false };
 }
 

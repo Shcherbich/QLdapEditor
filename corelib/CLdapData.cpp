@@ -118,8 +118,9 @@ void CLdapData::build()
 		return;
 	}
     m_baseDN = QString(m_baseDN.c_str()).trimmed().toStdString();
-	m_Entries.push_back(new CLdapEntry(nullptr, nullptr, nullptr));
-	m_Entries.back()->construct(this, m_Connection.get(), m_baseDN.c_str());
+    auto en = new CLdapEntry(nullptr, nullptr, nullptr);
+    en->construct(this, m_baseDN.c_str());
+    m_Entries << en;
 }
 
 bool CLdapData::hardReconnect()

@@ -35,7 +35,7 @@ public:
     void                    setEditable(bool isEdit);
 	std::shared_ptr<CLdapAttribute> createEmptyAttribute(std::string attributeName);
 
-	void                    addNewChild(CLdapEntry* child);
+    void                    addChild(CLdapEntry* child);
     void                    addAttributes(QVector<CLdapAttribute>&);
 	void                    removeChild(CLdapEntry* child);
     void                    loadAttributes(QVector<CLdapAttribute>&, bool needToLoadSystemAttributes = true);
@@ -61,7 +61,8 @@ signals:
 public slots:
 
 private:
-	void construct(CLdapData* data, LDAPConnection* conn, QString baseDn);
+    void initialize(CLdapData* data, QString baseDn);
+    void construct(CLdapData* data, QString baseDn);
 	void prepareAttributes();
     LDAPConnection* connectionPtr() const;
 
@@ -69,11 +70,12 @@ private:
     CLdapData*            m_pData;
 	CLdapEntry*           m_pParent{nullptr};
 	LDAPEntry*            m_pEntry{nullptr};
-	QVector<CLdapEntry*>  m_pChildren;
+    QVector<CLdapEntry*>  m_vChildren;
 	QString               m_baseDn;
 	QString               m_rDn;
 	bool                  m_isNew{false};
     bool                  m_isEdit{false};
+    bool                  m_isLoaded{false};
 
 	QVector<CLdapAttribute> m_attributes;
 	QVector<CLdapAttribute> m_Must;
