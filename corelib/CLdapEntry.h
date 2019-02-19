@@ -33,6 +33,7 @@ public:
     bool                    isNew();
     bool                    isEdit();
     void                    setEditable(bool isEdit);
+    bool                    isLoaded() const;
 	std::shared_ptr<CLdapAttribute> createEmptyAttribute(std::string attributeName);
 
     void                    addChild(CLdapEntry* child);

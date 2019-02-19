@@ -395,6 +395,10 @@ void CLdapEntry::setEditable(bool isEdit)
     m_isEdit = isEdit;
 }
 
+bool CLdapEntry::isLoaded() const
+{
+    return m_isLoaded;
+}
 
 void CLdapEntry::validateAttribute(CLdapAttribute& attr)
 {
