@@ -61,8 +61,9 @@ std::vector<std::string> GetObjectClasses(LDAPConnection* le, std::string dn)
             vRet.push_back(cl);
         }
     }
-    catch (std::exception& e)
+    catch (std::exception& ex)
     {
+        Q_UNUSED(ex);
     }
     return vRet;
 }
@@ -167,9 +168,13 @@ void CLdapEntry::initialize(CLdapData* data, QString baseDn)
     m_baseDn = baseDn;
 }
 
-void CLdapEntry::construct(CLdapData* data, QString baseDn)
+void CLdapEntry::construct()
 {
-    initialize(data, baseDn);
+    if (m_isLoaded)
+    {
+        return;
+    }
+    m_isLoaded = true;
     try
     {
         auto ls = connectionPtr()->search(dn().toStdString(), LDAPAsynConnection::SEARCH_ONE);
@@ -178,14 +183,16 @@ void CLdapEntry::construct(CLdapData* data, QString baseDn)
             for (LDAPEntry* le = ls->getNext(); le; le = ls->getNext())
             {
                 auto en = new CLdapEntry(this, le, nullptr);
-                en->construct(data, baseDn);
+                en->initialize(m_pData, m_baseDn);
+                QVector<ldapcore::CLdapAttribute> attrs;
+                en->loadAttributes(attrs);
                 m_vChildren << en;
             }
         }
     }
     catch (const LDAPException& ex)
     {
-
+        Q_UNUSED(ex);
     }
 }
 
@@ -201,6 +208,7 @@ CLdapEntry* CLdapEntry::parent()
 
 QVector<CLdapEntry*> CLdapEntry::children()
 {
+    construct();
     return m_vChildren;
 }
 
@@ -389,6 +397,10 @@ void CLdapEntry::setEditable(bool isEdit)
     m_isEdit = isEdit;
 }
 
+bool CLdapEntry::isLoaded() const
+{
+    return m_isLoaded;
+}
 
 void CLdapEntry::validateAttribute(CLdapAttribute& attr)
 {

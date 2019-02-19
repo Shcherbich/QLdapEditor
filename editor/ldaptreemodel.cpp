@@ -78,7 +78,10 @@ namespace ldapeditor
             return m_topItems.size();
 
         ldapcore::CLdapEntry* parentItem = static_cast<ldapcore::CLdapEntry*>(parent.internalPointer());
-        return parentItem ? parentItem->children().size() : 0 ;
+        if(parentItem)
+            return parentItem->isLoaded() ? parentItem->children().size() : 0 ;
+        return 0;
+        //return parentItem ? parentItem->children().size() : 0 ;
     }
 
     int CLdapTreeModel::columnCount(const QModelIndex &parent) const
@@ -218,6 +221,40 @@ namespace ldapeditor
             }
         }
         return false;
+    }
+
+    bool CLdapTreeModel::canFetchMore(const QModelIndex &parent) const
+    {
+        return true;
+    }
+
+    void CLdapTreeModel::fetchMore(const QModelIndex& parent)
+    {
+    }
+
+    bool CLdapTreeModel::hasChildren(const QModelIndex &parent) const
+    {
+        bool bRet {true};
+        ldapcore::CLdapEntry* parentEntry = static_cast<ldapcore::CLdapEntry*>(parent.internalPointer());
+        if(parentEntry)
+        {
+            if(parentEntry->isLoaded() )
+            {
+                bRet = !parentEntry->children().isEmpty();
+            }
+        }
+        return bRet;
+    }
+
+    bool CLdapTreeModel::insertRows(int row, int count, const QModelIndex& parent)
+    {
+        beginInsertRows(parent, row, row + count - 1);
+        endInsertRows();
+
+        QModelIndex idxFrom = index(row, 0, parent);
+        QModelIndex idxTo = index(row + count - 1, 0, parent);
+        emit dataChanged(idxFrom, idxTo, QVector<int>() << Qt::DisplayRole << Qt::DecorationRole);
+        return true;
     }
 } //namespace ldapeditor
 

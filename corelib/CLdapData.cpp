@@ -119,7 +119,8 @@ void CLdapData::build()
 	}
     m_baseDN = QString(m_baseDN.c_str()).trimmed().toStdString();
     auto en = new CLdapEntry(nullptr, nullptr, nullptr);
-    en->construct(this, m_baseDN.c_str());
+    en->initialize(this, m_baseDN.c_str());
+    en->construct();
     m_Entries << en;
 }
 
@@ -158,9 +159,9 @@ bool CLdapData::hardReconnect()
         }
         return true;
     }
-    catch (const LDAPException& e)
+    catch (const LDAPException& ex)
     {
-
+        Q_UNUSED(ex);
     }
     return false;
 }
