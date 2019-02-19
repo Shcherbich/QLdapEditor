@@ -62,7 +62,7 @@ public slots:
 
 private:
     void initialize(CLdapData* data, QString baseDn);
-    void construct(CLdapData* data, QString baseDn);
+    void construct();
 	void prepareAttributes();
     LDAPConnection* connectionPtr() const;
 
