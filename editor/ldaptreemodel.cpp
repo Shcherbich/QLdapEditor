@@ -219,6 +219,23 @@ namespace ldapeditor
         }
         return false;
     }
+
+    bool CLdapTreeModel::canFetchMore(const QModelIndex &parent) const
+    {
+        ldapcore::CLdapEntry* parentEntry = static_cast<ldapcore::CLdapEntry*>(parent.internalPointer());
+        return true;
+    }
+
+    void CLdapTreeModel::fetchMore(const QModelIndex& parent)
+    {
+        ldapcore::CLdapEntry* parentEntry = static_cast<ldapcore::CLdapEntry*>(parent.internalPointer());
+    }
+
+    bool CLdapTreeModel::hasChildren(const QModelIndex &parent) const
+    {
+        ldapcore::CLdapEntry* parentEntry = static_cast<ldapcore::CLdapEntry*>(parent.internalPointer());
+        return true;
+    }
 } //namespace ldapeditor
 
 

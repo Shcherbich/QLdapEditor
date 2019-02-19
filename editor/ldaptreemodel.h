@@ -161,11 +161,18 @@ namespace ldapeditor
          * \return true if success, false if else
          */
         bool removeRows(int row, int count, const QModelIndex &parent = QModelIndex());
+
+        bool canFetchMore(const QModelIndex &parent) const override;
+        void fetchMore(const QModelIndex& parent) override;
+        bool hasChildren(const QModelIndex &parent) const;
+    protected:
+
+
     private:
         ldapcore::CLdapEntry*           m_invisibleRoot{nullptr}; ///< hidden root item for LDAP tree
         QVector<ldapcore::CLdapEntry*>  m_topItems;               ///< Top items for LDAP tree
 
-    Q_SIGNALS:
+    signals:
         /*!
          * @brief Signal sent when attribute is removed
          * @param name name of removed attribute
