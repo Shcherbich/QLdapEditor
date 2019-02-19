@@ -162,9 +162,34 @@ namespace ldapeditor
          */
         bool removeRows(int row, int count, const QModelIndex &parent = QModelIndex());
 
+        /*!
+         * \brief Returns true if there is more data available for parent; otherwise returns false.
+         * \param parent index of item
+         * \return Returns true if there is more data available for parent; otherwise returns false.
+         */
         bool canFetchMore(const QModelIndex &parent) const override;
+
+        /*!
+         * \brief Fetches any available data for the items with the parent specified by the parent index.
+         * \param parent index of item
+         */
         void fetchMore(const QModelIndex& parent) override;
+
+        /*!
+         * \brief Returns true if parent has any children; otherwise returns false.
+         * \param parent index of  item
+         * \return  Returns true if parent has any children; otherwise returns false.
+         */
         bool hasChildren(const QModelIndex &parent) const;
+
+        /*!
+         * \brief Inserts count rows into the model before the given row. Items in the new row will be children of the item represented by the parent model index.
+         * \param row  row where insert new records
+         * \param count - count of new rows
+         * \param parent parent index
+         * \return true, if rows inserted, false - if not
+         */
+        bool insertRows(int row, int count, const QModelIndex& parent);
     protected:
 
 

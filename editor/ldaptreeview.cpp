@@ -45,8 +45,22 @@ CLdapTreeView::CLdapTreeView(QWidget* parent, ldapcore::CLdapData& ldapData)
 
 void CLdapTreeView::currentChanged(const QModelIndex& current, const QModelIndex& previous)
 {
-
     emit treeItemChanged(current, previous);
+    QTreeView::currentChanged(current,previous);
+}
+
+
+void CLdapTreeView::drawBranches(QPainter *painter, const QRect &rect, const QModelIndex &index) const
+{
+    CLdapTreeProxyModel* proxyModel = static_cast<CLdapTreeProxyModel*>(model());
+    QModelIndex thisIndex = proxyModel->mapToSource(index);
+    ldapcore::CLdapEntry* thisEntry = static_cast<ldapcore::CLdapEntry*>(thisIndex.internalPointer());
+    if (thisEntry)
+    {
+        if(thisEntry->isLoaded() && thisEntry->children().isEmpty())
+            return;
+    }
+    QTreeView::drawBranches(painter, rect, index);
 }
 
 void CLdapTreeView::onNewEntry()
@@ -284,13 +298,14 @@ void  CLdapTreeView::expand(const QModelIndex &index)
         return;
     }
 
-    for(auto e : thisEntry->children())
+    if(!thisEntry->isLoaded())
     {
-        QVector<ldapcore::CLdapAttribute> attrs;
-        e->loadAttributes(attrs);
+        CLdapTreeProxyModel* proxyModel = static_cast<CLdapTreeProxyModel*>(model());
+        static_cast<CLdapTreeModel*>(proxyModel->sourceModel())->insertRows(0, thisEntry->children().size(), srcIndex);
+        update(index);
     }
 
-    return QTreeView::expand(index);
+    QTreeView::expand(index);
 }
 
 void CLdapTreeView::customContextMenuRequested(QPoint pos)

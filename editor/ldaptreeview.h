@@ -55,7 +55,16 @@ signals:
      */
     void treeItemChanged(const QModelIndex& current, const QModelIndex& previous);
 
+    /*!
+     * @brief Signal about adding new attribute to  entity
+     * @param attr added attribute
+     */
     void onAddAttribute(const ldapcore::CLdapAttribute& attr);
+
+    /*!
+     * @brief Signal about removing new attribute from  entity
+     * @param attr removed attribute
+     */
     void onRemoveAttribute(const ldapcore::CLdapAttribute& attr);
 
 protected :
@@ -65,6 +74,16 @@ protected :
      * @param previous QModelIndex of previous item
      */
 	virtual void currentChanged(const QModelIndex& current, const QModelIndex& previous) override;
+
+    /*!
+     * \brief Draws the branches in the tree view on the same row as the model item index, using the painter given.
+     * \param painter pointer to QPainter class
+     * \param rect rectangle inside tree row where branch will be painted
+     * \param index row index
+     *
+     * Draws the branches in the tree view on the same row as the model item index, using the painter given. The branches are drawn in the rectangle specified by rect.
+     */
+    virtual void drawBranches(QPainter *painter, const QRect &rect, const QModelIndex &index) const;
 
 public slots:
     /*!

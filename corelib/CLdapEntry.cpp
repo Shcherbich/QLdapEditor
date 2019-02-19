@@ -184,6 +184,8 @@ void CLdapEntry::construct()
             {
                 auto en = new CLdapEntry(this, le, nullptr);
                 en->initialize(m_pData, m_baseDn);
+                QVector<ldapcore::CLdapAttribute> attrs;
+                en->loadAttributes(attrs);
                 m_vChildren << en;
             }
         }
