@@ -1,3 +1,9 @@
+/*!
+\file
+\brief Implementation  file for LDAP Connection settings class
+
+File contains  implementations for LDAP Connection settings class
+*/
 #include "connectiondialog.h"
 #include "ui_connectiondialog.h"
 #include "ldapsettings.h"
