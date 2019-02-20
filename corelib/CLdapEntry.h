@@ -16,18 +16,69 @@ namespace ldapcore
 
 class CLdapData;
 
+/*!
+ * @ingroup ldapcore
+ * @brief The ldap data class
+ *
+ * The CLdapEntry is represented ldap entry of server.
+  *
+ */
 class CLdapEntry : public QObject
 {
 	Q_OBJECT
 public:
-	explicit CLdapEntry(CLdapEntry* parentLdapEntry, LDAPEntry* le, QObject* parentDn = nullptr);
-	explicit CLdapEntry(CLdapEntry* parentLdapEntry, QString rdn, QString parent, QVector<QString>& classes, QObject* parentDn);
+
+    /*!
+     * \brief Constructor CLdapEntry class
+     * @param parentLdapEntry pointer to CLdapEntry parent
+     * @param parentLdapEntry pointer to internal instance of LDAPEntry
+     * @param parent pointer to QObject parent
+     */
+    explicit CLdapEntry(CLdapEntry* parentLdapEntry, LDAPEntry* le, QObject* parent = nullptr);
+
+    /*!
+     * \brief Constructor CLdapEntry class
+     * @param parentLdapEntry pointer to CLdapEntry parent
+     * @param rdn distinguished name to construct
+     * @param parentDn distinguished name of parent entry to construct
+     * @param classes list of classes (equal to 'objectClass') to construct
+     * @param parent pointer to QObject parent
+     */
+    explicit CLdapEntry(CLdapEntry* parentLdapEntry, QString rdn, QString parentDn, QVector<QString>& classes, QObject* parent);
+
+    /*!
+     * \brief Destructor By default
+     */
 	~CLdapEntry();
 
+    /*!
+     * @brief Method gets parent entry ldapcore::CLdapEntry pointer
+     * @return CLdapEntry* pointer to parent
+     */
 	CLdapEntry*             parent();
+
+    /*!
+     * @brief Method gets list of children entries
+     * @return QVector<CLdapEntry*> list of CLdapEntry*
+     */
 	QVector<CLdapEntry*>    children();
+
+    /*!
+     * @brief Method gets list of attributes
+     * @return QVector<CLdapAttribute>* pointer to list of CLdapAttribute
+     */
 	QVector<CLdapAttribute>* attributes();
+
+    /*!
+     * @brief Method gets list of available may attributes according schema
+     * @return QVector<CLdapAttribute> list of CLdapAttribute
+     */
 	QVector<CLdapAttribute> availableAttributesMay();
+
+    /*!
+     * @brief Method gets list of available must attributes according schema
+     * @return QVector<CLdapAttribute> list of CLdapAttribute
+     */
 	QVector<CLdapAttribute> availableAttributesMust();
 	bool                    isMust(std::string attributeName);
     bool                    isNew();
