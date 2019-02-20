@@ -301,8 +301,12 @@ void  CLdapTreeView::expand(const QModelIndex &index)
     if(!thisEntry->isLoaded())
     {
         CLdapTreeProxyModel* proxyModel = static_cast<CLdapTreeProxyModel*>(model());
-        static_cast<CLdapTreeModel*>(proxyModel->sourceModel())->insertRows(0, thisEntry->children().size(), srcIndex);
-        update(index);
+        auto size = thisEntry->children().size();
+        if (size != 0)
+        {
+            static_cast<CLdapTreeModel*>(proxyModel->sourceModel())->insertRows(0, size, srcIndex);
+            update(index);
+        }
     }
 
     QTreeView::expand(index);
