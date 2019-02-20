@@ -39,6 +39,7 @@ public:
     void                    addChild(CLdapEntry* child);
     void                    addAttributes(QVector<CLdapAttribute>&);
 	void                    removeChild(CLdapEntry* child);
+    void                    loadClasses();
     void                    loadAttributes(QVector<CLdapAttribute>&, bool needToLoadSystemAttributes = true);
     void                    sortAttributes();
     void                    validateAttribute(CLdapAttribute& attr);

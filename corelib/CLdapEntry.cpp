@@ -184,8 +184,7 @@ void CLdapEntry::construct()
             {
                 auto en = new CLdapEntry(this, le, nullptr);
                 en->initialize(m_pData, m_baseDn);
-                QVector<ldapcore::CLdapAttribute> attrs;
-                en->loadAttributes(attrs);
+                en->loadClasses();
                 m_vChildren << en;
             }
         }
@@ -229,14 +228,10 @@ void CLdapEntry::prepareAttributes()
     availableAttributesMustImpl();
 
     loadAttributes(m_attributes);
-
 }
-void CLdapEntry::loadAttributes(QVector<CLdapAttribute>& vRet, bool needToLoadSystemAttributes)
+
+void CLdapEntry::loadClasses()
 {
-    if (!m_pEntry || m_isNew)
-    {
-        return;
-    }
     const LDAPAttributeList* al = m_pEntry->getAttributes();
     const LDAPAttribute* pObjectClass = al->getAttributeByName("objectClass");
     if (pObjectClass && !m_classes.size())
@@ -248,6 +243,18 @@ void CLdapEntry::loadAttributes(QVector<CLdapAttribute>& vRet, bool needToLoadSy
         }
         setClasses(classes);
     }
+}
+
+void CLdapEntry::loadAttributes(QVector<CLdapAttribute>& vRet, bool needToLoadSystemAttributes)
+{
+    if (!m_pEntry || m_isNew)
+    {
+        return;
+    }
+
+    loadClasses();
+
+    const LDAPAttributeList* al = m_pEntry->getAttributes();
     LDAPAttributeList::const_iterator i = al->begin();
     for (; i != al->end(); i++)
     {
