@@ -219,7 +219,7 @@ void CLdapTreeView::onEditEntry()
             return a.name().compare(thisA.name(), Qt::CaseInsensitive) == 0;
         }) != currAttributes.end();
 
-        if (!bCurr)
+        if (!bCurr && bPrev)
         {
             emit onRemoveAttribute(thisA);
             continue;
