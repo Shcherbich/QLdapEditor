@@ -455,8 +455,34 @@ QVector<QString> CLdapEntry::auxiliaryClasses()
 
 void CLdapEntry::setClasses(QVector<QString>& cList)
 {
+    bool needToUpdateObjectClassAttribute = false;
+    if (!m_classes.isEmpty() && !cList.isEmpty())
+    {
+        QVector<QString> l1 = m_classes;
+        QVector<QString> l2 = cList;
+        qSort(l1);
+        qSort(l2);
+        needToUpdateObjectClassAttribute = l1 != l2;
+    }
     m_classes.clear();
     m_classes << cList;
+    if (needToUpdateObjectClassAttribute)
+    {
+        auto fObjectClassToUpdate = std::find_if(attributes()->begin(), attributes()->end(), [&](const ldapcore::CLdapAttribute& a)
+        {
+            return a.name().compare("objectClass", Qt::CaseInsensitive) == 0;
+        });
+        if(fObjectClassToUpdate != attributes()->end())
+        {
+            QStringList list;
+            for (auto cl: m_classes)
+                list << cl;
+            auto editState = fObjectClassToUpdate->editState();
+            fObjectClassToUpdate->setEditState(AttributeState::AttributeValueReadWrite);
+            fObjectClassToUpdate->setValue(list.join(";"));
+            fObjectClassToUpdate->setEditState(editState);
+        }
+    }
 }
 
 QVector<QString> CLdapEntry::availableClasses()
