@@ -62,6 +62,13 @@ namespace ldapeditor
          */
         ~MainWindow();
 
+    signals:
+        /*!
+         * \brief Will be sent when need to delete entity from tree model
+         * \param index index of entity to delete
+         */
+        void removeEntity(const QModelIndex index);
+
     protected slots:
         /*!
           @brief Handler for 'About Application' signel

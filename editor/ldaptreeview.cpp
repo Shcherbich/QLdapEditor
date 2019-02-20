@@ -193,6 +193,15 @@ void CLdapTreeView::onEditEntry()
     QVector<QString> newClasses = structClasses ;
     newClasses << dialog.selectedClasses();
 
+    auto fObjectClassToUpdate = std::find_if(thisEntry->attributes()->begin(), thisEntry->attributes()->end(), [&](const ldapcore::CLdapAttribute& a)
+    {
+        return a.name().compare("objectClass", Qt::CaseInsensitive) == 0;
+    });
+    if(fObjectClassToUpdate != thisEntry->attributes()->end())
+    {
+        fObjectClassToUpdate->setClasses(newClasses);
+    }
+
 
     std::map<std::string, std::string> a2v;
     auto prevAttributes = m_LdapData.schema().attributeByClasses(originalClasses, a2v);

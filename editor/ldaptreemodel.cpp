@@ -256,6 +256,12 @@ namespace ldapeditor
         emit dataChanged(idxFrom, idxTo, QVector<int>() << Qt::DisplayRole << Qt::DecorationRole);
         return true;
     }
+
+    void CLdapTreeModel::onRemoveEntity(const QModelIndex index)
+    {
+        if(index.isValid())
+           removeRows(index.row(),1, index.parent());
+    }
 } //namespace ldapeditor
 
 

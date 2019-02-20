@@ -154,6 +154,7 @@ QString CLdapAttribute::description() const
 void CLdapAttribute::setDescription(QString& desc)
 {
     m_Description = desc;
+    m_isModified = true;
 }
 
 QVector<QString> CLdapAttribute::classes() const
@@ -165,6 +166,7 @@ void CLdapAttribute::setClasses(QVector<QString>& v)
 {
     m_Classes.clear();
     m_Classes << v;
+    m_isModified = true;
 }
 
 

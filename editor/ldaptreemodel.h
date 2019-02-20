@@ -210,6 +210,12 @@ namespace ldapeditor
          */
         void onAddAttribute(QString name);
 
+    public slots:
+        /*!
+         * \brief Public slot, called when need to remove entity from tree mdel by index
+         * \param index index of entity to delete
+         */
+        void onRemoveEntity(const QModelIndex index);
     };
 } //namespace ldapeditor
 

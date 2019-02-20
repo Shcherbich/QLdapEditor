@@ -110,7 +110,12 @@ MainWindow::MainWindow(CLdapSettings& settings, ldapcore::CLdapData& ldapData, Q
 
     connect(m_LdapTree, &CLdapTreeView::onRemoveAttribute, m_TableModel, &CLdapAttributesModel::onRemoveAttribute);
     connect(m_LdapTree, &CLdapTreeView::onAddAttribute, m_TableModel, &CLdapAttributesModel::onAddAttribute);
+
+    connect(this, &MainWindow::removeEntity, m_TreeModel, &CLdapTreeModel::onRemoveEntity);
+
 }
+
+
 
 MainWindow::~MainWindow()
 {
@@ -249,25 +254,8 @@ void MainWindow::onTreeItemChanged(const QModelIndex& current, const QModelIndex
             }
             else
 			{
-                ldapcore::CLdapEntry* prevEntry = static_cast<ldapcore::CLdapEntry*>(srcPrev.internalPointer());
-                if (prevEntry)
-				{
-                    ldapcore::CLdapEntry* parentEntry = prevEntry->parent();
-                    if (parentEntry)
-					{
-                        QtUiLocker locker(m_LdapTree);
-                        QModelIndex parentIndex = mainPrev.parent();
-                        parentEntry->removeChild(prevEntry);
-                        m_LdapTree->collapse(parentIndex);
-                        m_LdapTree->expand(parentIndex);
-                        m_LdapTree->setCurrentIndex(parentIndex);
-                        m_TableModel->setLdapEntry(parentEntry);
-                        m_AttributesList->setLdapEntry(parentEntry);
-                        onReload();
-                        return;
-					}
-				}
-			}
+                emit removeEntity(srcPrev);
+            }
 		}
 		else
 		{
@@ -290,7 +278,12 @@ void MainWindow::onTreeItemChanged(const QModelIndex& current, const QModelIndex
 				}
                 else
                 {
-                    onReload();
+                    ldapcore::CLdapEntry* prevEntry = static_cast<ldapcore::CLdapEntry*>(srcPrev.internalPointer());
+                    QVector<QString> cls;
+                    prevEntry->setClasses(cls);
+                    prevEntry->flushAttributeCache();
+                    (void*)prevEntry->attributes();
+                    m_LdapTree->update(mainPrev);
                 }
 			}
 		}
