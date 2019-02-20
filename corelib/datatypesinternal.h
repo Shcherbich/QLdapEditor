@@ -10,6 +10,9 @@
 namespace ldapcore
 {
 
+/*!
+  @brief type for comparing two std::string no case sensitivity
+*/
 struct compMap
 {
 	bool operator()(const std::string& lhs, const std::string& rhs) const
@@ -18,15 +21,39 @@ struct compMap
 	}
 };
 
+/*!
+  @brief type to storing internal data of ldap schema
+*/
 struct CLdapSchemaImpl
 {
+    /*!
+     * @brief member that stored all atribute names of ldap schema
+     */
 	std::unique_ptr<LDAPAttribute> oc{ new LDAPAttribute() };
+
+    /*!
+     * @brief member that stored all class names of ldap schema
+     */
 	std::unique_ptr<LDAPAttribute> at{ new LDAPAttribute() };
+
+    /*!
+     * @brief member that stored all match rules of ldap schema
+     */
 	std::unique_ptr<LDAPAttribute> mr{ new LDAPAttribute() };
 
+    /*!
+     * @brief map that reflect attribute name to tuple of attribute type/user can change/syntax of attribute
+     */
 	std::map<std::string, std::tuple<AttrType, bool, std::string>, compMap> attr2info;
 
+    /*!
+     * @brief member that contains classes schema of openldap C++ wrapper
+     */
 	LDAPSchema classesSchema;
+
+    /*!
+     * @brief member that contains attributes schema of openldap C++ wrapper
+     */
 	LDAPSchema attributesSchema;
 };
 

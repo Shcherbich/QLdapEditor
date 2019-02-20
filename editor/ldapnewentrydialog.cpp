@@ -1,3 +1,10 @@
+/*!
+\file
+\brief Implementation file for dialog 'Add/Edit LDAP Entity' class
+
+File contains  implementations for dialog 'Add/EditLDPA Entity' class
+*/
+
 #include "ldapnewentrydialog.h"
 #include "ui_ldapnewentrydialog.h"
 #include <QComboBox>
@@ -67,15 +74,29 @@ CLdapNewEntryDialog::CLdapNewEntryDialog(QWidget* parent, QString dn, QString rd
 {
     ui->setupUi(this);
 
+    ui->addButton->setEnabled(false);
+    ui->removeButton->setEnabled(false);
+
     connect(ui->closeButton, &QAbstractButton::clicked, this, &CLdapNewEntryDialog::onCloseClicked);
     connect(ui->okButton, &QAbstractButton::clicked, this, &CLdapNewEntryDialog::onOkClicked);
     connect(ui->addButton, &QAbstractButton::clicked, this, &CLdapNewEntryDialog::onAddClicked);
     connect(ui->removeButton, &QAbstractButton::clicked, this, &CLdapNewEntryDialog::onRemoveClicked);
+
+
+    connect(ui->listAll, &QListWidget::currentItemChanged, this, [this](QListWidgetItem* current, QListWidgetItem* previous){
+        Q_UNUSED(previous);
+        ui->addButton->setEnabled(current != nullptr);
+    });
+    connect(ui->listNeeded, &QListWidget::currentItemChanged, this, [this](QListWidgetItem* current, QListWidgetItem* previous){
+        Q_UNUSED(previous);
+        ui->removeButton->setEnabled(current != nullptr);
+    });
+
     ui->structuralCombo->addItem(structuralClass.c_str());
     ui->structuralCombo->setEnabled(false);
-    ui->parentdnEdit->setText(rdn);
+    ui->parentdnEdit->setText(dn);
+    ui->rdnEdit->setText(rdn);
     ui->parentdnEdit->setReadOnly(true);
-    ui->rdnEdit->setText(dn);
     ui->rdnEdit->setReadOnly(true);
     setWindowTitle(tr("Edit entry"));
 
@@ -128,11 +149,12 @@ void CLdapNewEntryDialog::onOkClicked()
 
     vSelectedClasses.clear();
     QString structuralClass = ui->structuralCombo->currentText();
-    if (structuralClass != "top")
-    {
-        vSelectedClasses << "top";
-    }
-    vSelectedClasses << structuralClass;
+//    if (structuralClass != "top")
+//    {
+//        vSelectedClasses << "top";
+//    }
+//    vSelectedClasses << structuralClass;
+    m_structuralClass = structuralClass;
     for (int i = 0; i < ui->listNeeded->count(); ++i)
     {
         vSelectedClasses << ui->listNeeded->item(i)->text();
@@ -175,7 +197,7 @@ QVector<QString> CLdapNewEntryDialog::selectedClasses() const
 
 void CLdapNewEntryDialog::onStructuralComboChanged(const QString&)
 {
-    ui->rdnEdit->setText("");
+    //ui->rdnEdit->setText("");
     QString selected = ui->structuralCombo->currentText();
     auto& schema = m_LdapData.schema();
 
@@ -207,6 +229,11 @@ void CLdapNewEntryDialog::fillListAll(QString structuralClass)
     ui->listNeeded->clear();
     for (auto& c : v)
         ui->listAll->addItem(c);
+}
+
+QString CLdapNewEntryDialog::structuralClass() const
+{
+    return m_structuralClass;
 }
 
 } //namespace ldapeditor

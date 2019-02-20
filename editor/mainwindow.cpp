@@ -32,24 +32,37 @@ File contains  implementations for applications's main window
 
 namespace ldapeditor
 {
-
+/*!
+ * @ingroup ldapeditor
+ * @brief The Auxiliary class locks updates of QWidgets
+ *
+ * Auxiliary class locks updates of QWidgets
+ */
 struct QtUiLocker
 {
-    QWidget* m_pWidget;
+    QWidget* m_pWidget; ///< pointer to QWidget to be locked
 
+    /*!
+     * \brief Constructor QtUiLocker
+     * \param pWidget pointer to QWidget which should be locked
+     * Locks updates of QWidget
+     */
     QtUiLocker(QWidget* pWidget)
         : m_pWidget(pWidget)
     {
         m_pWidget->setUpdatesEnabled(false);
     }
 
+    /*!
+      \brief Destructor of QtUiLocker
+      Unlocks QWidget locked in constructor
+    */
     ~QtUiLocker()
     {
         m_pWidget->setUpdatesEnabled(true);
     }
 
 };
-
 
 MainWindow::MainWindow(CLdapSettings& settings, ldapcore::CLdapData& ldapData, QWidget* parent)
 	: QMainWindow(parent)
@@ -67,6 +80,8 @@ MainWindow::MainWindow(CLdapSettings& settings, ldapcore::CLdapData& ldapData, Q
     QString baseDN = normilizeDN(m_Settings.baseDN());
 
     m_TreeModel = new CLdapTreeModel(baseDN, this);
+    m_TreeProxyModel = new CLdapTreeProxyModel(this);
+
     m_TableModel = new CLdapAttributesModel(m_LdapData, this);
     m_AttributesList = new CLdapTableView(this, m_LdapData, m_Settings);
 
@@ -75,21 +90,32 @@ MainWindow::MainWindow(CLdapSettings& settings, ldapcore::CLdapData& ldapData, Q
     m_AttributesList->horizontalHeader()->setStretchLastSection(true);
 
     m_TreeModel->setTopItems(m_LdapData.topList());
-    m_RootIndex = m_TreeModel->index(0, 0);
 
     m_TableModel->setBaseDN(baseDN);
     m_AttributesList->setModel(m_TableModel);
     m_AttributesList->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
     m_AttributesList->RestoreView();
 
-    m_LdapTree->setModel(m_TreeModel);
+    m_TreeProxyModel->setDynamicSortFilter(true);
+    m_TreeProxyModel->setSourceModel(m_TreeModel);
+    m_TreeProxyModel->setSortRole(Qt::DisplayRole);
+    m_TreeProxyModel->sort(0);
+    m_LdapTree->setModel(m_TreeProxyModel);
     m_LdapTree->header()->resizeSection(0, m_LdapTree->header()->width());
+
+    m_RootIndex = m_TreeProxyModel->index(0, 0);
     m_LdapTree->expand(m_RootIndex);
     m_LdapTree->setCurrentIndex(m_RootIndex);
 
-    connect(m_TreeModel, SIGNAL(onRemovingAttribute(QString)), m_TableModel, SLOT(onRemovingAttribute(QString)));
-    connect(m_TreeModel, SIGNAL(onAddAttribute(QString)), m_TableModel, SLOT(onAddAttribute(QString)));
+
+    connect(m_LdapTree, &CLdapTreeView::onRemoveAttribute, m_TableModel, &CLdapAttributesModel::onRemoveAttribute);
+    connect(m_LdapTree, &CLdapTreeView::onAddAttribute, m_TableModel, &CLdapAttributesModel::onAddAttribute);
+
+    connect(this, &MainWindow::removeEntity, m_TreeModel, &CLdapTreeModel::onRemoveEntity);
+
 }
+
+
 
 MainWindow::~MainWindow()
 {
@@ -111,18 +137,23 @@ void MainWindow::CreateDockWindows()
 void MainWindow::CreateActions()
 {
 	QMenu* dataMenu = menuBar()->addMenu(tr("&Data"));
-	QAction* searchAction = dataMenu->addAction(tr("&Ldap search"), this, &MainWindow::onLdapSearch);
+    QAction* searchAction = dataMenu->addAction(QIcon(":/search"),tr("&Ldap search"), this, &MainWindow::onLdapSearch);
 	dataMenu->setStatusTip(tr("Ldap search"));
 	dataMenu->addAction(searchAction);
 
-	QAction* saveDataAction = dataMenu->addAction(tr("&Save data"), this, &MainWindow::onSaveData);
+    QAction* saveDataAction = dataMenu->addAction(QIcon(":/save"),tr("&Save data"), this, &MainWindow::onSaveData);
 	dataMenu->setStatusTip(tr("Save data"));
 	dataMenu->addAction(saveDataAction);
 
     dataMenu->addSeparator();
-    QAction* reloadDataAction = dataMenu->addAction(tr("&Reconnect"), this, &MainWindow::onReload);
-    dataMenu->setStatusTip(tr("Reconnect"));
+    QAction* reloadDataAction = dataMenu->addAction(QIcon(":/network"),tr("&Reconnect"), this, &MainWindow::onReconnect);
+    dataMenu->setStatusTip(tr("Reconnect to server"));
     dataMenu->addAction(reloadDataAction);
+
+    dataMenu->addSeparator();
+    QAction* refreshDataAction = dataMenu->addAction(QIcon(":/reload"),tr("Re&fresh"), this, &MainWindow::onReload);
+    dataMenu->setStatusTip(tr("Refresh data"));
+    dataMenu->addAction(refreshDataAction);
 
     dataMenu->addSeparator();
 	QAction* quitAction = dataMenu->addAction(tr("&Quit"), this, &MainWindow::onQuit);
@@ -137,6 +168,14 @@ void MainWindow::CreateActions()
 	QAction* aboutQtAction = helpMenu->addAction(tr("About &Qt"), qApp, &QApplication::aboutQt);
 	aboutQtAction->setStatusTip(tr("Show the Qt library's About box"));
 	helpMenu->addAction(aboutQtAction);
+
+
+    QToolBar* mainToolbar = addToolBar(tr("mainToolbar"));
+    mainToolbar->addAction(searchAction);
+    mainToolbar->addSeparator();
+    mainToolbar->addAction(saveDataAction);
+    mainToolbar->addAction(reloadDataAction);
+    mainToolbar->addAction(refreshDataAction);
 }
 
 void MainWindow::CreateStatusBar()
@@ -192,54 +231,40 @@ QString MainWindow::normilizeDN(const QString& dn)
 
 void MainWindow::onTreeItemChanged(const QModelIndex& current, const QModelIndex& mainPrev)
 {
-	if (!current.isValid())
+    QModelIndex srcCur = m_TreeProxyModel->mapToSource(current);
+    QModelIndex srcPrev = m_TreeProxyModel->mapToSource(mainPrev);
+    if (!srcCur.isValid())
 	{
 		return;
 	}
 
-    if (mainPrev.isValid())
+    if (srcPrev.isValid())
 	{
         if (m_TableModel->isNew() && m_LdapTree->updatesEnabled())
 		{
             auto ret = QMessageBox::question(this, tr("Question"),
                                              tr("The new entry was added.\nDo you want to save new entry to server?"),
                                              QMessageBox::Yes | QMessageBox::No);
-			if (ret != QMessageBox::Yes)
-			{
-                ldapcore::CLdapEntry* prevEntry = static_cast<ldapcore::CLdapEntry*>(mainPrev.internalPointer());
-				if (prevEntry != nullptr)
-				{
-					auto parent = prevEntry->parent();
-					if (parent)
-					{
-                        QtUiLocker locker(m_LdapTree);
-                        auto previous = mainPrev.parent();
-                        parent->removeChild(prevEntry);
-                        m_LdapTree->collapse(previous);
-                        m_LdapTree->expand(previous);
-                        m_LdapTree->setCurrentIndex(previous);
-                        m_TableModel->setLdapEntry(parent);
-                        m_AttributesList->setLdapEntry(parent);
-                        return;
-					}
-				}
-			}
-			else
-			{
+            if (ret == QMessageBox::Yes)
+            {
                 if (!m_TableModel->Save())
                 {
                     return;
                 }
-			}
+            }
+            else
+			{
+                emit removeEntity(srcPrev);
+            }
 		}
 		else
 		{
 			QVector<ldapcore::CLdapAttribute> newRows, deleteRows, updateRows;
 			m_TableModel->GetChangedRows(newRows, deleteRows, updateRows);
             // first check
-			bool hasChanges = !(!newRows.size() && !deleteRows.size() && !updateRows.size());
+            bool hasChanges = !(newRows.empty() && deleteRows.empty() && updateRows.empty());
             // second check
-            hasChanges |= m_TableModel->isEdit() ? 1 : 0;
+            hasChanges |= m_TableModel->isEdit();
             if (hasChanges && m_LdapTree->updatesEnabled())
 			{
                 const QString s1(tr("You have changes in attributes.\nDo you want to save these changes to server?"));
@@ -251,11 +276,20 @@ void MainWindow::onTreeItemChanged(const QModelIndex& current, const QModelIndex
 				{
 					m_TableModel->Save();
 				}
+                else
+                {
+                    ldapcore::CLdapEntry* prevEntry = static_cast<ldapcore::CLdapEntry*>(srcPrev.internalPointer());
+                    QVector<QString> cls;
+                    prevEntry->setClasses(cls);
+                    prevEntry->flushAttributeCache();
+                    (void*)prevEntry->attributes();
+                    m_LdapTree->update(mainPrev);
+                }
 			}
 		}
 	}
 
-	ldapcore::CLdapEntry* currentEntry = static_cast<ldapcore::CLdapEntry*>(current.internalPointer());
+    ldapcore::CLdapEntry* currentEntry = static_cast<ldapcore::CLdapEntry*>(srcCur.internalPointer());
 	if (currentEntry)
 	{
 		m_TableModel->setLdapEntry(currentEntry);
@@ -271,7 +305,7 @@ void MainWindow::onLdapSearch()
 
 void MainWindow::onSaveData()
 {
-    if(m_TableModel->Save())
+    if(m_AttributesList->SaveData())
     {
         statusBar()->showMessage(tr("Data saved"));
     }
@@ -283,17 +317,40 @@ void MainWindow::onQuit()
 }
 
 
-void MainWindow::onReload()
+void MainWindow::onReconnect()
 {
     try
     {
         m_LdapData.reconnect();
-        QMessageBox::question(this, tr("Information"), tr("The operation has been completed successfully!"), QMessageBox::Ok);
+        QMessageBox::information(this, tr("Reconnect operation"), tr("The operation has been completed successfully!"), QMessageBox::Ok);
     }
     catch (const std::exception& ex)
     {
         QMessageBox::critical(nullptr, tr("Error"), ex.what(), QMessageBox::Ok);
     }
 }
+
+
+void MainWindow::onReload()
+{
+    onSaveData();
+
+    //m_LdapTree->saveState();
+
+    m_TableModel->setLdapEntry(nullptr);
+    m_AttributesList->setLdapEntry(nullptr);
+
+    m_LdapData.rebuild();
+    m_TreeModel->setTopItems(m_LdapData.topList());
+
+    m_RootIndex = m_TreeProxyModel->index(0, 0);
+    m_LdapTree->expand(m_RootIndex);
+    m_LdapTree->setCurrentIndex(m_RootIndex);
+
+    //m_LdapTree->restoreState();
+
+    statusBar()->showMessage(tr("Data reloaded"));
+}
+
 }// namespace ldapeditor
 

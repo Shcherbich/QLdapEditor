@@ -1,3 +1,10 @@
+/*!
+\file
+\brief Implementation file for attribute helper class
+
+File contains  implementation for attribute helper class
+*/
+
 #include "attributemodelhelper.h"
 #include "ldapeditordefines.h"
 #include <QDateTime>
@@ -90,6 +97,8 @@ QVariant CAttributeModelHelper::data(const ldapcore::CLdapAttribute&  attr, cons
         return foregroundRoleData(attr,index);
     case Qt::FontRole:
         return fontRoleData(attr,index);
+    case Qt::CheckStateRole:
+        return checkStateRoleData(attr,index);
     case ldapeditor::AttrTypeRole:
         return static_cast<int>(attr.type());
     default: break;
@@ -103,6 +112,8 @@ bool CAttributeModelHelper::setData(ldapcore::CLdapAttribute&  attr, const QMode
     {
     case Qt::EditRole:
         return setEditRoleData(attr, value, index);
+    case Qt::CheckStateRole:
+        return setCheckStateRoleData(attr, value, index);
     default: break;
     }
     return false;
@@ -119,6 +130,17 @@ QVariant CAttributeModelHelper::fontRoleData(const ldapcore::CLdapAttribute &att
     return QVariant();
 }
 
+
+QVariant CAttributeModelHelper::checkStateRoleData(const ldapcore::CLdapAttribute &attr, const QModelIndex &index)const
+{
+    if (index.column() == static_cast<int>(AttributeColumn::Ignore) &&
+        m_LdapEntry->isNew() &&
+        attr.isMust())
+    {
+        return attr.isIgnore() ? Qt::Checked : Qt::Unchecked;
+    }
+    return QVariant();
+}
 
 QString CAttributeModelHelper::attributeType2String(ldapcore::AttrType type) const
 {
@@ -209,6 +231,11 @@ QVariant CAttributeModelHelper::editRoleData(const ldapcore::CLdapAttribute &att
 QVariant CAttributeModelHelper::tooltipRoleData(const ldapcore::CLdapAttribute &attr, const QModelIndex &index)const
 {
     QString displayData = displayRoleData(attr,index);
+    if (index.column() == static_cast<int>(AttributeColumn::Ignore))
+    {
+        return QString(QObject::tr("Check it, if you'd like to ignore value for this Must attribute"));
+    }
+
     if (index.column() == static_cast<int>(AttributeColumn::Class))
     {
         QString str("description: ");
@@ -244,7 +271,7 @@ QVariant CAttributeModelHelper::foregroundRoleData(const ldapcore::CLdapAttribut
 {
     if (attr.isMust())
     {
-        return QColor(Qt::blue);
+        return m_LdapEntry->isNew() ? QColor(Qt::blue) : QColor("#126180");
     }
     switch(attr.editState())
     {
@@ -265,6 +292,18 @@ QVariant CAttributeModelHelper::foregroundRoleData(const ldapcore::CLdapAttribut
         default:break;
     }
     return QBrush(Qt::black);
+}
+
+bool CAttributeModelHelper::setCheckStateRoleData(ldapcore::CLdapAttribute &attr, const QVariant& value, const QModelIndex &index)
+{
+    if(index.column() == static_cast<int>(AttributeColumn::Ignore) &&
+        m_LdapEntry->isNew() &&
+            attr.isMust() )
+    {
+        attr.setIsIgnore(value.toInt() == Qt::Checked);
+        return true;
+    }
+    return false;
 }
 
 bool CAttributeModelHelper::setEditRoleData(ldapcore::CLdapAttribute &attr, const QVariant& value, const QModelIndex &index)

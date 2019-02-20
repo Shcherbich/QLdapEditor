@@ -42,6 +42,7 @@ LDAPEntry::LDAPEntry(const LDAPAsynConnection *ld, LDAPMessage *msg){
 LDAPEntry::~LDAPEntry(){
     DEBUG(LDAP_DEBUG_DESTROY,"LDAPEntry::~LDAPEntry()" << endl);
     delete m_attrs;
+    m_attrs = nullptr;
 }
 
 LDAPEntry& LDAPEntry::operator=(const LDAPEntry& from){

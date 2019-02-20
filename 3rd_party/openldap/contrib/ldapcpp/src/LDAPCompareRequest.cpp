@@ -15,7 +15,7 @@
 
 using namespace std;
 
-LDAPCompareRequest::LDAPCompareRequest(const LDAPCompareRequest& req){
+LDAPCompareRequest::LDAPCompareRequest(const LDAPCompareRequest& req) : LDAPRequest(req){
     DEBUG(LDAP_DEBUG_CONSTRUCT, 
             "LDAPCompareRequest::LDAPCompareRequest(&)" << endl);
     m_dn=req.m_dn;

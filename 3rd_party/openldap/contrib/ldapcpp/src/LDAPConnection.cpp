@@ -25,8 +25,13 @@ LDAPConnection::LDAPConnection(const string& hostname, int port,
 LDAPConnection::~LDAPConnection(){
 }
 
-void LDAPConnection::start_tls(){
-    LDAPAsynConnection::start_tls();
+void LDAPConnection::init(const std::string& hostname, int port)
+{
+    LDAPAsynConnection::init(hostname, port);
+}
+
+void LDAPConnection::start_tls(std::function< bool(std::string)> funcToConfirmWarnings){
+    LDAPAsynConnection::start_tls(funcToConfirmWarnings);
 }
    
 void LDAPConnection::bind(const string& dn, const string& passwd,
@@ -389,4 +394,9 @@ void LDAPConnection::modify_s(const std::string& dn, LDAPModList *mod)
 {
     LDAPAsynConnection::modify_s(dn, mod);
 
+}
+
+void LDAPConnection::setHardResetFunc(std::function< bool() > f)
+{
+    LDAPAsynConnection::setHardResetFunc(f);
 }

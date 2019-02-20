@@ -1,6 +1,14 @@
+/*!
+\file
+\brief Implementation file for dialog 'Add Attribute' class
+
+File contains  implementations for dialog 'Add Attribute' class
+*/
+
 #include "ldapnewattributedialog.h"
 #include "ui_ldapnewattributedialog.h"
 #include "attributemodelhelper.h"
+#include <QDateTime>
 
 namespace ldapeditor {
 
@@ -13,41 +21,33 @@ CLdapNewAttributeDialog::CLdapNewAttributeDialog(ldapcore::CLdapData &ldapData, 
     connect(ui->classCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(onCurrentClassChanged(int)));
     connect(ui->attrCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(onCurrentAttributeChanged(int)));
 
-    QStringList itemsList;
-    for(auto s : m_entry->classes())
-        itemsList << s;
+    ui->classCombo->setStyleSheet("QComboBox{ padding-left: 6px; }");
+    ui->attrCombo->setStyleSheet("QComboBox{ padding-left: 6px; }");
+    ui->typeEdit->setStyleSheet("QLineEdit{ padding-left: 6px; }");
+    ui->valueEdit->setStyleSheet("QLineEdit{ padding-left: 6px; }");
 
-    itemsList.sort();
 
-    for(auto s : itemsList)
-        ui->classCombo->addItem(s);
+    ui->typeEdit->setReadOnly(true);
 
-    QVector<ldapcore::CLdapAttribute>* realAttributes = m_entry->attributes();
-    QVector<ldapcore::CLdapAttribute>  mayAttributes = m_entry->availableAttributesMay();
-    QVector<ldapcore::CLdapAttribute>  mustAttributes = m_entry->availableAttributesMust();
+    ui->labelValue->hide();
+    ui->valueEdit->hide();
 
-    for(auto ma : mustAttributes)
+    QString structuralClass = m_entry->structuralClass();
+    QVector<QString> entryClasses = m_entry->classes();
+    QVector<QString> classes = m_LdapData.schema().consistentClassesByStructuralAndOther(structuralClass, entryClasses);
+
+    int structuraClassIdx=-1;
+    for(int i=0; i< classes.size();i++)
     {
-        if (std::find_if(std::begin(*realAttributes), std::end(*realAttributes), [&](const ldapcore::CLdapAttribute& ra) {
-            return ma.name().compare( ra.name(),Qt::CaseInsensitive) == 0;
-        }) == std::end(*realAttributes))
-        {
-            m_addMust.insert(ma.name());
-        }
+        ui->classCombo->addItem(classes[i]);
+        if(m_entry->structuralClass() == classes[i])
+            structuraClassIdx = i;
     }
 
-    for(auto ma : mayAttributes)
-    {
-        if (std::find_if(std::begin(*realAttributes), std::end(*realAttributes), [&](const ldapcore::CLdapAttribute& ra) {
-            return ma.name().compare( ra.name(),Qt::CaseInsensitive) == 0;
-        }) == std::end(*realAttributes))
-        {
-            m_addMay.insert(ma.name());
-        }
-    }
+    if(structuraClassIdx!= -1)
+        ui->classCombo->setCurrentIndex(structuraClassIdx);
 
-    ui->classCombo->setCurrentIndex(0);
-    onCurrentClassChanged(0);
+    onCurrentClassChanged(structuraClassIdx);
 }
 
 CLdapNewAttributeDialog::~CLdapNewAttributeDialog()
@@ -65,18 +65,18 @@ void CLdapNewAttributeDialog::onCurrentClassChanged(int index)
         m_attributes = m_LdapData.schema().attributeByClasses(classes, a2v);
         ui->attrCombo->clear();
 
-
         qSort(m_attributes.begin(), m_attributes.end(),[](const ldapcore::CLdapAttribute& a1, const ldapcore::CLdapAttribute& a2){
             return a1.name().toLower() < a2.name().toLower();
         });
 
+        QSet<QString> attrSet;
+        QVector<ldapcore::CLdapAttribute>* entryAttributes = m_entry->attributes();
+        for(const auto& a : *entryAttributes)
+            attrSet.insert(a.name());
+
         for(int i=0; i< m_attributes.size(); i++)
         {
-            if(m_addMust.contains(m_attributes[i].name()))
-            {
-                ui->attrCombo->addItem(m_attributes[i].name(), i);
-            }
-            else if(m_addMay.contains(m_attributes[i].name()))
+            if(!attrSet.contains(m_attributes[i].name()))
             {
                 ui->attrCombo->addItem(m_attributes[i].name(), i);
             }
@@ -89,14 +89,39 @@ void CLdapNewAttributeDialog::onCurrentClassChanged(int index)
 
 void CLdapNewAttributeDialog::onCurrentAttributeChanged(int index)
 {
-    ui->typeEdit->setEnabled(index != -1);
-    ui->valueEdit->setEnabled(index != -1);
-
     if(index != -1)
     {
         CAttributeModelHelper helper(m_LdapData);
-        ui->typeEdit->setText(helper.attributeType2String(m_attributes[index].type()));
-        ui->valueEdit->setText(m_attributes[index].value());
+        int attrIdx = ui->attrCombo->itemData(index).toInt();
+
+        ldapcore::AttrType type = m_attributes[attrIdx].type();
+        QString value = m_attributes[attrIdx].value();
+
+        ui->typeEdit->setText(helper.attributeType2String(type));
+
+
+        if(value.isEmpty() && type == ldapcore::AttrType::Boolean)
+        {
+            value = "FALSE";
+            QRegExp rx("TRUE|FALSE$");
+            QRegExpValidator v(rx, 0);
+            ui->valueEdit->setValidator(&v);
+        }
+        if(value.isEmpty() && type == ldapcore::AttrType::Integer)
+        {
+            value = "0";
+            QRegExp rx("^\\d+$");
+            QRegExpValidator v(rx, 0);
+            ui->valueEdit->setValidator(&v);
+        }
+        if(value.isEmpty() && type == ldapcore::AttrType::GeneralizedTime)
+        {
+            value = QDateTime::currentDateTime().toString("yyyyMMddHHmmss.zzz")+"Z";
+            QRegExp rx("^\\d{4}\\d{2}\\d{2}([0-9]|0[0-9]|1[0-9]|2[0-3])[0-5][0-9][0-5][0-9](\\.\\d{3})?$");
+            QRegExpValidator v(rx, 0);
+            ui->valueEdit->setValidator(&v);
+        }
+        ui->valueEdit->setText(value);
     }
 }
 

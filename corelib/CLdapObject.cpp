@@ -12,7 +12,7 @@ CLdapObject::CLdapObject(QObject* parent)
 }
 
 CLdapObject::CLdapObject(QString id, QObject* parent)
-	: m_Id(id), QObject(parent)
+    : QObject(parent), m_Id(id)
 {
 
 }

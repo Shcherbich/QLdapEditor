@@ -76,7 +76,7 @@ CLdapSchema::~CLdapSchema()
 
 }
 
-void CLdapSchema::build(LDAPConnection* lc, std::string& baseDn)
+void CLdapSchema::build(LDAPConnection* lc)
 {
 	StringList tmp;
 	tmp.add("subschemasubentry");
@@ -92,7 +92,6 @@ void CLdapSchema::build(LDAPConnection* lc, std::string& baseDn)
 	StringList stringList;
 	stringList.add("objectClasses");
 	stringList.add("attributeTypes");
-	stringList.add("matchingRules");
 	entries = lc->search(schemabase, LDAPConnection::SEARCH_BASE, "(objectClass=*)", stringList);
 	if (entries == 0)
 	{
@@ -155,8 +154,6 @@ std::tuple<AttrType, bool> CLdapSchema::attributeInfoByName(std::string attrName
 	{
 		return std::tuple<AttrType, bool>(std::get<0>(f->second), std::get<1>(f->second));
 	}
-
-	qDebug() << attrName.c_str() << '\n';
 	return std::tuple<AttrType, bool> { AttrType::UnknownText, false };
 }
 
@@ -206,6 +203,19 @@ QVector<QString> CLdapSchema::structuralClasses()
 	return r;
 }
 
+QVector<QString> CLdapSchema::auxiliaryClasses()
+{
+    QVector<QString> r;
+    for (auto& c : m_impl->classesSchema.object_classes)
+    {
+        if (c.second.getKind() == 2)
+        {
+            r << c.second.getName().c_str();
+        }
+    }
+    return r;
+}
+
 QVector<QString> CLdapSchema::auxiliaryClassesBySup(QString sup)
 {
 	QVector<QString> r;
@@ -226,7 +236,7 @@ QVector<QString> CLdapSchema::auxiliaryClassesBySup(QString sup)
 
 QVector<CLdapAttribute> CLdapSchema::attributeByClasses(QVector<QString>& classes, std::map<std::string, std::string>& a2v)
 {
-    static std::set<std::string> excludedAttributeNames {"objectClass", "objectCategory", "distinguishedName"};
+    static std::set<std::string> excludedAttributeNames;
 	std::set<std::string> uniqueAttributes;
 	QVector<CLdapAttribute> vector;
 	for (auto& c : classes)
@@ -283,19 +293,15 @@ QVector<CLdapAttribute> CLdapSchema::attributeByClasses(QVector<QString>& classe
 QVector<QString> CLdapSchema::classesByAttributeName(std::string attrName, QVector<QString>& classesOfEntry)
 {
 	QVector<QString> classes;
-	for (auto& c : m_impl->classesSchema.object_classes)
-	{
-		QString cl = c.first.c_str();
-		if (!classesOfEntry.contains(cl) || classes.contains(cl))
-		{
-			continue;
-		}
-		if (c.second.getMay().contains(attrName) || c.second.getMust().contains(attrName))
-		{
-			classes << cl;
-		}
-	}
-	return classes;
+    for (auto& c : classesOfEntry)
+    {
+        auto classByName = m_impl->classesSchema.getObjectClassByName(c.toStdString());
+        if (classByName.getMay().contains(attrName) || classByName.getMust().contains(attrName))
+        {
+            classes << c;
+        }
+    }
+    return classes;
 }
 
 QString CLdapSchema::supByClass(QString c)
@@ -317,6 +323,88 @@ QString CLdapSchema::classDescription(const QString& cls)
 	std::string desc = objectClassByName.getDesc();
 	return QString(QObject::tr("%1 class")).arg(desc.empty() ? cls : desc.c_str());
 }
+
+QVector<CLdapAttribute> CLdapSchema::mayAttributesByClass(QString cl)
+{
+    QVector<CLdapAttribute> vector;
+    LDAPObjClass ldapObjClass = classesSchema()->getObjectClassByName(cl.toStdString());
+    for (const auto& attributeName: ldapObjClass.getMay())
+    {
+        auto info = attributeInfoByName(attributeName);
+        auto attr = m_impl->attributesSchema.getAttributeTypeByName(attributeName);
+        QVector<QString> classes;
+        CLdapAttribute a(attributeName.c_str(), "", std::get<0>(info), false, attr.getDesc().c_str(), classes,
+                         AttributeState::AttributeValueReadWrite);
+        vector.push_back(a);
+    }
+    return vector;
+}
+
+QVector<CLdapAttribute> CLdapSchema::mustAttributesByClass(QString cl)
+{
+    QVector<CLdapAttribute> vector;
+    LDAPObjClass ldapObjClass = classesSchema()->getObjectClassByName(cl.toStdString());
+    for (const auto& attributeName: ldapObjClass.getMust())
+    {
+        auto info = attributeInfoByName(attributeName);
+        auto attr = m_impl->attributesSchema.getAttributeTypeByName(attributeName);
+        QVector<QString> classes;
+        CLdapAttribute a(attributeName.c_str(), "", std::get<0>(info), true, attr.getDesc().c_str(), classes,
+                         AttributeState::AttributeValueReadWrite);
+        vector.push_back(a);
+    }
+    return vector;
+}
+
+
+QVector<QString> CLdapSchema::consistentClassesByStructuralAndOther(QString structuralCl, QVector<QString> allClasses)
+{
+    QSet<QString> uniqueClasses;
+    QVector<QString> result;
+    for (;;)
+    {
+        if (!uniqueClasses.contains(structuralCl))
+        {
+            uniqueClasses << structuralCl;
+            result << structuralCl;
+        }
+        auto sup = supByClass(structuralCl);
+        if (sup.isEmpty() || sup == structuralCl)
+        {
+            break;
+        }
+        structuralCl = sup;
+    }
+    for (auto& c: allClasses)
+    {
+        if (!uniqueClasses.contains(c))
+        {
+            result << c;
+        }
+    }
+    return result;
+}
+
+QString CLdapSchema::deductStructuralClass(const QVector<QString> &classes)
+{
+    QVector<QString> structuralClasses;
+    for (auto& c: classes)
+    {
+        if (classesSchema()->getObjectClassByName(c.toStdString()).getKind() != 2)
+            structuralClasses << c;
+    }
+    QVector<QString> consistentClasses, tmpList;
+    for (auto& sc: structuralClasses)
+    {
+        auto vector = consistentClassesByStructuralAndOther(sc, tmpList);
+        if (vector.size() > consistentClasses.size())
+        {
+            consistentClasses.swap(vector);
+        }
+    }
+    return consistentClasses.size() ? consistentClasses.first() : "";
+}
+
 
 }
 

@@ -77,7 +77,7 @@ class LDAPConnection : public LDAPAsynConnection {
          * @throws LDAPException if the TLS Layer could not be setup 
          * correctly
          */
-        void start_tls();
+        void start_tls(std::function< bool(std::string)> funcToConfirmWarnings);
 
         /** 
          * Performs a simple authentication with the server
@@ -239,6 +239,8 @@ class LDAPConnection : public LDAPAsynConnection {
         
         const LDAPConstraints* getConstraints() const ;
         TlsOptions getTlsOptions() const;
+
+        void setHardResetFunc(std::function< bool() >);
 };
 
 #endif //LDAP_CONNECTION_H

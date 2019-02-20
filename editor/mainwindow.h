@@ -34,6 +34,7 @@ class CLdapData;
 namespace ldapeditor
 {
     class CLdapTreeModel;
+    class CLdapTreeProxyModel;
     class CLdapAttributesModel;
     class CLdapSettings;
 
@@ -60,6 +61,13 @@ namespace ldapeditor
           * \brief Destructor MainWindow
          */
         ~MainWindow();
+
+    signals:
+        /*!
+         * \brief Will be sent when need to delete entity from tree model
+         * \param index index of entity to delete
+         */
+        void removeEntity(const QModelIndex index);
 
     protected slots:
         /*!
@@ -98,6 +106,13 @@ namespace ldapeditor
           Method handles 'Quit' signal and saves locally changed data to LDAP server before exit from application
         */
         void onQuit();
+
+        /*!
+          @brief Handler for 'Reconnect' signel
+
+          Method handles 'Reconnect' signal and re-connects to LDAP server
+        */
+        void onReconnect();
 
         /*!
           @brief Handler for 'Reload Data' signel
@@ -157,6 +172,11 @@ namespace ldapeditor
           @brief member pointer to LDAP tree model
          */
         CLdapTreeModel* m_TreeModel{nullptr};
+
+        /*!
+          @brief member pointer to LDAP tree proxy model
+         */
+        CLdapTreeProxyModel* m_TreeProxyModel{nullptr};
 
         /*!
           @brief member pointer to LDAP table model

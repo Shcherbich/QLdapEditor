@@ -11,7 +11,7 @@ CLdapAttribute::CLdapAttribute()
 }
 
 CLdapAttribute::CLdapAttribute(QString name, QString value, AttrType type, bool isMust, QString desc, QVector<QString>& classes, AttributeState editState)
-    : m_Name(name), m_Value(value), m_Type(type), m_editState(editState), m_isMust(isMust), m_Description(desc), m_Classes(classes)
+    : m_Name(name), m_Value(value), m_Type(type), m_isMust(isMust), m_Description(desc), m_Classes(classes), m_editState(editState)
 {
 	if (m_editState == AttributeState::AttributeReadWrite)
 	{
@@ -31,12 +31,19 @@ CLdapAttribute::CLdapAttribute(const CLdapAttribute& src)
         m_isMust = src.m_isMust;
         m_Description = src.m_Description;
         m_Classes << src.m_Classes;
+        m_isIgnore = src.m_isIgnore;
 	}
 }
 
 CLdapAttribute::CLdapAttribute(CLdapAttribute&& temp)
- : m_Name(std::move(temp.m_Name)), m_Value(std::move(temp.m_Value)), m_Description(std::move(temp.m_Description)),
-   m_Type(temp.m_Type), m_editState(temp.m_editState), m_isMust(temp.m_isMust), m_Classes(std::move(temp.m_Classes))
+ : m_Name(std::move(temp.m_Name)),
+   m_Value(std::move(temp.m_Value)),
+   m_Type(temp.m_Type),
+   m_isMust(temp.m_isMust),
+   m_Description(std::move(temp.m_Description)),
+   m_Classes(std::move(temp.m_Classes)),
+   m_editState(temp.m_editState),
+   m_isIgnore(std::move(temp.m_isIgnore))
 {
 
 }
@@ -53,6 +60,7 @@ CLdapAttribute& CLdapAttribute::operator = (const CLdapAttribute& src)
     m_isMust = src.m_isMust;
     m_Description = src.m_Description;
     m_Classes << src.m_Classes;
+    m_isIgnore = src.m_isIgnore;
     return * this;
 }
 
@@ -66,6 +74,7 @@ CLdapAttribute& CLdapAttribute::operator = (CLdapAttribute&& src)
     m_isMust = src.m_isMust;
     m_Description = src.m_Description;
     m_Classes = std::move(src.m_Classes);
+    m_isIgnore = src.m_isIgnore;
     return * this;
 }
 
@@ -111,12 +120,12 @@ void CLdapAttribute::setValue(const QString& value)
 {
 	if (editState() != AttributeState::AttributeReadOnly)
 	{
-		if (!validateValue(value))
-		{
-			throw std::invalid_argument("can't set value due to wrong data format");
-		}
+        if (!validateValue(value))
+        {
+            throw std::invalid_argument("can't set value due to wrong data format");
+        }
 
-		m_Value = value;
+        m_Value = value;
 		m_isModified = true;
 	}
 }
@@ -132,9 +141,9 @@ void CLdapAttribute::setEditState(AttributeState state)
     m_editState = state;
 }
 
-bool CLdapAttribute::validateValue(const QString& value)
+bool CLdapAttribute::validateValue(const QString&)
 {
-	return true;
+    return true;
 }
 
 QString CLdapAttribute::description() const
@@ -145,6 +154,7 @@ QString CLdapAttribute::description() const
 void CLdapAttribute::setDescription(QString& desc)
 {
     m_Description = desc;
+    m_isModified = true;
 }
 
 QVector<QString> CLdapAttribute::classes() const
@@ -156,6 +166,7 @@ void CLdapAttribute::setClasses(QVector<QString>& v)
 {
     m_Classes.clear();
     m_Classes << v;
+    m_isModified = true;
 }
 
 

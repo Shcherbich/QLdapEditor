@@ -12,8 +12,11 @@ include_directories(../3rd_party/openldap/contrib/ldapcpp/src)
 add_compile_options(-DLDAPEDITORCORE_SO)
 add_compile_options(-DLDAPEDITORCORE_SO_EXPORTS)
 add_compile_options(-std=c++11)
+add_compile_options(-Wall)
+add_compile_options(-Wextra)
 
 FIND_PACKAGE(Qt5Core CONFIG REQUIRED)
+FIND_PACKAGE(Qt5Widgets CONFIG REQUIRED)
 
 set(LdapCore_SRCS
     datatypes.h
@@ -22,7 +25,9 @@ set(LdapCore_SRCS
     CLdapException.cpp
     CLdapSchema.h
     CLdapSchema.cpp
-	CLdapSchemaValidator.cpp
+    cldapserver.h
+    cldapserver.cpp
+    CLdapSchemaValidator.cpp
     qfunctional.h
     CLdapEntry.h
     CLdapEntry.cpp
@@ -49,7 +54,7 @@ FIND_LIBRARY(LDAP_LIBRARY NAMES ldap PATHS /usr/lib64)
 
 add_library(${PROJECT_NAME} SHARED ${LdapCore_SRCS} ${OpenLDAPCpp_SRCS})
 
-qt5_use_modules(${PROJECT_NAME} Core)
+qt5_use_modules(${PROJECT_NAME} Core Gui Widgets)
 target_link_libraries(${PROJECT_NAME} ${LDAP_LIBRARY} )
 
 

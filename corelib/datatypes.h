@@ -7,35 +7,47 @@
 
 /*!
  \defgroup ldapcore
- \brief namespace for groupping ldap core related functionality
+ \brief namespace for grouping ldap core related functionality
 
  Namespace ldapeditor wrapes all classes and declarations, related to ldap core functionality
 */
 namespace ldapcore
 {
 
+/*!
+  @brief type for storing connection options
+*/
 typedef struct _tConnectionOptions
 {
-	std::string host;
-	int port{389};
-	int version{3};
-	std::string basedn;
-	std::string username;
-	std::string password;
-	bool simpleAuth{true};
-	bool useSSL{false};
-	bool useTLS{false};
-	bool useSASL{false};
-	bool useAnonymous{false};
-	int  timeout{60}; // seconds
+    std::string host;   ///< host(ip) string
+    int port{389};      ///< port number
+    int version{3};     ///< LDAP protocol version
+    std::string basedn;     ///< Base DN
+    std::string username;   ///< user name used for authentification
+    std::string password;   ///< password uused for authentification
+    bool simpleAuth{true};  ///< Will simple authentification be used
+    bool useSSL{false};     ///< Will SSL be used
+    bool useSASL{false};    ///< will SASL be used
+    bool useAnonymous{false}; ///< Will anonymous connection be used
+    int  timeout{60};        ///< connection timeout, seconds
+
+    bool useTLS{false};     ///< Will TLS be used
+    std::string cacertfile; ///< CA certificate file path
+    std::string certfile;   ///< Certificate file path
+    std::string keyfile;    ///< Key file path
+
 } tConnectionOptions;
 
+/*!
+  @brief type for storing search options
+*/
 typedef struct _tSearchOptions
 {
-	int scope{1}; //LDAPConnection::SEARCH_ONE
-	std::string basedn;
-	std::string filter{"objectClass=*"};
-	std::string  attributes;
+    //LDAPConnection::SEARCH_ONE
+    int scope{1};           ///< search scope, 0 = LDAPConnection::SEARCH_BASE, 1 = LDAPConnection::SEARCH_ONE, 2 = LDAPConnection::SEARCH_SUB
+    std::string basedn;     ///< Base DN string
+    std::string filter{"objectClass=*"};    ///< filter string
+    std::string  attributes;    ///< list of attributes to return
 } tSearchOptions;
 
 }

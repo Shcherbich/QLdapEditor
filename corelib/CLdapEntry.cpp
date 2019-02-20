@@ -15,6 +15,7 @@
 #include "LDAPMessage.h"
 
 static StringList systemAttrs;
+using uEntry = std::shared_ptr<LDAPEntry>;
 
 struct comp
 {
@@ -40,7 +41,7 @@ std::vector<std::string> GetObjectClasses(LDAPConnection* le, std::string dn)
         {
             return vRet;
         }
-        LDAPEntry* en = finds->getNext();
+        uEntry en(finds->getNext());
         if (en == nullptr)
         {
             return vRet;
@@ -60,8 +61,9 @@ std::vector<std::string> GetObjectClasses(LDAPConnection* le, std::string dn)
             vRet.push_back(cl);
         }
     }
-    catch (std::exception& e)
+    catch (std::exception& ex)
     {
+        Q_UNUSED(ex);
     }
     return vRet;
 }
@@ -85,69 +87,6 @@ std::tuple< std::vector<std::string>, std::vector<std::string> >  GetAvailableAt
     }
     return std::make_tuple(vMust, vMay);
 }
-
-std::string AddAttributeToServer(LDAPConnection* conn, LDAPEntry* le, std::string name, std::string value)
-{
-    try
-    {
-        LDAPAttribute newattr(name);
-        newattr.addValue(value);
-        LDAPModification::mod_op op = LDAPModification::OP_ADD;
-        LDAPModList* mod = new LDAPModList();
-        mod->addModification(LDAPModification(newattr, op));
-        conn->modify_s(le->getDN(), mod);
-        return "";
-    }
-    catch (const std::exception& ex)
-    {
-        return ex.what();
-    }
-}
-
-std::string DeleteAttributeFromServer(LDAPConnection* conn, LDAPEntry* le, std::string name)
-{
-    try
-    {
-        LDAPAttribute newattr(name);
-        LDAPModification::mod_op op = LDAPModification::OP_DELETE;
-        LDAPModList* mod = new LDAPModList();
-        mod->addModification(LDAPModification(newattr, op));
-        conn->modify_s(le->getDN(), mod);
-        return "";
-    }
-    catch (const std::exception& ex)
-    {
-        return ex.what();
-    }
-}
-
-std::string ReplaceAttributeOnServer(LDAPConnection* conn, LDAPEntry* le, std::string name, std::string value)
-{
-    try
-    {
-        LDAPModification::mod_op op = LDAPModification::OP_REPLACE;
-        LDAPModList* mod = new LDAPModList();
-        auto q = conn->search(le->getDN(), LDAPAsynConnection::SEARCH_SUB, "objectClass=*", StringList());
-        auto en = q->getNext();
-        auto find = en->getAttributeByName(name);
-        if (find == nullptr)
-        {
-            throw ldapcore::CLdapServerException("No found attribute");
-        }
-        StringList newList;
-        newList.add(value);
-        const_cast<LDAPAttribute*>(find)->setValues(newList);
-        mod->addModification(LDAPModification(*find, op));
-        conn->modify_s(le->getDN(), mod);
-        return "";
-    }
-    catch (const std::exception& ex)
-    {
-        return ex.what();
-    }
-}
-
-
 
 namespace ldapcore
 {
@@ -187,7 +126,7 @@ CLdapEntry::CLdapEntry(CLdapEntry* parentLdapEntry, LDAPEntry* le, QObject* pare
 CLdapEntry::~CLdapEntry()
 {
     delete m_pEntry;
-    foreach (CLdapEntry* en, m_pChildren)
+    foreach (CLdapEntry* en, m_vChildren)
     {
         delete en;
     }
@@ -223,25 +162,36 @@ QString CLdapEntry::rDn()
     return m_rDn;
 }
 
-void CLdapEntry::construct(CLdapData* data, LDAPConnection* conn, QString baseDn)
+void CLdapEntry::initialize(CLdapData* data, QString baseDn)
 {
     m_pData = data;
     m_baseDn = baseDn;
+}
+
+void CLdapEntry::construct()
+{
+    if (m_isLoaded)
+    {
+        return;
+    }
+    m_isLoaded = true;
     try
     {
-        auto ls = conn->search(dn().toStdString(), LDAPAsynConnection::SEARCH_ONE);
-        if (ls != nullptr)
+        auto ls = connectionPtr()->search(dn().toStdString(), LDAPAsynConnection::SEARCH_ONE);
+        if (ls)
         {
-            for (LDAPEntry* le = ls->getNext(); le != nullptr; le = ls->getNext())
+            for (LDAPEntry* le = ls->getNext(); le; le = ls->getNext())
             {
-                m_pChildren.push_back(new CLdapEntry(this, le, nullptr));
-                m_pChildren.back()->construct(data, conn, baseDn);
+                auto en = new CLdapEntry(this, le, nullptr);
+                en->initialize(m_pData, m_baseDn);
+                en->loadClasses();
+                m_vChildren << en;
             }
         }
     }
-    catch (LDAPException& ex)
+    catch (const LDAPException& ex)
     {
-
+        Q_UNUSED(ex);
     }
 }
 
@@ -257,7 +207,8 @@ CLdapEntry* CLdapEntry::parent()
 
 QVector<CLdapEntry*> CLdapEntry::children()
 {
-    return m_pChildren;
+    construct();
+    return m_vChildren;
 }
 
 void CLdapEntry::prepareAttributes()
@@ -277,17 +228,13 @@ void CLdapEntry::prepareAttributes()
     availableAttributesMustImpl();
 
     loadAttributes(m_attributes);
-
 }
-void CLdapEntry::loadAttributes(QVector<CLdapAttribute>& vRet, bool needToLoadSystemAttributes)
+
+void CLdapEntry::loadClasses()
 {
-    if (m_pEntry == nullptr || m_isNew)
-    {
-        return;
-    }
     const LDAPAttributeList* al = m_pEntry->getAttributes();
     const LDAPAttribute* pObjectClass = al->getAttributeByName("objectClass");
-    if (pObjectClass != nullptr)
+    if (pObjectClass && !m_classes.size())
     {
         QVector<QString> classes;
         for (const auto& cl : pObjectClass->getValues())
@@ -296,6 +243,18 @@ void CLdapEntry::loadAttributes(QVector<CLdapAttribute>& vRet, bool needToLoadSy
         }
         setClasses(classes);
     }
+}
+
+void CLdapEntry::loadAttributes(QVector<CLdapAttribute>& vRet, bool needToLoadSystemAttributes)
+{
+    if (!m_pEntry || m_isNew)
+    {
+        return;
+    }
+
+    loadClasses();
+
+    const LDAPAttributeList* al = m_pEntry->getAttributes();
     LDAPAttributeList::const_iterator i = al->begin();
     for (; i != al->end(); i++)
     {
@@ -306,7 +265,7 @@ void CLdapEntry::loadAttributes(QVector<CLdapAttribute>& vRet, bool needToLoadSy
         auto name = i->getName();
         auto attributeTypeByName = m_pData->schema().attributesSchema()->getAttributeTypeByName(name);
         auto attrClasses = m_pData->schema().classesByAttributeName(name, m_classes);
-        CLdapAttribute attr(name.c_str(), i->toString().c_str(), tp, isMust(name), attributeTypeByName.getDesc().c_str(), attrClasses, editState);
+        CLdapAttribute attr(name.c_str(), i->toString().c_str(), tp, isMust(name), attributeTypeByName.getDesc().c_str(), attrClasses, (isMust(name) && !isNew()) ? AttributeState::AttributeReadOnly : editState);
         vRet.push_back(attr);
     }
 
@@ -341,7 +300,7 @@ void CLdapEntry::loadAttributes(QVector<CLdapAttribute>& vRet, bool needToLoadSy
                         auto name = i->getName();
                         auto attributeTypeByName = m_pData->schema().attributesSchema()->getAttributeTypeByName(name);
                         auto attrClasses = m_pData->schema().classesByAttributeName(name, m_classes);
-                        CLdapAttribute attr(name.c_str(), i->toString().c_str(), tp, true, attributeTypeByName.getDesc().c_str(), attrClasses, AttributeState::AttributeReadOnly);
+                        CLdapAttribute attr(name.c_str(), i->toString().c_str(), tp, isMust(name), attributeTypeByName.getDesc().c_str(), attrClasses, AttributeState::AttributeReadOnly);
                         vRet.push_back(attr);
                         m_Must.push_back(attr);
                     }
@@ -382,7 +341,8 @@ QVector<CLdapAttribute> CLdapEntry::availableAttributesMay()
 
 void CLdapEntry::availableAttributesMustImpl()
 {
-    m_Must.clear();
+    QVector<CLdapAttribute>tmp;
+    m_Must.swap(tmp);
     auto av = GetAvailableAttributes(*m_pData->schema().classesSchema(), connectionPtr(), dn().toStdString());
     for (const auto& must : std::get<0>(av))
     {
@@ -397,7 +357,8 @@ void CLdapEntry::availableAttributesMustImpl()
 
 void CLdapEntry::availableAttributesMayImpl()
 {
-    m_May.clear();
+    QVector<CLdapAttribute>tmp;
+    m_May.swap(tmp);
     auto av = GetAvailableAttributes(*m_pData->schema().classesSchema(), connectionPtr(), dn().toStdString());
     for (const auto& may : std::get<1>(av))
     {
@@ -443,41 +404,15 @@ void CLdapEntry::setEditable(bool isEdit)
     m_isEdit = isEdit;
 }
 
+bool CLdapEntry::isLoaded() const
+{
+    return m_isLoaded;
+}
 
 void CLdapEntry::validateAttribute(CLdapAttribute& attr)
 {
     m_pData->schema().isNameExist(attr.name().toStdString());
     m_pData->schema().validateAttributeByName(attr.name().toStdString(), attr.value().toStdString());
-}
-
-void CLdapEntry::addAttribute(CLdapAttribute& newOb) noexcept(false)
-{
-    auto ret = AddAttributeToServer(connectionPtr(), m_pEntry, newOb.name().toStdString(), newOb.value().toStdString());
-    if (ret.size())
-    {
-        auto err = QString("Add new attribute '%1': %2").arg(newOb.name()).arg(ret.c_str());
-        throw CLdapServerException(err.toStdString().c_str());
-    }
-}
-
-void CLdapEntry::deleteAttribute(CLdapAttribute& object) noexcept(false)
-{
-    auto ret = DeleteAttributeFromServer(connectionPtr(), m_pEntry, object.name().toStdString());
-    if (ret.size())
-    {
-        auto err = QString("Delete attribute '%1': %2").arg(object.name()).arg(ret.c_str());
-        throw CLdapServerException(err.toStdString().c_str());
-    }
-}
-
-void CLdapEntry::updateAttribute(CLdapAttribute& object) noexcept(false)
-{
-    auto ret = ReplaceAttributeOnServer(connectionPtr(), m_pEntry, object.name().toStdString(), object.value().toStdString());
-    if (ret.size())
-    {
-        auto err = QString("Update attribute '%1': %2").arg(object.name()).arg(ret.c_str());
-        throw CLdapServerException(err.toStdString().c_str());
-    }
 }
 
 void CLdapEntry::flushAttributeCache()
@@ -489,13 +424,14 @@ void CLdapEntry::flushAttributeCache()
         if (entry.get() != nullptr)
         {
             *m_pEntry = *entry.get();
+            prepareAttributes();
         }
     }
 }
 
 void CLdapEntry::sortAttributes()
 {
-   std::sort(m_attributes.begin(), m_attributes.end(), comp());
+    std::sort(m_attributes.begin(), m_attributes.end(), comp());
 }
 
 QVector<QString> CLdapEntry::classes()
@@ -503,10 +439,50 @@ QVector<QString> CLdapEntry::classes()
     return m_classes;
 }
 
+QVector<QString> CLdapEntry::auxiliaryClasses()
+{
+    QVector<QString> vector;
+    auto auxiliaryClasses = m_pData->schema().auxiliaryClasses();
+    for (auto& cl : m_classes)
+    {
+        if (auxiliaryClasses.contains(cl))
+        {
+            vector << cl;
+        }
+    }
+    return vector;
+}
+
 void CLdapEntry::setClasses(QVector<QString>& cList)
 {
+    bool needToUpdateObjectClassAttribute = false;
+    if (!m_classes.isEmpty() && !cList.isEmpty())
+    {
+        QVector<QString> l1 = m_classes;
+        QVector<QString> l2 = cList;
+        qSort(l1);
+        qSort(l2);
+        needToUpdateObjectClassAttribute = l1 != l2;
+    }
     m_classes.clear();
     m_classes << cList;
+    if (needToUpdateObjectClassAttribute)
+    {
+        auto fObjectClassToUpdate = std::find_if(attributes()->begin(), attributes()->end(), [&](const ldapcore::CLdapAttribute& a)
+        {
+            return a.name().compare("objectClass", Qt::CaseInsensitive) == 0;
+        });
+        if(fObjectClassToUpdate != attributes()->end())
+        {
+            QStringList list;
+            for (auto cl: m_classes)
+                list << cl;
+            auto editState = fObjectClassToUpdate->editState();
+            fObjectClassToUpdate->setEditState(AttributeState::AttributeValueReadWrite);
+            fObjectClassToUpdate->setValue(list.join(";"));
+            fObjectClassToUpdate->setEditState(editState);
+        }
+    }
 }
 
 QVector<QString> CLdapEntry::availableClasses()
@@ -514,20 +490,20 @@ QVector<QString> CLdapEntry::availableClasses()
     return m_pData->schema().classes();
 }
 
-void CLdapEntry::addNewChild(CLdapEntry* child)
+void CLdapEntry::addChild(CLdapEntry* child)
 {
-    m_pChildren << child;
-    child->construct(m_pData, connectionPtr(), m_baseDn);
+    child->initialize(m_pData, m_baseDn);
+    m_vChildren << child;
 }
 
 void CLdapEntry::removeChild(CLdapEntry* child)
 {
-    for (int i = 0; i < m_pChildren.size(); ++i)
+    for (int i = 0; i < m_vChildren.size(); ++i)
     {
-        if (m_pChildren[i] == child)
+        if (m_vChildren[i] == child)
         {
             //Known issue: delete child;
-            m_pChildren.remove(i);
+            m_vChildren.remove(i);
             return;
         }
     }
@@ -540,127 +516,9 @@ void CLdapEntry::addAttributes(QVector<CLdapAttribute>& attrs)
     std::sort(m_attributes.begin(), m_attributes.end(), comp());
 }
 
-void CLdapEntry::saveNewChild() noexcept(false)
+QString  CLdapEntry::structuralClass()
 {
-    auto f = std::find_if(m_pChildren.begin(), m_pChildren.end(),
-                          [&](ldapcore::CLdapEntry * a)
-    {
-        return a->isNew();
-    });
-    if (m_pChildren.end() == f)
-    {
-        return;
-    }
-    auto& child = *f;
-    try
-    {
-        std::shared_ptr<LDAPAttributeList> attrs(new LDAPAttributeList());
-        StringList objectClasses;
-        for (auto& c : child->m_classes)
-        {
-            if (c != "top")
-            {
-                objectClasses.add(c.toStdString());
-            }
-        }
-        attrs->addAttribute(LDAPAttribute("objectClass", objectClasses));
-        static std::set<QString> excludedAttributeNames {"cn"};
-
-        for (auto& a : child->m_attributes)
-        {
-            auto value = a.value().toStdString();
-            if (value.size())
-            {
-                attrs->addAttribute(LDAPAttribute(a.name().toStdString(), value));
-            }
-        }
-        std::shared_ptr<LDAPEntry> entry(new LDAPEntry(child->m_pEntry->getDN(), attrs.get()));
-        auto dn = m_pEntry->getDN();
-        connectionPtr()->add(entry.get());
-        child->m_isNew = false;
-    }
-    catch (const std::exception& ex)
-    {
-        throw CLdapServerException(ex.what());
-    }
-}
-
-void CLdapEntry::update() noexcept(false)
-{
-    if (m_isEdit == false)
-    {
-        return;
-    }
-    try
-    {
-        QVector<CLdapAttribute> realAttributes;
-        loadAttributes(realAttributes);
-
-        LDAPModList* mod = new LDAPModList();
-
-        // 1. Add/Modify attributes
-        StringList objectClasses;
-        for (auto& c : m_classes)
-            objectClasses.add(c.toStdString());
-        mod->addModification(LDAPModification(LDAPAttribute("objectClass", objectClasses), LDAPModification::OP_REPLACE));
-        for (auto& a : m_attributes) {
-
-            if (a.name() == "objectClass"){
-                continue;
-            }
-
-            auto f = std::find_if(realAttributes.begin(), realAttributes.end(),
-                [&](const ldapcore::CLdapAttribute& o) {
-                    return strcasecmp(o.name().toStdString().c_str(), a.name().toStdString().c_str()) == 0;
-                });
-
-            auto value = a.value().toStdString();
-
-            // no modification
-            if (f != realAttributes.end() && f->value() == a.value()) {
-                continue;
-            }
-
-            // add modification
-            if (value.size())
-            {
-                if (f == realAttributes.end())
-                {
-                    mod->addModification(LDAPModification(LDAPAttribute(a.name().toStdString(), value),
-                                                          LDAPModification::OP_ADD));
-                }
-                else
-                {
-                    mod->addModification(LDAPModification(LDAPAttribute(a.name().toStdString(), value),
-                                                          LDAPModification::OP_REPLACE));
-                }
-            }
-        }
-
-
-        std::set<QString> setOfAttributes;
-        for (auto& a: m_attributes) {
-            setOfAttributes.insert(a.name());
-        }
-
-        // 2. Delete attributes
-        auto new_end = std::remove_if(realAttributes.begin(), realAttributes.end(),
-                                      [&](const ldapcore::CLdapAttribute& o)
-                                      { return setOfAttributes.find(o.name()) != setOfAttributes.end() || !o.isMust() ; });
-        realAttributes.erase(new_end, realAttributes.end());
-        for (auto& a: realAttributes) {
-            mod->addModification(LDAPModification(LDAPAttribute(a.name().toStdString(), a.value().toStdString()),
-                                                  LDAPModification::OP_DELETE));
-        }
-
-        auto& dn = m_pEntry->getDN();
-        connectionPtr()->modify_s(dn, mod);
-        m_isEdit = false;
-    }
-    catch (const std::exception& ex)
-    {
-        throw CLdapServerException(ex.what());
-    }
+    return m_pData->schema().deductStructuralClass(m_classes);
 }
 
 }

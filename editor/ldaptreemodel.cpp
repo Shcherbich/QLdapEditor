@@ -1,3 +1,10 @@
+/*!
+\file
+\brief Implementation file for LDAP tree models
+
+File contains  implementation for LDAP tree models
+*/
+
 #include "ldaptreemodel.h"
 #include "ldapeditordefines.h"
 #include "CLdapEntry.h"
@@ -6,6 +13,13 @@
 
 namespace ldapeditor
 {
+    bool CLdapTreeProxyModel::lessThan(const QModelIndex &source_left, const QModelIndex &source_right) const
+    {
+        QString dnLeft = sourceModel()->data(source_left,Qt::DisplayRole).toString();
+        QString dnRight = sourceModel()->data(source_right,Qt::DisplayRole).toString();
+        return dnLeft.compare(dnRight, Qt::CaseInsensitive) < 0;
+    }
+
     CLdapTreeModel::CLdapTreeModel(const QString &baseDN, QObject *parent)
         : QAbstractItemModel(parent)
         //, m_baseDN(baseDN)
@@ -64,7 +78,10 @@ namespace ldapeditor
             return m_topItems.size();
 
         ldapcore::CLdapEntry* parentItem = static_cast<ldapcore::CLdapEntry*>(parent.internalPointer());
-        return parentItem ? parentItem->children().size() : 0 ;
+        if(parentItem)
+            return parentItem->isLoaded() ? parentItem->children().size() : 0 ;
+        return 0;
+        //return parentItem ? parentItem->children().size() : 0 ;
     }
 
     int CLdapTreeModel::columnCount(const QModelIndex &parent) const
@@ -82,28 +99,35 @@ namespace ldapeditor
         ldapcore::CLdapEntry* item = static_cast<ldapcore::CLdapEntry*>(index.internalPointer());
         if(!item) return QVariant();
 
-        if(role == Qt::DisplayRole)
+        if(role == LdapTreeRoles::TreeDnRole)
+        {
+            return item->dn();
+        }
+        else if(role == Qt::DisplayRole)
         {
             return item->rDn();
         }
-        if(role == Qt::DecorationRole)
+        else if(role == Qt::DecorationRole)
         {
             if(!item->parent()) return QIcon(":/home");
-            for(auto& a: *item->attributes())
+
+            QStringList classes;
+            for(auto& c: item->classes())
+                classes.append(c);
+
+            // icon is defined by top + one of other classes
+            if(classes.contains("top",Qt::CaseInsensitive))
             {
-                QStringList group = a.value().split(";");
-                if(group.contains("top",Qt::CaseInsensitive))
-                {
-                    if(group.contains("group",Qt::CaseInsensitive))
-                        return QIcon(":/group");
-                    else if(group.contains("person",Qt::CaseInsensitive))
-                        return QIcon(":/person");
-                    else if(group.contains("organizationalUnit",Qt::CaseInsensitive))
-                        return QIcon(":/diagram");
-                    else
-                        return QIcon(":/folder");
-                }
+                if(classes.contains("group",Qt::CaseInsensitive))
+                    return QIcon(":/group");
+                else if(classes.contains("person",Qt::CaseInsensitive))
+                    return QIcon(":/person");
+                else if(classes.contains("organizationalUnit",Qt::CaseInsensitive))
+                    return QIcon(":/diagram");
+                else
+                    return QIcon(":/folder");
             }
+
         }
 
         return QVariant();
@@ -128,7 +152,6 @@ namespace ldapeditor
              ldapcore::CLdapEntry* item = static_cast<ldapcore::CLdapEntry*>(index.internalPointer());
              if(item)
              {
-                 //item->itemRDN =value.toStringList().join(", ");
                  emit dataChanged(index, index, QVector<int>() << Qt::DisplayRole << role);
                  return true;
              }
@@ -138,8 +161,9 @@ namespace ldapeditor
 
     bool CLdapTreeModel::setTopItems(QVector<ldapcore::CLdapEntry*> topItems)
     {
+        beginResetModel();
         m_topItems = topItems;
-        emit dataChanged(createIndex(0,0), createIndex(m_topItems.size(), 0));
+        endResetModel();
         return true;
     }
 
@@ -153,6 +177,91 @@ namespace ldapeditor
         emit onAddAttribute(name);
     }
 
+    QModelIndex CLdapTreeModel::addNewEntry(QModelIndex parent, QString rdn, QString dn, QVector<QString>& classes, QVector<ldapcore::CLdapAttribute>& attributes)
+    {
+        ldapcore::CLdapEntry* parentEntry = static_cast<ldapcore::CLdapEntry*>(parent.internalPointer());
+        if (!parentEntry)
+        {
+            return QModelIndex();
+        }
+
+        int  row = rowCount(parent);
+        int count = 1;
+
+        ldapcore::CLdapEntry* addEntry = new ldapcore::CLdapEntry(parentEntry, rdn, dn, classes, nullptr);
+        addEntry->addAttributes(attributes);
+
+        beginInsertRows(parent, row, row + count - 1);
+        parentEntry->addChild(addEntry);
+        endInsertRows();
+
+        QModelIndex idxAdd = index(row, 0, parent);
+        emit dataChanged(idxAdd, idxAdd, QVector<int>() << Qt::DisplayRole << Qt::DecorationRole << LdapTreeRoles::TreeDnRole);
+        return idxAdd;
+    }
+
+    bool CLdapTreeModel::removeRows(int row, int count, const QModelIndex &parent)
+    {
+        ldapcore::CLdapEntry* parentEntry = static_cast<ldapcore::CLdapEntry*>(parent.internalPointer());
+        if(parentEntry)
+        {
+            QModelIndex childIdx = index(row, 0, parent);
+            if(childIdx.isValid())
+            {
+                ldapcore::CLdapEntry* childEntry = static_cast<ldapcore::CLdapEntry*>(childIdx.internalPointer());
+                if(childEntry)
+                {
+                    beginRemoveRows(parent, row, row + count -1);
+                    parentEntry->removeChild(childEntry);
+                    endRemoveRows();
+
+                    emit dataChanged(parent, parent);
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    bool CLdapTreeModel::canFetchMore(const QModelIndex &parent) const
+    {
+        return true;
+    }
+
+    void CLdapTreeModel::fetchMore(const QModelIndex& parent)
+    {
+    }
+
+    bool CLdapTreeModel::hasChildren(const QModelIndex &parent) const
+    {
+        bool bRet {true};
+        ldapcore::CLdapEntry* parentEntry = static_cast<ldapcore::CLdapEntry*>(parent.internalPointer());
+        if(parentEntry)
+        {
+            if(parentEntry->isLoaded() )
+            {
+                bRet = !parentEntry->children().isEmpty();
+            }
+        }
+        return bRet;
+    }
+
+    bool CLdapTreeModel::insertRows(int row, int count, const QModelIndex& parent)
+    {
+        beginInsertRows(parent, row, row + count - 1);
+        endInsertRows();
+
+        QModelIndex idxFrom = index(row, 0, parent);
+        QModelIndex idxTo = index(row + count - 1, 0, parent);
+        emit dataChanged(idxFrom, idxTo, QVector<int>() << Qt::DisplayRole << Qt::DecorationRole);
+        return true;
+    }
+
+    void CLdapTreeModel::onRemoveEntity(const QModelIndex index)
+    {
+        if(index.isValid())
+           removeRows(index.row(),1, index.parent());
+    }
 } //namespace ldapeditor
 
 

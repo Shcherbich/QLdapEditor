@@ -1,3 +1,9 @@
+/*!
+\file
+\brief Implementation  file for LDAP Connection settings class
+
+File contains  implementations for LDAP Connection settings class
+*/
 #include "connectiondialog.h"
 #include "ui_connectiondialog.h"
 #include "ldapsettings.h"
@@ -37,7 +43,7 @@ namespace ldapeditor
         // Hide unused controls
         ui->radioGssAuth->setVisible(false);
         ui->sslCheck->setVisible(false);
-        ui->tlsCheck->setVisible(false);
+        ui->tlsCheck->setVisible(true);
         ui->saslCheck->setVisible(false);
         ui->radioSimpleAuth->setChecked(true);
 
@@ -64,7 +70,7 @@ namespace ldapeditor
         ui->sslCheck->setChecked(m_Settings.useSSL());
         ui->sslCheck->setEnabled(ui->radioSimpleAuth->isChecked());
         ui->tlsCheck->setChecked(m_Settings.useTLS());
-        ui->tlsCheck->setEnabled(ui->radioSimpleAuth->isChecked());
+        ui->tlsCheck->setEnabled(true);
 
         ui->radioGssAuth->setChecked(!ui->radioSimpleAuth->isChecked());
         ui->saslCheck->setChecked(m_Settings.useSASL());
@@ -103,7 +109,7 @@ namespace ldapeditor
         bool simpleAuth = ui->radioSimpleAuth->isChecked();
 
         ui->sslCheck->setEnabled(simpleAuth);
-        ui->tlsCheck->setEnabled(simpleAuth);
+        ui->tlsCheck->setEnabled(true);
         ui->saslCheck->setEnabled(!simpleAuth);
 
         ui->anonymousCheck->setText(simpleAuth

@@ -4,6 +4,8 @@
 #include "StringList.h"
 #include <vector>
 #include <string>
+#include <QMessageBox>
+#include <QString>
 
 namespace ldapcore
 {
@@ -17,8 +19,8 @@ vector<string> split(const string& str, const string& delim)
 	do
 	{
 		pos = str.find(delim, prev);
-		if (pos == string::npos)
-		{
+        if (pos == string::npos)
+        {
 			pos = str.length();
 		}
 		string token = str.substr(prev, pos - prev);
@@ -51,26 +53,41 @@ void CLdapData::connect(const tConnectionOptions& connectOptions)
         try
         {
             std::unique_ptr<LDAPConnection> localConn(new LDAPConnection(connectOptions.host, connectOptions.port));
-            if (connectOptions.simpleAuth)
+            if (connectOptions.useTLS)
             {
-                if (connectOptions.useAnonymous)
+                auto tls = localConn->getTlsOptions();
+                if (connectOptions.cacertfile.size())
                 {
-                    localConn->bind();
+                    tls.setOption(TlsOptions::CACERTFILE, connectOptions.cacertfile);
                 }
-                else
+                if (connectOptions.certfile.size())
                 {
-                    localConn->bind(connectOptions.username, connectOptions.password);
+                    tls.setOption(TlsOptions::CERTFILE, connectOptions.certfile);
                 }
+                if (connectOptions.keyfile.size())
+                {
+                    tls.setOption(TlsOptions::KEYFILE, connectOptions.keyfile);
+                }
+                localConn->start_tls([&](std::string err)
+                {
+                    QString warningText = QString("<br>The LDAP Server uses an invalid certificate:</br><br><font color='#FF0000'>Description: %2</font></br><br></br><br>Do you wich proceed?</br>").arg(err.c_str());
+                    m_CanUseUntrustedConnection = QMessageBox::warning(0, "Certificate trust", warningText, QMessageBox::Yes | QMessageBox::No) == QMessageBox::Yes;
+                    return m_CanUseUntrustedConnection;
+                });
+            }
+            if (connectOptions.useAnonymous)
+            {
+                localConn->bind();
             }
             else
             {
-                throw LDAPException(LDAP_AUTH_UNKNOWN, "This Authorize schema is not supported by LdApEditor application yet");
+                localConn->bind(connectOptions.username, connectOptions.password);
             }
-
             m_baseDN = connectOptions.basedn;
-            m_Connection = std::move(localConn);
             m_connectOptions = connectOptions;
-            m_Schema.build(m_Connection.get(), m_baseDN);
+            m_Connection = std::move(localConn);
+            m_Connection->setHardResetFunc([&]() { return hardReconnect(); });
+            m_Schema.build(m_Connection.get());
             build();
             emit this->onConnectionCompleted(true, "");
         }
@@ -101,30 +118,87 @@ void CLdapData::build()
 		return;
 	}
     m_baseDN = QString(m_baseDN.c_str()).trimmed().toStdString();
-	m_Entries.push_back(new CLdapEntry(nullptr, nullptr, nullptr));
-	m_Entries.back()->construct(this, m_Connection.get(), m_baseDN.c_str());
+    auto en = new CLdapEntry(nullptr, nullptr, nullptr);
+    en->initialize(this, m_baseDN.c_str());
+    en->construct();
+    m_Entries << en;
+}
+
+bool CLdapData::hardReconnect()
+{
+    try
+    {
+        m_Connection->init(m_connectOptions.host, m_connectOptions.port);
+        if (m_connectOptions.useTLS)
+        {
+            auto tls = m_Connection->getTlsOptions();
+            if (m_connectOptions.cacertfile.size())
+            {
+                tls.setOption(TlsOptions::CACERTFILE, m_connectOptions.cacertfile);
+            }
+            if (m_connectOptions.certfile.size())
+            {
+                tls.setOption(TlsOptions::CERTFILE, m_connectOptions.certfile);
+            }
+            if (m_connectOptions.keyfile.size())
+            {
+                tls.setOption(TlsOptions::KEYFILE, m_connectOptions.keyfile);
+            }
+            m_Connection->start_tls([&](std::string)
+            {
+                return m_CanUseUntrustedConnection;
+            });
+        }
+        if (m_connectOptions.useAnonymous)
+        {
+            m_Connection->bind();
+        }
+        else
+        {
+            m_Connection->bind(m_connectOptions.username, m_connectOptions.password);
+        }
+        return true;
+    }
+    catch (const LDAPException& ex)
+    {
+        Q_UNUSED(ex);
+    }
+    return false;
 }
 
 void CLdapData::reconnect()
 {
     std::unique_ptr<LDAPConnection> localConn(new LDAPConnection(m_connectOptions.host, m_connectOptions.port));
-    if (m_connectOptions.simpleAuth)
+    if (m_connectOptions.useTLS)
     {
-        if (m_connectOptions.useAnonymous)
+        auto tls = localConn->getTlsOptions();
+        if (m_connectOptions.cacertfile.size())
         {
-            localConn->bind();
+            tls.setOption(TlsOptions::CACERTFILE, m_connectOptions.cacertfile);
         }
-        else
+        if (m_connectOptions.certfile.size())
         {
-            localConn->bind(m_connectOptions.username, m_connectOptions.password);
+            tls.setOption(TlsOptions::CERTFILE, m_connectOptions.certfile);
         }
+        if (m_connectOptions.keyfile.size())
+        {
+            tls.setOption(TlsOptions::KEYFILE, m_connectOptions.keyfile);
+        }
+        localConn->start_tls([&](std::string)
+        {
+            return m_CanUseUntrustedConnection;
+        });
+    }
+    if (m_connectOptions.useAnonymous)
+    {
+        localConn->bind();
     }
     else
     {
-        throw LDAPException(LDAP_AUTH_UNKNOWN, "This Authorize schema is not supported by LdApEditor application yet");
+        localConn->bind(m_connectOptions.username, m_connectOptions.password);
     }
     m_Connection = std::move(localConn);
-
+    m_Connection->setHardResetFunc([&]() { return hardReconnect(); });
 }
 
 void CLdapData::resetConnection()
@@ -161,6 +235,11 @@ QString CLdapData::baseDN()
 CLdapSchema& CLdapData::schema()
 {
 	return m_Schema;
+}
+
+CLdapServer& CLdapData::server()
+{
+    return m_Server;
 }
 
 QStringList CLdapData::search(const _tSearchOptions& searchOptions)

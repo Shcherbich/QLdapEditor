@@ -95,6 +95,8 @@ void TlsOptions::setOption( tls_option opt, const std::string& value ) const {
             }
         }
         break;
+    default:
+        break;
     }
     this->setOption( opt, value.empty() ? NULL : (void*) value.c_str() );
 }
