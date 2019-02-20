@@ -39,6 +39,7 @@ CLdapTreeView::CLdapTreeView(QWidget* parent, ldapcore::CLdapData& ldapData)
 
     connect(this, &QTreeView::expanded, this, &CLdapTreeView::expand );
 
+    setRootIsDecorated(false);
     setSortingEnabled(true);
     sortByColumn(0, Qt::SortOrder::AscendingOrder);
 }
