@@ -39,7 +39,7 @@ LDAPException::LDAPException(const LDAPAsynConnection* lc) throw()
     int ret = ldap_get_option(l, LDAP_OPT_ERROR_STRING, &err_string);
     if (ret == LDAP_SUCCESS && err_string)
     {
-        m_err_string = string(err_string);
+        m_res_string = m_err_string = string(err_string);
     }
     else if (ldap_get_option(l, LDAP_OPT_DIAGNOSTIC_MESSAGE, &err_string) == LDAP_SUCCESS)
     {
