@@ -34,8 +34,8 @@ CLdapNewAttributeDialog::CLdapNewAttributeDialog(ldapcore::CLdapData& ldapData, 
     ui->valueEdit->hide();
 
     QString structuralClass = m_entry->structuralClass();
-    QVector<QString> entryClasses = m_entry->classes();
-    QVector<QString> classes = m_LdapData.schema().consistentClassesByStructuralAndOther(structuralClass, entryClasses);
+    QStringList entryClasses = m_entry->classes();
+    QStringList classes = m_LdapData.schema().consistentClassesByStructuralAndOther(structuralClass, entryClasses);
 
     int structuraClassIdx = -1;
     for (int i = 0; i < classes.size(); i++)
@@ -66,7 +66,7 @@ void CLdapNewAttributeDialog::onCurrentClassChanged(int index)
     if (index != -1)
     {
         std::map<std::string, std::string> a2v;
-        QVector<QString>classes{ui->classCombo->currentText()};
+        QStringList classes{ui->classCombo->currentText()};
         m_attributes = m_LdapData.schema().attributeByClasses(classes, a2v);
         ui->attrCombo->clear();
 
@@ -142,7 +142,7 @@ ldapcore::CLdapAttribute CLdapNewAttributeDialog::attribute()
     int clsIdx = ui->classCombo->currentIndex();
     int attrIdx = ui->attrCombo->itemData(ui->attrCombo->currentIndex()).toInt();
 
-    QVector<QString>classes{ui->classCombo->itemText(clsIdx)};
+    QStringList classes{ui->classCombo->itemText(clsIdx)};
     attr.setClasses(classes);
     auto name = m_attributes[attrIdx].name();
     attr.setName(name);

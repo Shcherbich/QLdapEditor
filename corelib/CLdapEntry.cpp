@@ -105,7 +105,7 @@ static QVector<ldapcore::AttrType> g_supportedTypesForEdit(
     ldapcore::AttrType::TelephoneNumber
 });
 
-CLdapEntry::CLdapEntry(CLdapEntry* parentLdapEntry, QString rdn, QString parentDn, QVector<QString> classes, QObject* parent)
+CLdapEntry::CLdapEntry(CLdapEntry* parentLdapEntry, QString rdn, QString parentDn, QStringList classes, QObject* parent)
     : QObject(parent)
     , m_pParent(parentLdapEntry)
 {
@@ -251,7 +251,7 @@ void CLdapEntry::loadClasses()
     const LDAPAttribute* pObjectClass = al->getAttributeByName("objectClass");
     if (pObjectClass && !m_classes.size())
     {
-        QVector<QString> classes;
+        QStringList classes;
         for (const auto& cl : pObjectClass->getValues())
         {
             classes.push_back(cl.c_str());
@@ -381,7 +381,7 @@ void CLdapEntry::availableAttributesMustImpl()
         auto t = m_pData->schema().attributeInfoByName(must);
         auto tp = std::get<0>(t);
         auto attributeTypeByName = m_pData->schema().attributesSchema()->getAttributeTypeByName(must.c_str());
-        QVector<QString> classes;
+        QStringList classes;
         CLdapAttribute attr(must.c_str(), "", tp, true, attributeTypeByName.getDesc().c_str(), classes, AttributeState::AttributeReadWrite);
         m_Must.push_back(attr);
     }
@@ -397,7 +397,7 @@ void CLdapEntry::availableAttributesMayImpl()
         auto t = m_pData->schema().attributeInfoByName(may);
         auto tp = std::get<0>(t);
         auto attributeTypeByName = m_pData->schema().attributesSchema()->getAttributeTypeByName(may.c_str());
-        QVector<QString> classes;
+        QStringList classes;
         CLdapAttribute attr(may.c_str(), "", tp, false, attributeTypeByName.getDesc().c_str(), classes, AttributeState::AttributeReadWrite);
         m_May.push_back(attr);
     }
@@ -466,14 +466,14 @@ void CLdapEntry::sortAttributes()
     std::sort(m_attributes.begin(), m_attributes.end(), comp());
 }
 
-QVector<QString> CLdapEntry::classes()
+QStringList CLdapEntry::classes()
 {
     return m_classes;
 }
 
-QVector<QString> CLdapEntry::auxiliaryClasses()
+QStringList CLdapEntry::auxiliaryClasses()
 {
-    QVector<QString> vector;
+    QStringList vector;
     auto auxiliaryClasses = m_pData->schema().auxiliaryClasses();
     for (auto& cl : m_classes)
     {
@@ -485,7 +485,7 @@ QVector<QString> CLdapEntry::auxiliaryClasses()
     return vector;
 }
 
-void CLdapEntry::setClasses(QVector<QString> cList, bool updateAttributes)
+void CLdapEntry::setClasses(QStringList cList, bool updateAttributes)
 {
     m_classes.clear();
     m_classes << cList;
@@ -510,7 +510,7 @@ void CLdapEntry::setClasses(QVector<QString> cList, bool updateAttributes)
     newAttributes.swap(m_attributes);
 }
 
-QVector<QString> CLdapEntry::availableClasses()
+QStringList CLdapEntry::availableClasses()
 {
     return m_pData->schema().classes();
 }

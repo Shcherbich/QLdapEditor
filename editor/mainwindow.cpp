@@ -279,7 +279,7 @@ void MainWindow::onTreeItemChanged(const QModelIndex& current, const QModelIndex
                 else
                 {
                     ldapcore::CLdapEntry* prevEntry = static_cast<ldapcore::CLdapEntry*>(srcPrev.internalPointer());
-                    QVector<QString> cls;
+                    QStringList cls;
                     prevEntry->setClasses(cls);
                     prevEntry->flushAttributeCache();
                     (void*)prevEntry->attributes();

@@ -180,9 +180,9 @@ LDAPSchema* CLdapSchema::attributesSchema()
 	return &m_impl->attributesSchema;
 }
 
-QVector<QString> CLdapSchema::classes()
+QStringList CLdapSchema::classes()
 {
-	QVector<QString> r;
+	QStringList r;
 	for (auto& c : m_impl->classesSchema.object_classes)
 	{
 		r << c.second.getName().c_str();
@@ -190,9 +190,9 @@ QVector<QString> CLdapSchema::classes()
 	return r;
 }
 
-QVector<QString> CLdapSchema::structuralClasses()
+QStringList CLdapSchema::structuralClasses()
 {
-	QVector<QString> r;
+	QStringList r;
 	for (auto& c : m_impl->classesSchema.object_classes)
 	{
 		if (c.second.getKind() == 1)
@@ -203,9 +203,9 @@ QVector<QString> CLdapSchema::structuralClasses()
 	return r;
 }
 
-QVector<QString> CLdapSchema::auxiliaryClasses()
+QStringList CLdapSchema::auxiliaryClasses()
 {
-    QVector<QString> r;
+    QStringList r;
     for (auto& c : m_impl->classesSchema.object_classes)
     {
         if (c.second.getKind() == 2)
@@ -216,9 +216,9 @@ QVector<QString> CLdapSchema::auxiliaryClasses()
     return r;
 }
 
-QVector<QString> CLdapSchema::auxiliaryClassesBySup(QString sup)
+QStringList CLdapSchema::auxiliaryClassesBySup(QString sup)
 {
-	QVector<QString> r;
+	QStringList r;
 	for (auto& c : m_impl->classesSchema.object_classes)
 	{
 		if (c.second.getKind() != 2)
@@ -234,7 +234,7 @@ QVector<QString> CLdapSchema::auxiliaryClassesBySup(QString sup)
 }
 
 
-QVector<CLdapAttribute> CLdapSchema::attributeByClasses(QVector<QString>& classes, std::map<std::string, std::string>& a2v)
+QVector<CLdapAttribute> CLdapSchema::attributeByClasses(QStringList& classes, std::map<std::string, std::string>& a2v)
 {
     static std::set<std::string> excludedAttributeNames;
 	std::set<std::string> uniqueAttributes;
@@ -261,7 +261,7 @@ QVector<CLdapAttribute> CLdapSchema::attributeByClasses(QVector<QString>& classe
 			auto v = v2set == a2v.end() ? "" : v2set->second;
 			auto info = attributeInfoByName(attributeName);
 			auto attr = m_impl->attributesSchema.getAttributeTypeByName(attributeName);
-			QVector<QString> classes;
+			QStringList classes;
 			CLdapAttribute a(attributeName.c_str(), v.c_str(), std::get<0>(info), false, attr.getDesc().c_str(), classes,
 			                 v.empty() ? AttributeState::AttributeValueReadWrite : AttributeState::AttributeReadOnly);
 			vector.push_back(a);
@@ -280,7 +280,7 @@ QVector<CLdapAttribute> CLdapSchema::attributeByClasses(QVector<QString>& classe
 			auto v = v2set == a2v.end() ? "" : v2set->second;
 			auto info = attributeInfoByName(attributeName);
 			auto attr = m_impl->attributesSchema.getAttributeTypeByName(attributeName);
-			QVector<QString> classes;
+			QStringList classes;
 			CLdapAttribute a(attributeName.c_str(), v.c_str(), std::get<0>(info), true, attr.getDesc().c_str(), classes,
 			                 v.empty() ? AttributeState::AttributeValueReadWrite : AttributeState::AttributeReadOnly);
 			vector.push_back(a);
@@ -290,9 +290,9 @@ QVector<CLdapAttribute> CLdapSchema::attributeByClasses(QVector<QString>& classe
 
 }
 
-QVector<QString> CLdapSchema::classesByAttributeName(std::string attrName, QVector<QString>& classesOfEntry)
+QStringList CLdapSchema::classesByAttributeName(std::string attrName, QStringList& classesOfEntry)
 {
-	QVector<QString> classes;
+	QStringList classes;
     for (auto& c : classesOfEntry)
     {
         auto classByName = m_impl->classesSchema.getObjectClassByName(c.toStdString());
@@ -332,7 +332,7 @@ QVector<CLdapAttribute> CLdapSchema::mayAttributesByClass(QString cl)
     {
         auto info = attributeInfoByName(attributeName);
         auto attr = m_impl->attributesSchema.getAttributeTypeByName(attributeName);
-        QVector<QString> classes;
+        QStringList classes;
         CLdapAttribute a(attributeName.c_str(), "", std::get<0>(info), false, attr.getDesc().c_str(), classes,
                          AttributeState::AttributeValueReadWrite);
         vector.push_back(a);
@@ -348,7 +348,7 @@ QVector<CLdapAttribute> CLdapSchema::mustAttributesByClass(QString cl)
     {
         auto info = attributeInfoByName(attributeName);
         auto attr = m_impl->attributesSchema.getAttributeTypeByName(attributeName);
-        QVector<QString> classes;
+        QStringList classes;
         CLdapAttribute a(attributeName.c_str(), "", std::get<0>(info), true, attr.getDesc().c_str(), classes,
                          AttributeState::AttributeValueReadWrite);
         vector.push_back(a);
@@ -357,10 +357,10 @@ QVector<CLdapAttribute> CLdapSchema::mustAttributesByClass(QString cl)
 }
 
 
-QVector<QString> CLdapSchema::consistentClassesByStructuralAndOther(QString structuralCl, QVector<QString> allClasses)
+QStringList CLdapSchema::consistentClassesByStructuralAndOther(QString structuralCl, QStringList allClasses)
 {
     QSet<QString> uniqueClasses;
-    QVector<QString> result;
+    QStringList result;
     for (;;)
     {
         if (!uniqueClasses.contains(structuralCl))
@@ -385,15 +385,15 @@ QVector<QString> CLdapSchema::consistentClassesByStructuralAndOther(QString stru
     return result;
 }
 
-QString CLdapSchema::deductStructuralClass(const QVector<QString> &classes)
+QString CLdapSchema::deductStructuralClass(const QStringList &classes)
 {
-    QVector<QString> structuralClasses;
+    QStringList structuralClasses;
     for (auto& c: classes)
     {
         if (classesSchema()->getObjectClassByName(c.toStdString()).getKind() != 2)
             structuralClasses << c;
     }
-    QVector<QString> consistentClasses, tmpList;
+    QStringList consistentClasses, tmpList;
     for (auto& sc: structuralClasses)
     {
         auto vector = consistentClassesByStructuralAndOther(sc, tmpList);

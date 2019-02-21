@@ -44,7 +44,7 @@ public:
      * @param classes list of classes (equal to 'objectClass') to construct
      * @param parent pointer to QObject parent
      */
-    explicit CLdapEntry(CLdapEntry* parentLdapEntry, QString rdn, QString parentDn, QVector<QString> classes, QObject* parent);
+    explicit CLdapEntry(CLdapEntry* parentLdapEntry, QString rdn, QString parentDn, QStringList classes, QObject* parent);
 
     /*!
      * \brief Destructor By default
@@ -100,11 +100,11 @@ public:
     void                    availableAttributesMayImpl();
     void                    availableAttributesMustImpl();
 
-    QVector<QString>        classes();
-    void                    setClasses(QVector<QString>, bool updateAttributes = false);
-    QVector<QString>        availableClasses();
+    QStringList        classes();
+    void                    setClasses(QStringList, bool updateAttributes = false);
+    QStringList        availableClasses();
     QString                 structuralClass();
-    QVector<QString>        auxiliaryClasses();
+    QStringList        auxiliaryClasses();
 
 public:
 	QString dn();
@@ -134,7 +134,7 @@ private:
 	QVector<CLdapAttribute> m_attributes;
 	QVector<CLdapAttribute> m_Must;
 	QVector<CLdapAttribute> m_May;
-	QVector<QString>        m_classes;
+	QStringList        m_classes;
 
 	friend class CLdapData;
 	friend class CLdapAttributesModel;

@@ -151,7 +151,7 @@ namespace ldapeditor
          * @param attributes vector of attributes for new entity
          * @return Index of new added entity in tree view
          */
-        QModelIndex addNewEntry(QModelIndex parent, QString rdn, QString dn, QVector<QString>& classes, QVector<ldapcore::CLdapAttribute>& attributes);
+        QModelIndex addNewEntry(QModelIndex parent, QString rdn, QString dn, QStringList& classes, QVector<ldapcore::CLdapAttribute>& attributes);
 
         /*!
          * \brief Method removes entity from LDAP Tree

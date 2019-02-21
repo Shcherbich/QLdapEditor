@@ -285,7 +285,7 @@ void CLdapAttributesModel::GetChangedRows(
         }
         auto f = std::find_if(reallyAttributes.begin(), reallyAttributes.end(), [&](const ldapcore::CLdapAttribute& o)
         {
-            return a.name() == o.name();
+            return a.name() == o.name() && a.value() == o.value();
         });
         if (f == reallyAttributes.end())
         {
