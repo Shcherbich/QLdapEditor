@@ -177,7 +177,7 @@ namespace ldapeditor
         emit onAddAttribute(name);
     }
 
-    QModelIndex CLdapTreeModel::addNewEntry(QModelIndex parent, QString rdn, QString dn, QVector<QString>& classes, QVector<ldapcore::CLdapAttribute>& attributes)
+    QModelIndex CLdapTreeModel::addNewEntry(QModelIndex parent, QString rdn, QString dn, QStringList& classes, QVector<ldapcore::CLdapAttribute>& attributes)
     {
         ldapcore::CLdapEntry* parentEntry = static_cast<ldapcore::CLdapEntry*>(parent.internalPointer());
         if (!parentEntry)
@@ -190,6 +190,7 @@ namespace ldapeditor
 
         ldapcore::CLdapEntry* addEntry = new ldapcore::CLdapEntry(parentEntry, rdn, dn, classes, nullptr);
         addEntry->addAttributes(attributes);
+        addEntry->setClasses(classes, true);
 
         beginInsertRows(parent, row, row + count - 1);
         parentEntry->addChild(addEntry);

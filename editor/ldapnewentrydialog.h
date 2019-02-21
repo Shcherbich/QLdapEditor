@@ -67,9 +67,9 @@ namespace ldapeditor
 
         /*!
          * \brief returns array of names for selected auxiliary claases
-         * \return QVector<QString>
+         * \return QStringList
          */
-        QVector<QString> selectedClasses() const;
+        QStringList selectedClasses() const;
 
         /*!
          * \brief returns name of structural class
@@ -112,7 +112,7 @@ namespace ldapeditor
     private:
         Ui::CLdapNewEntryDialog* ui;        ///< pointer to UI implementation
         QString          m_rdn;             ///< RDN string member
-        QVector<QString> vSelectedClasses;  ///< array of selected auxiliary classes
+        QStringList vSelectedClasses;  ///< array of selected auxiliary classes
         ldapcore::CLdapData& m_LdapData;    ///< CLDapData reference member
         QString          m_structuralClass; ///< Structural class string
         bool m_editMode {false};            /// is dialof in Edit (true) ot Add New (false) entity mode

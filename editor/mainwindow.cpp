@@ -259,10 +259,11 @@ void MainWindow::onTreeItemChanged(const QModelIndex& current, const QModelIndex
 		}
 		else
 		{
-			QVector<ldapcore::CLdapAttribute> newRows, deleteRows, updateRows;
-			m_TableModel->GetChangedRows(newRows, deleteRows, updateRows);
+            QVector<ldapcore::CLdapAttribute> newRows, deleteRows;
+            QMap<QString, QVector<ldapcore::CLdapAttribute>> updateMap;
+            m_TableModel->changedRows(newRows, deleteRows, updateMap);
             // first check
-            bool hasChanges = !(newRows.empty() && deleteRows.empty() && updateRows.empty());
+            bool hasChanges = !(newRows.empty() && deleteRows.empty() && updateMap.empty());
             // second check
             hasChanges |= m_TableModel->isEdit();
             if (hasChanges && m_LdapTree->updatesEnabled())
@@ -279,7 +280,7 @@ void MainWindow::onTreeItemChanged(const QModelIndex& current, const QModelIndex
                 else
                 {
                     ldapcore::CLdapEntry* prevEntry = static_cast<ldapcore::CLdapEntry*>(srcPrev.internalPointer());
-                    QVector<QString> cls;
+                    QStringList cls;
                     prevEntry->setClasses(cls);
                     prevEntry->flushAttributeCache();
                     (void*)prevEntry->attributes();

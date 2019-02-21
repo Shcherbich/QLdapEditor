@@ -190,7 +190,7 @@ QString CLdapNewEntryDialog::rdn() const
     return m_rdn;
 }
 
-QVector<QString> CLdapNewEntryDialog::selectedClasses() const
+QStringList CLdapNewEntryDialog::selectedClasses() const
 {
     return vSelectedClasses;
 }
@@ -215,7 +215,7 @@ void CLdapNewEntryDialog::fillListAll(QString structuralClass)
 {
     auto& schema = m_LdapData.schema();
     QString selected = structuralClass;
-    QVector<QString> v;
+    QStringList v;
     QString sup;
     do
     {
