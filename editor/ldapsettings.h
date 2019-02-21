@@ -275,6 +275,18 @@ namespace ldapeditor
          */
         ldapcore::tConnectionOptions& connectionOptions()const;
 
+        /*!
+         * \brief Method provides base DN string for find users
+         * \return return string with base DN where to find users
+         */
+        QString findUsersBaseDN() const;
+
+        /*!
+         * \brief Method provides filter string for find users
+         * \return return string with filter to find users
+         */
+        QString     findUsersFilter() const;
+
     protected:
         /*!
          * \brief protected method for makeKey

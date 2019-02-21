@@ -24,6 +24,8 @@ INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR})
 
 # Populate a CMake variable with the sources
 SET(ldapeditor_SOURCES
+    addusertogroupdialog.cpp
+    addusertogroupdialog.ui
     resources.qrc
     ldapnewattributedialog.cpp
     ldapnewattributedialog.ui
@@ -49,6 +51,7 @@ SET(ldapeditor_SOURCES
     main.cpp
 )
 SET(ldapeditor_HEADERS    
+    addusertogroupdialog.h
     ldapnewattributedialog.h
     ldapdataeditdelegate.h
     attributemodelhelper.h

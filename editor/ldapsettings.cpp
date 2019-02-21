@@ -220,6 +220,17 @@ namespace ldapeditor
         return writeInt("columnSize", "attrList",w);
     }
 
+
+    QString CLdapSettings::findUsersBaseDN() const
+    {
+        return QString{"CN=Users,DC=sc4i,DC=local"};
+    }
+
+    QString     CLdapSettings::findUsersFilter() const
+    {
+        return QString{"objectClass=user"};
+    }
+
     QString CLdapSettings::makeKey(const QString& key, const QString& section) const
     {
         return QString("%1/%2").arg(section).arg(key);
