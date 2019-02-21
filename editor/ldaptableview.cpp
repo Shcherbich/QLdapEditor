@@ -22,7 +22,7 @@ namespace ldapeditor
     , m_contextMenu(this)
     , m_newAttr(new QAction(tr("New attribute"), this))
     , m_delAttr(new QAction(tr("Delete attribute"), this))
-    , m_addUser2Group(new QAction(tr("Add user to group"), this))
+    , m_addUser2Group(new QAction(tr("Manage users in group"), this))
     {
         setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
         setAlternatingRowColors(true);
@@ -112,9 +112,19 @@ namespace ldapeditor
 
     void CLdapTableView::customContextMenuRequested(QPoint pos)
     {
+        const QStringList exludeAttributes{"member","memberOf"};
         QModelIndex index = indexAt(pos);
+
+
+        bool delEnable{false};
+        if(index.isValid())
+        {
+            // attribute can be deleted and Not ('member' or 'memberOf')'
+            delEnable = m_ldapDataDelegate.canDeleteRow(index) &&
+                        !exludeAttributes.contains(index.data(ldapeditor::LDapEditorRoles::AttrNameRole).toString());
+        }
+        m_delAttr->setEnabled(delEnable);
         m_delAttr->setData(index);
-        m_delAttr->setEnabled(index.isValid() && m_ldapDataDelegate.canDeleteRow(index));
 
         QStringList classes = m_entry->classes();
         bool add2GroupVisible = std::find_if(classes.begin(), classes.end(), [](const QString& c){

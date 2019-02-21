@@ -99,6 +99,10 @@ QVariant CAttributeModelHelper::data(const ldapcore::CLdapAttribute&  attr, cons
         return fontRoleData(attr,index);
     case Qt::CheckStateRole:
         return checkStateRoleData(attr,index);
+    case ldapeditor::AttrNameRole:
+        return attr.name();
+    case ldapeditor::AttrValueRole:
+        return attr.value();
     case ldapeditor::AttrTypeRole:
         return static_cast<int>(attr.type());
     default: break;
