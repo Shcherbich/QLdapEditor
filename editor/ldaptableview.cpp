@@ -116,7 +116,7 @@ namespace ldapeditor
         m_delAttr->setData(index);
         m_delAttr->setEnabled(index.isValid() && m_ldapDataDelegate.canDeleteRow(index));
 
-        QVector<QString> classes = m_entry->classes();
+        QStringList classes = m_entry->classes();
         bool add2GroupVisible = std::find_if(classes.begin(), classes.end(), [](const QString& c){
                                              return c.compare("group", Qt::CaseInsensitive) == 0;
                                  })!= classes.end();
@@ -195,7 +195,7 @@ namespace ldapeditor
         }
 
         QStringList newMembers = dlg.membersList();
-        QVector<QString> classes {"group"};//= m_entry->classes();
+        QStringList classes {"group"};//= m_entry->classes();
         CLdapAttributesModel* srcModel = static_cast<CLdapAttributesModel*>(model());
 
         // add appended members attributes
