@@ -449,6 +449,10 @@ void CLdapEntry::validateAttribute(CLdapAttribute& attr)
 
 void CLdapEntry::flushAttributeCache()
 {
+    if (m_pEntry == nullptr)
+    {
+        return;
+    }
     auto sr = connectionPtr()->search(m_pEntry->getDN(), LDAPConnection::SEARCH_BASE, "(objectClass=*)");
     if (sr)
     {

@@ -306,7 +306,6 @@ void CLdapTreeView::customContextMenuRequested(QPoint pos)
 std::tuple<QModelIndex, ldapcore::CLdapEntry*> CLdapTreeView::findByDn(QString dn)
 {
     QTreeView& tv(*this);
-    // QModelIndex modelIndex = tv.indexAt(tv.rect().topLeft());
     QModelIndex modelIndex = static_cast<CLdapTreeProxyModel*>(model())->mapToSource(tv.indexAt(tv.rect().topLeft()));
     while (modelIndex.isValid())
     {

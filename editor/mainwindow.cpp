@@ -293,6 +293,7 @@ void MainWindow::onTreeItemChanged(const QModelIndex& current, const QModelIndex
     ldapcore::CLdapEntry* currentEntry = static_cast<ldapcore::CLdapEntry*>(srcCur.internalPointer());
 	if (currentEntry)
 	{
+        currentEntry->flushAttributeCache();
 		m_TableModel->setLdapEntry(currentEntry);
 		m_AttributesList->setLdapEntry(currentEntry);
 	}
