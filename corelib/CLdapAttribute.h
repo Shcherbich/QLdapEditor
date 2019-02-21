@@ -302,6 +302,9 @@ private:
 signals:
 
 public slots:
+
+    friend class CLdapEntry;
+
 };
 
 }

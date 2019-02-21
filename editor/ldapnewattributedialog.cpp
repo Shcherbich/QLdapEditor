@@ -10,9 +10,10 @@ File contains  implementations for dialog 'Add Attribute' class
 #include "attributemodelhelper.h"
 #include <QDateTime>
 
-namespace ldapeditor {
+namespace ldapeditor
+{
 
-CLdapNewAttributeDialog::CLdapNewAttributeDialog(ldapcore::CLdapData &ldapData, ldapcore::CLdapEntry *entry, QWidget *parent) :
+CLdapNewAttributeDialog::CLdapNewAttributeDialog(ldapcore::CLdapData& ldapData, ldapcore::CLdapEntry* entry, QWidget* parent) :
     QDialog(parent), m_LdapData(ldapData), m_entry(entry),
     ui(new Ui::CLdapNewAttributeDialog)
 {
@@ -36,16 +37,20 @@ CLdapNewAttributeDialog::CLdapNewAttributeDialog(ldapcore::CLdapData &ldapData, 
     QVector<QString> entryClasses = m_entry->classes();
     QVector<QString> classes = m_LdapData.schema().consistentClassesByStructuralAndOther(structuralClass, entryClasses);
 
-    int structuraClassIdx=-1;
-    for(int i=0; i< classes.size();i++)
+    int structuraClassIdx = -1;
+    for (int i = 0; i < classes.size(); i++)
     {
         ui->classCombo->addItem(classes[i]);
-        if(m_entry->structuralClass() == classes[i])
+        if (m_entry->structuralClass() == classes[i])
+        {
             structuraClassIdx = i;
+        }
     }
 
-    if(structuraClassIdx!= -1)
+    if (structuraClassIdx != -1)
+    {
         ui->classCombo->setCurrentIndex(structuraClassIdx);
+    }
 
     onCurrentClassChanged(structuraClassIdx);
 }
@@ -58,25 +63,29 @@ CLdapNewAttributeDialog::~CLdapNewAttributeDialog()
 void CLdapNewAttributeDialog::onCurrentClassChanged(int index)
 {
     ui->attrCombo->setEnabled(index != -1);
-    if(index != -1)
+    if (index != -1)
     {
         std::map<std::string, std::string> a2v;
         QVector<QString>classes{ui->classCombo->currentText()};
         m_attributes = m_LdapData.schema().attributeByClasses(classes, a2v);
         ui->attrCombo->clear();
 
-        qSort(m_attributes.begin(), m_attributes.end(),[](const ldapcore::CLdapAttribute& a1, const ldapcore::CLdapAttribute& a2){
+        qSort(m_attributes.begin(), m_attributes.end(), [](const ldapcore::CLdapAttribute & a1, const ldapcore::CLdapAttribute & a2)
+        {
             return a1.name().toLower() < a2.name().toLower();
         });
 
         QSet<QString> attrSet;
         QVector<ldapcore::CLdapAttribute>* entryAttributes = m_entry->attributes();
-        for(const auto& a : *entryAttributes)
-            attrSet.insert(a.name());
-
-        for(int i=0; i< m_attributes.size(); i++)
+        for (const auto& a : *entryAttributes)
         {
-            if(!attrSet.contains(m_attributes[i].name()))
+            attrSet.insert(a.name());
+        }
+
+        for (int i = 0; i < m_attributes.size(); i++)
+        {
+            // not this check is disabled, because some attributes can have multiple values
+            //if(!attrSet.contains(m_attributes[i].name()))
             {
                 ui->attrCombo->addItem(m_attributes[i].name(), i);
             }
@@ -89,7 +98,7 @@ void CLdapNewAttributeDialog::onCurrentClassChanged(int index)
 
 void CLdapNewAttributeDialog::onCurrentAttributeChanged(int index)
 {
-    if(index != -1)
+    if (index != -1)
     {
         CAttributeModelHelper helper(m_LdapData);
         int attrIdx = ui->attrCombo->itemData(index).toInt();
@@ -100,23 +109,23 @@ void CLdapNewAttributeDialog::onCurrentAttributeChanged(int index)
         ui->typeEdit->setText(helper.attributeType2String(type));
 
 
-        if(value.isEmpty() && type == ldapcore::AttrType::Boolean)
+        if (value.isEmpty() && type == ldapcore::AttrType::Boolean)
         {
             value = "FALSE";
             QRegExp rx("TRUE|FALSE$");
             QRegExpValidator v(rx, 0);
             ui->valueEdit->setValidator(&v);
         }
-        if(value.isEmpty() && type == ldapcore::AttrType::Integer)
+        if (value.isEmpty() && type == ldapcore::AttrType::Integer)
         {
             value = "0";
             QRegExp rx("^\\d+$");
             QRegExpValidator v(rx, 0);
             ui->valueEdit->setValidator(&v);
         }
-        if(value.isEmpty() && type == ldapcore::AttrType::GeneralizedTime)
+        if (value.isEmpty() && type == ldapcore::AttrType::GeneralizedTime)
         {
-            value = QDateTime::currentDateTime().toString("yyyyMMddHHmmss.zzz")+"Z";
+            value = QDateTime::currentDateTime().toString("yyyyMMddHHmmss.zzz") + "Z";
             QRegExp rx("^\\d{4}\\d{2}\\d{2}([0-9]|0[0-9]|1[0-9]|2[0-3])[0-5][0-9][0-5][0-9](\\.\\d{3})?$");
             QRegExpValidator v(rx, 0);
             ui->valueEdit->setValidator(&v);

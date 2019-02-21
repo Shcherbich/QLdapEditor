@@ -264,9 +264,10 @@ bool CLdapAttributesModel::removeRows(int row, int count, const QModelIndex& par
     return true;
 }
 
-void CLdapAttributesModel::GetChangedRows(QVector<ldapcore::CLdapAttribute>& newRows,
-    QVector<ldapcore::CLdapAttribute>& deleteRows,
-    QVector<ldapcore::CLdapAttribute>& updateRows)
+void CLdapAttributesModel::GetChangedRows(
+        QVector<ldapcore::CLdapAttribute>& newRows,
+        QVector<ldapcore::CLdapAttribute>& deleteRows,
+        QVector<ldapcore::CLdapAttribute>& updateRows)
 {
     if (!m_pAttributes || !m_entry)
     {
@@ -278,10 +279,16 @@ void CLdapAttributesModel::GetChangedRows(QVector<ldapcore::CLdapAttribute>& new
     // first - save new attributes
     for (auto& a : *m_pAttributes)
     {
-        auto f = std::find_if(reallyAttributes.begin(), reallyAttributes.end(), [&](const ldapcore::CLdapAttribute& o) {
+        if (!a.isModified())
+        {
+            continue;
+        }
+        auto f = std::find_if(reallyAttributes.begin(), reallyAttributes.end(), [&](const ldapcore::CLdapAttribute& o)
+        {
             return a.name() == o.name();
         });
-        if (f == reallyAttributes.end() && a.isModified()) {
+        if (f == reallyAttributes.end())
+        {
             newRows.push_back(a);
         }
     }
@@ -289,7 +296,8 @@ void CLdapAttributesModel::GetChangedRows(QVector<ldapcore::CLdapAttribute>& new
     // second - delete attributes
     for (auto& r : reallyAttributes)
     {
-        auto f = std::find_if(m_pAttributes->begin(), m_pAttributes->end(), [&](const ldapcore::CLdapAttribute& o) {
+        auto f = std::find_if(m_pAttributes->begin(), m_pAttributes->end(), [&](const ldapcore::CLdapAttribute& o)
+        {
             return r.name() == o.name();
         });
 
@@ -302,7 +310,8 @@ void CLdapAttributesModel::GetChangedRows(QVector<ldapcore::CLdapAttribute>& new
     // second - update attributes
     for (auto& r : reallyAttributes)
     {
-        auto f = std::find_if(m_pAttributes->begin(), m_pAttributes->end(), [&](const ldapcore::CLdapAttribute& o) {
+        auto f = std::find_if(m_pAttributes->begin(), m_pAttributes->end(), [&](const ldapcore::CLdapAttribute& o)
+        {
             return r.name() == o.name();
         });
 

@@ -44,7 +44,7 @@ public:
      * @param classes list of classes (equal to 'objectClass') to construct
      * @param parent pointer to QObject parent
      */
-    explicit CLdapEntry(CLdapEntry* parentLdapEntry, QString rdn, QString parentDn, QVector<QString>& classes, QObject* parent);
+    explicit CLdapEntry(CLdapEntry* parentLdapEntry, QString rdn, QString parentDn, QVector<QString> classes, QObject* parent);
 
     /*!
      * \brief Destructor By default
@@ -85,6 +85,7 @@ public:
     bool                    isEdit();
     void                    setEditable(bool isEdit);
     bool                    isLoaded() const;
+    QString                 baseDn() const;
 	std::shared_ptr<CLdapAttribute> createEmptyAttribute(std::string attributeName);
 
     void                    addChild(CLdapEntry* child);
@@ -100,7 +101,7 @@ public:
     void                    availableAttributesMustImpl();
 
     QVector<QString>        classes();
-    void                    setClasses(QVector<QString>&);
+    void                    setClasses(QVector<QString>, bool updateAttributes = false);
     QVector<QString>        availableClasses();
     QString                 structuralClass();
     QVector<QString>        auxiliaryClasses();

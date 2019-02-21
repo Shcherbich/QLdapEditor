@@ -13,7 +13,7 @@
 // https://releases.pagure.org/389-ds-base/389-ds-base-1.4.1.1.tar.bz2
 namespace DirectoryServer389
 {
-char* strnchr(const char* s, size_t count, int c)
+char* strnchr(const char* s, int c, size_t count)
 {
     for (; count-- && *s != '\0'; ++s)
         if (*s == (char)c)

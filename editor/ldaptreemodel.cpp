@@ -190,6 +190,7 @@ namespace ldapeditor
 
         ldapcore::CLdapEntry* addEntry = new ldapcore::CLdapEntry(parentEntry, rdn, dn, classes, nullptr);
         addEntry->addAttributes(attributes);
+        addEntry->setClasses(classes, true);
 
         beginInsertRows(parent, row, row + count - 1);
         parentEntry->addChild(addEntry);

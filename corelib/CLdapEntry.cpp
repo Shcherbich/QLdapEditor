@@ -105,7 +105,7 @@ static QVector<ldapcore::AttrType> g_supportedTypesForEdit(
     ldapcore::AttrType::TelephoneNumber
 });
 
-CLdapEntry::CLdapEntry(CLdapEntry* parentLdapEntry, QString rdn, QString parentDn, QVector<QString>& classes, QObject* parent)
+CLdapEntry::CLdapEntry(CLdapEntry* parentLdapEntry, QString rdn, QString parentDn, QVector<QString> classes, QObject* parent)
     : QObject(parent)
     , m_pParent(parentLdapEntry)
 {
@@ -116,12 +116,22 @@ CLdapEntry::CLdapEntry(CLdapEntry* parentLdapEntry, QString rdn, QString parentD
     m_pEntry = new LDAPEntry(s.toStdString());
     m_classes.swap(classes);
     m_isNew = true;
+
+    if (parentLdapEntry != nullptr)
+    {
+        initialize(parentLdapEntry->m_pData, parentLdapEntry->m_baseDn);
+    }
 }
 
 CLdapEntry::CLdapEntry(CLdapEntry* parentLdapEntry, LDAPEntry* le, QObject* parent)
     : QObject(parent)
     , m_pParent(parentLdapEntry), m_pEntry(le)
-{}
+{
+    if (parentLdapEntry != nullptr)
+    {
+        initialize(parentLdapEntry->m_pData, parentLdapEntry->m_baseDn);
+    }
+}
 
 CLdapEntry::~CLdapEntry()
 {
@@ -195,6 +205,11 @@ void CLdapEntry::construct()
     }
 }
 
+QString CLdapEntry::baseDn() const
+{
+    return m_baseDn;
+}
+
 LDAPConnection* CLdapEntry::connectionPtr() const
 {
     return m_pData->m_Connection.get();
@@ -265,8 +280,13 @@ void CLdapEntry::loadAttributes(QVector<CLdapAttribute>& vRet, bool needToLoadSy
         auto name = i->getName();
         auto attributeTypeByName = m_pData->schema().attributesSchema()->getAttributeTypeByName(name);
         auto attrClasses = m_pData->schema().classesByAttributeName(name, m_classes);
-        CLdapAttribute attr(name.c_str(), i->toString().c_str(), tp, isMust(name), attributeTypeByName.getDesc().c_str(), attrClasses, (isMust(name) && !isNew()) ? AttributeState::AttributeReadOnly : editState);
-        vRet.push_back(attr);
+        bool must = isMust(name);
+        for (auto& v: i->getValues())
+        {
+            CLdapAttribute attr(name.c_str(), v.c_str(), tp, must, attributeTypeByName.getDesc().c_str(),
+                                attrClasses, (isMust(name) && !isNew()) ? AttributeState::AttributeReadOnly : editState);
+            vRet.push_back(attr);
+        }
     }
 
 
@@ -300,17 +320,29 @@ void CLdapEntry::loadAttributes(QVector<CLdapAttribute>& vRet, bool needToLoadSy
                         auto name = i->getName();
                         auto attributeTypeByName = m_pData->schema().attributesSchema()->getAttributeTypeByName(name);
                         auto attrClasses = m_pData->schema().classesByAttributeName(name, m_classes);
-                        CLdapAttribute attr(name.c_str(), i->toString().c_str(), tp, isMust(name), attributeTypeByName.getDesc().c_str(), attrClasses, AttributeState::AttributeReadOnly);
-                        vRet.push_back(attr);
-                        m_Must.push_back(attr);
+                        bool must = isMust(name);
+                        for (auto& v: i->getValues())
+                        {
+                            CLdapAttribute attr(name.c_str(), v.c_str(), tp, must, attributeTypeByName.getDesc().c_str(),
+                                                attrClasses, AttributeState::AttributeReadOnly);
+                            vRet.push_back(attr);
+                        }
+                        if (must)
+                        {
+                            m_Must.push_back(vRet.back());
+                        }
+                        else
+                        {
+                            m_May.push_back(vRet.back());
+                        }
                     }
                 }
             }
 
         }
-        catch (std::exception e)
+        catch (const std::exception ex)
         {
-
+            Q_UNUSED(ex);
         }
 
     }
@@ -375,8 +407,8 @@ std::shared_ptr<CLdapAttribute> CLdapEntry::createEmptyAttribute(std::string att
 {
     auto t = m_pData->schema().attributeInfoByName(attributeName);
     auto tp = std::get<0>(t);
-    QVector<QString> classes;
-    std::shared_ptr<CLdapAttribute> p(new CLdapAttribute(attributeName.c_str(), "", tp, isMust(attributeName), "", classes, AttributeState::AttributeReadWrite));
+    auto attrClasses = m_pData->schema().classesByAttributeName(attributeName, m_classes);
+    std::shared_ptr<CLdapAttribute> p(new CLdapAttribute(attributeName.c_str(), "", tp, isMust(attributeName), "", attrClasses, AttributeState::AttributeReadWrite));
     return p;
 }
 
@@ -453,36 +485,29 @@ QVector<QString> CLdapEntry::auxiliaryClasses()
     return vector;
 }
 
-void CLdapEntry::setClasses(QVector<QString>& cList)
+void CLdapEntry::setClasses(QVector<QString> cList, bool updateAttributes)
 {
-    bool needToUpdateObjectClassAttribute = false;
-    if (!m_classes.isEmpty() && !cList.isEmpty())
-    {
-        QVector<QString> l1 = m_classes;
-        QVector<QString> l2 = cList;
-        qSort(l1);
-        qSort(l2);
-        needToUpdateObjectClassAttribute = l1 != l2;
-    }
     m_classes.clear();
     m_classes << cList;
-    if (needToUpdateObjectClassAttribute)
+
+    if (!updateAttributes)
     {
-        auto fObjectClassToUpdate = std::find_if(attributes()->begin(), attributes()->end(), [&](const ldapcore::CLdapAttribute& a)
-        {
-            return a.name().compare("objectClass", Qt::CaseInsensitive) == 0;
-        });
-        if(fObjectClassToUpdate != attributes()->end())
-        {
-            QStringList list;
-            for (auto cl: m_classes)
-                list << cl;
-            auto editState = fObjectClassToUpdate->editState();
-            fObjectClassToUpdate->setEditState(AttributeState::AttributeValueReadWrite);
-            fObjectClassToUpdate->setValue(list.join(";"));
-            fObjectClassToUpdate->setEditState(editState);
-        }
+        return;
     }
+
+    QVector<CLdapAttribute> newAttributes;
+    for (auto& a: m_attributes)
+        if (a.name() != "objectClass")
+            newAttributes << a;
+
+    auto aClass = createEmptyAttribute("objectClass");
+    for (auto& a: m_classes)
+    {
+        aClass->m_Value = a;
+        newAttributes.push_back(*aClass.get());
+    }
+    std::sort(newAttributes.begin(), newAttributes.end(), comp());
+    newAttributes.swap(m_attributes);
 }
 
 QVector<QString> CLdapEntry::availableClasses()
