@@ -177,7 +177,7 @@ void CLdapServer::addAttribute(CLdapEntry& entry, CLdapAttribute& attribute) noe
 
 }
 
-void CLdapServer::updateAttribute(CLdapEntry& entry, CLdapAttribute& attribute) noexcept(false)
+void CLdapServer::updateAttributes(CLdapEntry& entry, QString name, const QVector<ldapcore::CLdapAttribute>& values) noexcept(false)
 {
     try
     {
@@ -185,20 +185,24 @@ void CLdapServer::updateAttribute(CLdapEntry& entry, CLdapAttribute& attribute) 
         LDAPModList* mod = new LDAPModList();
         auto q = entry.connectionPtr()->search(entry.m_pEntry->getDN(), LDAPAsynConnection::SEARCH_SUB, "objectClass=*", StringList());
         uEntry en(q->getNext());
-        auto find = en->getAttributeByName(attribute.name().toStdString());
+        auto find = en->getAttributeByName(name.toStdString());
         if (find == nullptr)
         {
             throw ldapcore::CLdapServerException("No found attribute");
         }
         StringList newList;
-        newList.add(attribute.value().toStdString());
+        for (auto& v : values)
+            if (!v.value().isEmpty())
+            {
+                newList.add(v.value().toStdString());
+            }
         const_cast<LDAPAttribute*>(find)->setValues(newList);
         mod->addModification(LDAPModification(*find, op));
         entry.connectionPtr()->modify_s(entry.m_pEntry->getDN(), mod);
     }
     catch (const std::exception& ex)
     {
-        auto err = QString("Update attribute '%1': %2").arg(attribute.name()).arg(ex.what());
+        auto err = QString("Update attribute '%1': %2").arg(name).arg(ex.what());
         throw CLdapServerException(err.toStdString().c_str());
     }
 }
