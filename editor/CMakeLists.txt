@@ -29,9 +29,6 @@ SET(ldapeditor_SOURCES
     resources.qrc
     ldapnewattributedialog.cpp
     ldapnewattributedialog.ui
-    TableModel.h
-    ModelDataAdapter.h
-    cmustmaymodel.h
     cmustmaymodel.cpp
     ldapdataeditdelegate.cpp
     attributemodelhelper.cpp
@@ -49,10 +46,16 @@ SET(ldapeditor_SOURCES
     ldapnewentrydialog.ui
     mainwindow.cpp
     main.cpp
+# not used at the moment
+#    TableModel.h
+#    ModelDataAdapter.h
 )
+
+
 SET(ldapeditor_HEADERS    
     addusertogroupdialog.h
     ldapnewattributedialog.h
+    cmustmaymodel.h
     ldapdataeditdelegate.h
     attributemodelhelper.h
     ldapsettings.h
@@ -66,7 +69,7 @@ SET(ldapeditor_HEADERS
     ldapnewentrydialog.h
     mainwindow.h
     ldapeditordefines.h
-    ${CMAKE_BINARY_DIR}/version.h
+#    ${CMAKE_BINARY_DIR}/version.h
 )
 
 SET(ldapeditor_OTHER
