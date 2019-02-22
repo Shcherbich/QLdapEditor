@@ -76,6 +76,7 @@ void CLdapNewAttributeDialog::onCurrentClassChanged(int index)
         });
 
         QSet<QString> attrSet;
+        const QStringList exludeAttributes{"member","memberOf"};
         QVector<ldapcore::CLdapAttribute>* entryAttributes = m_entry->attributes();
         for (const auto& a : *entryAttributes)
         {
@@ -84,8 +85,8 @@ void CLdapNewAttributeDialog::onCurrentClassChanged(int index)
 
         for (int i = 0; i < m_attributes.size(); i++)
         {
-            // not this check is disabled, because some attributes can have multiple values
-            //if(!attrSet.contains(m_attributes[i].name()))
+            //exlude some attributes
+            if(!exludeAttributes.contains(m_attributes[i].name()))
             {
                 ui->attrCombo->addItem(m_attributes[i].name(), i);
             }
