@@ -474,7 +474,7 @@ bool CLdapAttributesModel::SaveUpdatedEntry()
     {
         m_LdapData.server().update(*m_entry);
         m_entry->setEditable(false);
-        m_entry->flushAttributeCache();
+        m_entry->flushAttributesCache();
         setLdapEntry(m_entry);
     }
     catch (const std::exception& e)
@@ -538,7 +538,7 @@ bool CLdapAttributesModel::SaveAttributes()
     }
 
     QApplication::setOverrideCursor(Qt::WaitCursor);
-    m_entry->flushAttributeCache();
+    m_entry->flushAttributesCache();
     QApplication::restoreOverrideCursor();
     setLdapEntry(m_entry);
     return true;

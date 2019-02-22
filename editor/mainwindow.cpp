@@ -282,7 +282,7 @@ void MainWindow::onTreeItemChanged(const QModelIndex& current, const QModelIndex
                     ldapcore::CLdapEntry* prevEntry = static_cast<ldapcore::CLdapEntry*>(srcPrev.internalPointer());
                     QStringList cls;
                     prevEntry->setClasses(cls);
-                    prevEntry->flushAttributeCache();
+                    prevEntry->flushAttributesCache();
                     (void*)prevEntry->attributes();
                     m_LdapTree->update(mainPrev);
                 }
@@ -293,7 +293,7 @@ void MainWindow::onTreeItemChanged(const QModelIndex& current, const QModelIndex
     ldapcore::CLdapEntry* currentEntry = static_cast<ldapcore::CLdapEntry*>(srcCur.internalPointer());
 	if (currentEntry)
 	{
-        currentEntry->flushAttributeCache();
+        currentEntry->flushAttributesCache();
 		m_TableModel->setLdapEntry(currentEntry);
 		m_AttributesList->setLdapEntry(currentEntry);
 	}

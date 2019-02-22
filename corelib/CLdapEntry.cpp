@@ -447,7 +447,7 @@ void CLdapEntry::validateAttribute(CLdapAttribute& attr)
     m_pData->schema().validateAttributeByName(attr.name().toStdString(), attr.value().toStdString());
 }
 
-void CLdapEntry::flushAttributeCache()
+void CLdapEntry::flushAttributesCache()
 {
     if (m_pEntry == nullptr)
     {

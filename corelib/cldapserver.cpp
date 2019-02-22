@@ -50,7 +50,7 @@ void CLdapServer::add(CLdapEntry& entry) noexcept(false)
         auto dn = e->getDN();
         entry.connectionPtr()->add(e.get());
         entry.m_isNew = false;
-        entry.flushAttributeCache();
+        entry.flushAttributesCache();
     }
     catch (const std::exception& ex)
     {
