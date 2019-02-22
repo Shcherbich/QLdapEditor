@@ -26,9 +26,16 @@ namespace ldapeditor
     public:
         /*!
          * \brief Constructor CLdapSettings
+         * \param settingsFile path to settings
          * \param parent pointer to parent QObject
          */
-        CLdapSettings(QObject* parent = nullptr);
+        CLdapSettings(QString configFile, QObject* parent = nullptr);
+
+//        /*!
+//         * \brief Constructor CLdapSettings
+//         * \param parent pointer to parent QObject
+//         */
+//        CLdapSettings(QObject* parent = nullptr);
 
         /*!
          * \brief Method returns connection name
@@ -265,9 +272,9 @@ namespace ldapeditor
         int timeout() const;
 
         /*!
-         * \brief Method sync data with external storage/file
+         * \brief Method saves data with external storage/file
          */
-        void sync();
+        void saveSettings();
 
         /*!
          * \brief Method returns reference to connection Options
@@ -349,6 +356,9 @@ namespace ldapeditor
 
          mutable SimpleCrypt m_crypto; ///< simple engine for crype/decrypt data
          mutable ldapcore::tConnectionOptions m_connectionOptions; ///< connection options
+
+         QString m_configFile;
+
     };
 }//namespace ldapeditor
 

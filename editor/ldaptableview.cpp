@@ -107,7 +107,7 @@ namespace ldapeditor
         m_LdapSettings.setColumnValue(columnWidth(static_cast<int>(AttributeColumn::Value)));
         m_LdapSettings.setColumnType(columnWidth(static_cast<int>(AttributeColumn::Type)));
         m_LdapSettings.setColumnSize(columnWidth(static_cast<int>(AttributeColumn::Size)));
-        m_LdapSettings.sync();
+       // m_LdapSettings.sync();
     }
 
     void CLdapTableView::customContextMenuRequested(QPoint pos)

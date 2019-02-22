@@ -39,12 +39,14 @@ namespace ldapeditor
          * \param ldapData reference to dapcore::CLdapData
          * \param parent pointer to parent QObject
          */
-        explicit CConnectionDialog(CLdapSettings& settings, ldapcore::CLdapData& ldapData, QWidget *parent = nullptr);
+        explicit CConnectionDialog(ldapcore::CLdapData& ldapData, QWidget *parent = nullptr);
 
         /*!
         * \brief Destructor CConnectionDialog
         */
         ~CConnectionDialog();
+
+        CLdapSettings*  settings(){ return m_Settings;}
     private slots:
         /*!
          * \brief Provate slot, called when type of authentification is changed
@@ -76,6 +78,7 @@ namespace ldapeditor
          */
         void onShowPasswordClicked();
 
+        void onConnectionChanged();
     private slots:
         /*!
          * \brief Private slot, called when connection to LDAP server is established
@@ -87,18 +90,21 @@ namespace ldapeditor
         /*!
          * \brief Private method for load connection setttings
          */
-        void loadSettings();
+        void loadSettings(QString settingsFile);
 
         /*!
          * \brief Private method for saving connection settings
          */
         void saveSettings();
 
+        void loadConnectionsList();
 
         Ui::CConnectionDialog *ui{nullptr}; ///< pointer to UI implementation memeber
-        CLdapSettings& m_Settings;          ///< reference to application settings
+        CLdapSettings* m_Settings{nullptr}; ///< pointer to connection settings
         ldapcore::CLdapData& m_LdapData;    ///< reference to ldapcore::CLdapData
         int m_WaitTime;                     ///< current value of connection time
+
+         QString m_configDirPath;
     };
 } //namespace ldapeditor
 
