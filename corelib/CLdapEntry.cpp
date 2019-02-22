@@ -453,15 +453,23 @@ void CLdapEntry::flushAttributesCache()
     {
         return;
     }
-    auto sr = connectionPtr()->search(m_pEntry->getDN(), LDAPConnection::SEARCH_BASE, "(objectClass=*)");
-    if (sr)
+
+    try
     {
-        std::shared_ptr<LDAPEntry> entry(sr->getNext());
-        if (entry.get() != nullptr)
+        auto sr = connectionPtr()->search(m_pEntry->getDN(), LDAPConnection::SEARCH_BASE, "(objectClass=*)");
+        if (sr)
         {
-            *m_pEntry = *entry.get();
-            prepareAttributes();
+            std::shared_ptr<LDAPEntry> entry(sr->getNext());
+            if (entry.get() != nullptr)
+            {
+                *m_pEntry = *entry.get();
+                prepareAttributes();
+            }
         }
+    }
+    catch (const std::exception ex)
+    {
+        Q_UNUSED(ex);
     }
 }
 

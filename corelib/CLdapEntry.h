@@ -21,7 +21,6 @@ class CLdapData;
  * @brief The ldap data class
  *
  * The CLdapEntry is represented ldap entry of server.
-  *
  */
 class CLdapEntry : public QObject
 {
