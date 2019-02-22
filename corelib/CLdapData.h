@@ -5,7 +5,6 @@
 #include <QString>
 #include <QVector>
 #include <QList>
-#include "CLdapObject.h"
 #include "CLdapEntry.h"
 #include "cldapserver.h"
 #include "datatypes.h"

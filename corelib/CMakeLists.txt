@@ -33,8 +33,6 @@ set(LdapCore_SRCS
     CLdapEntry.cpp
     CLdapData.h
     CLdapData.cpp
-    CLdapObject.h
-    CLdapObject.cpp
     CLdapAttribute.h
     CLdapAttribute.cpp
 )
