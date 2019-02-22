@@ -89,16 +89,16 @@ void CLdapServer::update(CLdapEntry& entry) noexcept(false)
             auto f = std::find_if(realAttributes.begin(), realAttributes.end(),
                                   [&](const ldapcore::CLdapAttribute & o)
             {
-                return strcasecmp(o.name().toStdString().c_str(), a.name().toStdString().c_str()) == 0;
+                return a.name().compare(o.name(), Qt::CaseInsensitive) == 0 && a.value() == o.value();
             });
 
-            auto value = a.value().toStdString();
-
             // no modification
-            if (f != realAttributes.end() && f->value() == a.value())
+            if (f != realAttributes.end())
             {
                 continue;
             }
+
+            auto value = a.value().toStdString();
 
             // add modification
             if (!value.empty())
