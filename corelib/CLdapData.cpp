@@ -6,9 +6,9 @@
 #include <string>
 #include <QMessageBox>
 #include <QString>
-#include <QtGlobal>
+#include <QDebug>
 #include <stdio.h>
-//#include <syslog.h>
+#include <syslog.h>
 
 namespace ldapcore
 {
@@ -85,17 +85,20 @@ void CLdapData::initialize()
         return;
     }
     isInitialized = true;
-    qInstallMessageHandler(CLdapData::syslogMessageHandler);
+    QtMessageHandler handler = CLdapData::syslogMessageHandler;
+    qInstallMessageHandler(handler);
 
 }
 
 void CLdapData::connect(const tConnectionOptions& connectOptions)
 {
+    initialize();
 	resetConnection();
     auto func = [&]()
     {
         try
         {
+            qWarning() << "Connecting to " << connectOptions.host.c_str();
             std::unique_ptr<LDAPConnection> localConn(new LDAPConnection(connectOptions.host, connectOptions.port));
             if (connectOptions.useTLS)
             {

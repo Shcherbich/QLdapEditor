@@ -138,7 +138,7 @@ private:
      * @param context This enum describes the messages that can be sent to a message handler (QtMessageHandler)
      * @param msg the message
      */
-    void syslogMessageHandler(QtMsgType type, const QMessageLogContext& context, const QString& msg);
+    static void syslogMessageHandler(QtMsgType type, const QMessageLogContext& context, const QString& msg);
 
 private:
     /*!
