@@ -6,6 +6,9 @@
 #include <string>
 #include <QMessageBox>
 #include <QString>
+#include <QtGlobal>
+#include <stdio.h>
+//#include <syslog.h>
 
 namespace ldapcore
 {
@@ -43,6 +46,47 @@ CLdapData::CLdapData(QObject* parent)
 CLdapData::~CLdapData()
 {
 	resetConnection();
+}
+
+void CLdapData::syslogMessageHandler(QtMsgType type, const QMessageLogContext& context, const QString& msg)
+{
+    Q_UNUSED(context)
+    QByteArray localMsg = msg.toLocal8Bit();
+    switch (type)
+    {
+    case QtDebugMsg:
+        fprintf(stderr, "Debug: %s\n", localMsg.constData());
+        syslog(LOG_DEBUG, "debug: %s", localMsg.constData());
+        break;
+    case QtInfoMsg:
+        fprintf(stderr, "Info: %s\n", localMsg.constData());
+        syslog(LOG_INFO, "info: %s", localMsg.constData());
+        break;
+    case QtWarningMsg:
+        fprintf(stderr, "Warning: %s\n", localMsg.constData());
+        syslog(LOG_WARNING, "warning: %s", localMsg.constData());
+        break;
+    case QtCriticalMsg:
+        fprintf(stderr, "Critical: %s\n", localMsg.constData());
+        syslog(LOG_CRIT, "critical: %s", localMsg.constData());
+        break;
+    case QtFatalMsg:
+        fprintf(stderr, "Fatal: %s\n", localMsg.constData());
+        syslog(LOG_ALERT, "alert: %s", localMsg.constData());
+        //abort();
+    }
+}
+
+void CLdapData::initialize()
+{
+    static bool isInitialized = false;
+    if (isInitialized)
+    {
+        return;
+    }
+    isInitialized = true;
+    qInstallMessageHandler(CLdapData::syslogMessageHandler);
+
 }
 
 void CLdapData::connect(const tConnectionOptions& connectOptions)
