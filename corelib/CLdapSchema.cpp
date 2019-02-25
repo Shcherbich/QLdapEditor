@@ -314,7 +314,7 @@ QString CLdapSchema::startRdn(QString c)
 {
 	const auto& f = classesSchema()->getObjectClassByName(c.toStdString());
 	auto must = std::move(f.getMust());
-	return must.size() ? must.begin()->c_str() : "";
+    return must.size() ? must.begin()->c_str() : "CN";
 }
 
 QString CLdapSchema::classDescription(const QString& cls)

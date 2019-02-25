@@ -513,6 +513,7 @@ void CLdapEntry::setClasses(QStringList cList, bool updateAttributes)
             newAttributes << a;
 
     auto aClass = createEmptyAttribute("objectClass");
+    aClass->m_isMust = true;
     for (auto& a: m_classes)
     {
         aClass->m_Value = a;
