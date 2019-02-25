@@ -137,9 +137,11 @@ void CLdapData::connect(const tConnectionOptions& connectOptions)
             m_Schema.build(m_Connection.get());
             build();
             emit this->onConnectionCompleted(true, "");
+            qWarning() << "Successfully connected to " << connectOptions.host.c_str();
         }
         catch (const LDAPException& e)
         {
+            qWarning() << "Connection error to " << connectOptions.host.c_str() << ". " << e.what();
             emit this->onConnectionCompleted(false, e.what());
         }
     };
