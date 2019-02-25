@@ -287,6 +287,14 @@ void CLdapEntry::loadAttributes(QVector<CLdapAttribute>& vRet, bool needToLoadSy
                                 attrClasses, (isMust(name) && !isNew()) ? AttributeState::AttributeReadOnly : editState);
             vRet.push_back(attr);
         }
+
+
+    }
+
+    auto obGuid = al->getAttributeByName("objectGUID");
+    if (obGuid != nullptr)
+    {
+        m_guid = obGuid->toString().c_str();
     }
 
 
@@ -301,6 +309,8 @@ void CLdapEntry::loadAttributes(QVector<CLdapAttribute>& vRet, bool needToLoadSy
             systemAttrs.add("modifytimestamp");
             systemAttrs.add("subschemaSubentry");
             systemAttrs.add("hasSubordinates");
+            systemAttrs.add("objectGUID");
+            systemAttrs.add("objectSid");
             systemAttrs.add("+");
         }
 
@@ -336,7 +346,13 @@ void CLdapEntry::loadAttributes(QVector<CLdapAttribute>& vRet, bool needToLoadSy
                             m_May.push_back(vRet.back());
                         }
                     }
+                    obGuid = systemAttributes->getAttributeByName("objectGUID");
+                    if (obGuid != nullptr)
+                    {
+                        m_guid = obGuid->toString().c_str();
+                    }
                 }
+
             }
 
         }
@@ -439,6 +455,11 @@ void CLdapEntry::setEditable(bool isEdit)
 bool CLdapEntry::isLoaded() const
 {
     return m_isLoaded;
+}
+
+QString CLdapEntry::guid() const
+{
+    return m_guid;
 }
 
 void CLdapEntry::validateAttribute(CLdapAttribute& attr)

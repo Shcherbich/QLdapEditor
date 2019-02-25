@@ -118,6 +118,12 @@ public:
     QString                 baseDn() const;
 
     /*!
+     * @brief Method gets global unique identifier
+     * @return QString global unique identifier
+     */
+    QString                 guid() const;
+
+    /*!
      * @brief Method creates new instance of CLdapAttribute by attributeName
      * @param attributeName name of attribute to creating
      * @return std::shared_ptr<CLdapAttribute> created instance of CLdapAttribute
@@ -263,6 +269,7 @@ private:
     bool                  m_isNew{false}; ///< flag of new`s state
     bool                  m_isEdit{false}; ///< flag of edit`s state
     bool                  m_isLoaded{false};///< flag of load`s state
+    QString               m_guid; ///< global unique identifier
 
     QVector<CLdapAttribute> m_attributes; ///< list of attributes
     QVector<CLdapAttribute> m_Must; ///< list of all must attributes which can use

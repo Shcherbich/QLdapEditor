@@ -4,6 +4,7 @@
 #include <tuple>
 #include <algorithm>
 #include <memory>
+#include <QDebug>
 #include "cldapserver.h"
 #include "LDAPEntry.h"
 #include "LDAPException.h"
@@ -24,6 +25,7 @@ CLdapServer::CLdapServer()
 
 void CLdapServer::add(CLdapEntry& entry) noexcept(false)
 {
+    QStringList log;
     try
     {
         std::shared_ptr<LDAPAttributeList> attrs(new LDAPAttributeList());
@@ -44,6 +46,8 @@ void CLdapServer::add(CLdapEntry& entry) noexcept(false)
             if (!value.isEmpty() && a.name() != "objectClass")
             {
                 attrs->addAttribute(LDAPAttribute(a.name().toStdString(), value.toStdString()));
+                QString l = QString("Adding Name: %1. Value %2").arg(a.name()).arg(value);
+                log.push_back(l);
             }
         }
         std::shared_ptr<LDAPEntry> e(new LDAPEntry(entry.m_pEntry->getDN(), attrs.get()));
@@ -51,9 +55,16 @@ void CLdapServer::add(CLdapEntry& entry) noexcept(false)
         entry.connectionPtr()->add(e.get());
         entry.m_isNew = false;
         entry.flushAttributesCache();
+
+        {
+            qWarning() << QString("Successfully added entry %1.\n%2").arg(entry.dn()).arg(log.join("\n"));
+        }
     }
     catch (const std::exception& ex)
     {
+        {
+            qWarning() << QString("Failed to add entry %1.%2\n%3").arg(entry.dn()).arg(ex.what()).arg(log.join("\n"));
+        }
         throw CLdapServerException(ex.what());
     }
 }
@@ -64,6 +75,7 @@ void CLdapServer::update(CLdapEntry& entry) noexcept(false)
     {
         return;
     }
+    QStringList log;
     try
     {
         QVector<CLdapAttribute> realAttributes;
@@ -108,12 +120,15 @@ void CLdapServer::update(CLdapEntry& entry) noexcept(false)
                     mod->addModification(LDAPModification(LDAPAttribute(a.name().toStdString(), value),
                                                           LDAPModification::OP_ADD));
 
+                    QString l = QString("Adding Name: %1. Value %2").arg(a.name()).arg(value.c_str());
+                    log.push_back(l);
                 }
                 else
                 {
                     mod->addModification(LDAPModification(LDAPAttribute(a.name().toStdString(), value),
                                                           LDAPModification::OP_REPLACE));
-
+                    QString l = QString("Updating Name: %1. Value %2").arg(a.name()).arg(value.c_str());
+                    log.push_back(l);
                 }
             }
         }
@@ -132,14 +147,24 @@ void CLdapServer::update(CLdapEntry& entry) noexcept(false)
             }
             mod->addModification(LDAPModification(LDAPAttribute(a.name().toStdString(), a.value().toStdString()),
                                                   LDAPModification::OP_DELETE));
+            QString l = QString("Deleting Name: %1. Value %2").arg(a.name()).arg(a.value());
+            log.push_back(l);
         }
 
         auto& dn = entry.m_pEntry->getDN();
         entry.connectionPtr()->modify_s(dn, mod);
         entry.m_isEdit = false;
+
+        {
+            qWarning() << QString("Successfully updated entry %1 %2.\n%3").arg(entry.dn()).arg(entry.guid()).arg(log.join("\n"));
+        }
     }
     catch (const std::exception& ex)
     {
+        {
+            qWarning() << QString("Failed to update entry %1 %2.%3\n%4").arg(entry.dn()).arg(entry.guid()).arg(ex.what()).arg(log.join("\n"));
+        }
+
         throw CLdapServerException(ex.what());
     }
 }
@@ -151,9 +176,17 @@ void CLdapServer::del(CLdapEntry& entry) noexcept(false)
         std::unique_ptr<LDAPConstraints> cons = std::unique_ptr<LDAPConstraints>(new LDAPConstraints());
         auto& dn = entry.m_pEntry->getDN();
         entry.connectionPtr()->del(dn, cons.get());
+        {
+            qWarning() << QString("Successfully deleted entry %1 %2.").arg(entry.dn()).arg(entry.guid());
+        }
+
     }
     catch (const std::exception& ex)
     {
+        {
+            qWarning() << QString("Failed to delete entry %1 %2.%3\n").arg(entry.dn()).arg(entry.guid()).arg(ex.what());
+        }
+
         throw CLdapServerException(ex.what());
     }
 }
@@ -168,9 +201,23 @@ void CLdapServer::addAttribute(CLdapEntry& entry, CLdapAttribute& attribute) noe
         std::unique_ptr<LDAPModList>  mod(new LDAPModList());
         mod->addModification(LDAPModification(newattr, op));
         entry.connectionPtr()->modify_s(entry.m_pEntry->getDN(), mod.get());
+
+        {
+            QString log = QString("Successfully added attribute '%1' %3 %4, value '%2'").
+                    arg(attribute.name()).arg(attribute.value()).arg(entry.dn()).arg(entry.guid());
+            qWarning() << log;
+        }
+
     }
     catch (const std::exception& ex)
     {
+        {
+            QString log = QString("Failed to add attribute '%1' of %4 %5, value '%2'. %3").
+                    arg(attribute.name()).arg(attribute.value()).arg(ex.what()).arg(entry.dn()).arg(entry.guid());
+            qWarning() << log;
+        }
+
+
         auto err = QString("Add new attribute '%1': %2").arg(attribute.name()).arg(ex.what());
         throw CLdapServerException(err.toStdString().c_str());
     }
@@ -179,6 +226,7 @@ void CLdapServer::addAttribute(CLdapEntry& entry, CLdapAttribute& attribute) noe
 
 void CLdapServer::updateAttributes(CLdapEntry& entry, QString name, const QVector<ldapcore::CLdapAttribute>& values) noexcept(false)
 {
+    QStringList log;
     try
     {
         LDAPModification::mod_op op = LDAPModification::OP_REPLACE;
@@ -195,13 +243,27 @@ void CLdapServer::updateAttributes(CLdapEntry& entry, QString name, const QVecto
             if (!v.value().isEmpty())
             {
                 newList.add(v.value().toStdString());
+                log.push_back(v.value());
             }
         const_cast<LDAPAttribute*>(find)->setValues(newList);
         mod->addModification(LDAPModification(*find, op));
         entry.connectionPtr()->modify_s(entry.m_pEntry->getDN(), mod);
+
+        {
+            QString l = QString("Successfully updated attribute '%1' %3 %4, value '%2'").
+                    arg(name).arg(log.join(";")).arg(entry.dn()).arg(entry.guid());
+            qWarning() << l;
+        }
+
     }
     catch (const std::exception& ex)
     {
+        {
+            QString l = QString("Failed to update attribute '%1' of %4 %5, value '%2'. %3").
+                    arg(name).arg(log.join("\n")).arg(ex.what()).arg(entry.dn()).arg(entry.guid());
+            qWarning() << l;
+        }
+
         auto err = QString("Update attribute '%1': %2").arg(name).arg(ex.what());
         throw CLdapServerException(err.toStdString().c_str());
     }
@@ -216,9 +278,22 @@ void CLdapServer::delAttribute(CLdapEntry& entry, CLdapAttribute& attribute) noe
         std::unique_ptr<LDAPModList> mod(new LDAPModList());
         mod->addModification(LDAPModification(newattr, op));
         entry.connectionPtr()->modify_s(entry.m_pEntry->getDN(), mod.get());
+
+        {
+            QString l = QString("Successfully deleted attribute '%1' %3 %4, value '%2'").
+                    arg(attribute.name()).arg(attribute.value()).arg(entry.dn()).arg(entry.guid());
+            qWarning() << l;
+        }
+
     }
     catch (const std::exception& ex)
     {
+        {
+            QString l = QString("Failed to delete attribute '%1' of %4 %5, value '%2'. %3").
+                    arg(attribute.name()).arg(attribute.value()).arg(ex.what()).arg(entry.dn()).arg(entry.guid());
+            qWarning() << l;
+        }
+
         auto err = QString("Delete attribute '%1': %2").arg(attribute.name()).arg(ex.what());
         throw CLdapServerException(err.toStdString().c_str());
     }
