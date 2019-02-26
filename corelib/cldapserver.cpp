@@ -65,7 +65,7 @@ void CLdapServer::add(CLdapEntry& entry) noexcept(false)
     catch (const std::exception& ex)
     {
         {
-            qWarning() << QString("Failed to add entry %1. %2. %3").arg(entry.dn()).arg(ex.what()).arg(log.join(";"));
+            qCritical() << QString("Failed to add entry %1. %2. %3").arg(entry.dn()).arg(ex.what()).arg(log.join(";"));
         }
         throw CLdapServerException(ex.what());
     }
@@ -167,7 +167,7 @@ void CLdapServer::update(CLdapEntry& entry) noexcept(false)
     catch (const std::exception& ex)
     {
         {
-            qWarning() << QString("Failed to update entry %1/%2. %3. %4").arg(entry.dn()).arg(entry.guid()).arg(ex.what()).arg(log.join(";"));
+            qCritical() << QString("Failed to update entry %1/%2. %3. %4").arg(entry.dn()).arg(entry.guid()).arg(ex.what()).arg(log.join(";"));
         }
 
         throw CLdapServerException(ex.what());
@@ -189,7 +189,7 @@ void CLdapServer::del(CLdapEntry& entry) noexcept(false)
     catch (const std::exception& ex)
     {
         {
-            qWarning() << QString("Failed to delete entry %1/%2. %3").arg(entry.dn()).arg(entry.guid()).arg(ex.what());
+            qCritical() << QString("Failed to delete entry %1/%2. %3").arg(entry.dn()).arg(entry.guid()).arg(ex.what());
         }
 
         throw CLdapServerException(ex.what());
@@ -219,7 +219,7 @@ void CLdapServer::addAttribute(CLdapEntry& entry, CLdapAttribute& attribute) noe
         {
             QString log = QString("Failed to add attribute %1 of %4/%5, value '%2'. %3").
                     arg(attribute.name()).arg(attribute.value()).arg(ex.what()).arg(entry.dn()).arg(entry.guid());
-            qWarning() << log;
+            qCritical() << log;
         }
 
 
@@ -266,7 +266,7 @@ void CLdapServer::updateAttributes(CLdapEntry& entry, QString name, const QVecto
         {
             QString l = QString("Failed to update attribute %1 of %4/%5, value %2. %3").
                     arg(name).arg(log.join(";")).arg(ex.what()).arg(entry.dn()).arg(entry.guid());
-            qWarning() << l;
+            qCritical() << l;
         }
 
         auto err = QString("Update attribute '%1': %2").arg(name).arg(ex.what());
@@ -296,7 +296,7 @@ void CLdapServer::delAttribute(CLdapEntry& entry, CLdapAttribute& attribute) noe
         {
             QString l = QString("Failed to delete attribute %1 of %4/%5, value %2. %3").
                     arg(attribute.name()).arg(attribute.value()).arg(ex.what()).arg(entry.dn()).arg(entry.guid());
-            qWarning() << l;
+            qCritical() << l;
         }
 
         auto err = QString("Delete attribute '%1': %2").arg(attribute.name()).arg(ex.what());

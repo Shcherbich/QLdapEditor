@@ -140,7 +140,7 @@ void CLdapData::connect(const tConnectionOptions& connectOptions)
         }
         catch (const LDAPException& e)
         {
-            qWarning() << "Connection error to " << connectOptions.host.c_str() << ". " << e.what();
+            qCritical() << "Connection error to " << connectOptions.host.c_str() << ". " << e.what();
             emit this->onConnectionCompleted(false, e.what());
         }
     };
