@@ -78,6 +78,9 @@ namespace ldapeditor
          */
         void onShowPasswordClicked();
 
+        /*!
+         * \brief Private slot, called when connection item is changed
+         */
         void onConnectionChanged();
     private slots:
         /*!
@@ -103,8 +106,7 @@ namespace ldapeditor
         CLdapSettings* m_Settings{nullptr}; ///< pointer to connection settings
         ldapcore::CLdapData& m_LdapData;    ///< reference to ldapcore::CLdapData
         int m_WaitTime;                     ///< current value of connection time
-
-         QString m_configDirPath;
+        QString m_configDirPath;           ///< path to folder with connection settings files
     };
 } //namespace ldapeditor
 
