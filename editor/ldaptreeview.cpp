@@ -26,16 +26,19 @@ CLdapTreeView::CLdapTreeView(QWidget* parent, ldapcore::CLdapData& ldapData)
     , m_newEntry(new QAction(tr("New entry"), this))
     , m_editEntry(new QAction(tr("Edit entry"), this))
     , m_deleteEntry(new QAction(tr("Delete entry"), this))
+    , m_changePassword(new QAction(tr("Change password"), this))
 {
     m_contextMenu.addAction(m_newEntry);
     m_contextMenu.addAction(m_editEntry);
     m_contextMenu.addAction(m_deleteEntry);
+    m_contextMenu.addAction(m_changePassword);
     setContextMenuPolicy(Qt::CustomContextMenu);
 
     connect(this, &QTreeView::customContextMenuRequested, this, &CLdapTreeView::customContextMenuRequested);
     connect(m_newEntry, &QAction::triggered, this, &CLdapTreeView::onNewEntry);
     connect(m_editEntry, &QAction::triggered, this, &CLdapTreeView::onEditEntry);
     connect(m_deleteEntry, &QAction::triggered, this, &CLdapTreeView::onDeleteEntry);
+    connect(m_changePassword, &QAction::triggered, this, &CLdapTreeView::onChangePassword);
 
     connect(this, &QTreeView::expanded, this, &CLdapTreeView::expand);
 
@@ -265,6 +268,27 @@ void CLdapTreeView::onDeleteEntry()
     }
 }
 
+void CLdapTreeView::onChangePassword()
+{
+    QAction* a = qobject_cast<QAction*>(sender());
+    QModelIndex i = a->data().toModelIndex();
+    ldapcore::CLdapEntry* thisEntry = static_cast<ldapcore::CLdapEntry*>(i.internalPointer());
+
+    QString user = thisEntry->dn();
+    QString newPassword = "newPassword";
+    if(!m_LdapData.changeUserPassword(user, newPassword))
+    {
+//        QMessageBox::critical(this, tr("Change password"),
+//                              QString(tr("Failed of changing password for item '%1'")).arg(user), QMessageBox::Ok);
+    }
+    else
+    {
+        QMessageBox::information(this, tr("Change password"),
+                              QString(tr("Success of changing password for item '%1'")).arg(user), QMessageBox::Ok);
+
+    }
+}
+
 void  CLdapTreeView::expand(const QModelIndex& index)
 {
     if (!index.isValid())
@@ -300,6 +324,14 @@ void  CLdapTreeView::expand(const QModelIndex& index)
 
 void CLdapTreeView::customContextMenuRequested(QPoint pos)
 {
+    QModelIndex modelIndex = static_cast<CLdapTreeProxyModel*>(model())->mapToSource(indexAt(pos));
+    if(!modelIndex.isValid()) return;
+
+    ldapcore::CLdapEntry* entry = static_cast<ldapcore::CLdapEntry*>(modelIndex.internalPointer());
+    bool allowChangePassword = entry->classes().contains("user");
+    m_changePassword->setEnabled(allowChangePassword);
+    m_changePassword->setData(modelIndex);
+
     m_contextMenu.popup(viewport()->mapToGlobal(pos));
 }
 

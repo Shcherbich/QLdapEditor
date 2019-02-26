@@ -318,4 +318,48 @@ QStringList CLdapData::search(const _tSearchOptions& searchOptions)
 	}
 	return objList;
 }
+
+bool CLdapData::changeUserPassword(const QString& userDN, const QString& newPassword)
+{
+    bool bRet{true};
+    BerElement* ber{nullptr};
+    struct berval bv = {0, nullptr};
+
+
+    ber = ber_alloc_t(LBER_USE_DER)  ;
+    if(!ber)
+    {
+        return false;
+    }
+
+
+    ber_printf(ber, "{tsts}", LDAP_TAG_EXOP_MODIFY_PASSWD_ID
+               , userDN.toStdString().c_str()
+               , LDAP_TAG_EXOP_MODIFY_PASSWD_NEW
+               , newPassword.toStdString().c_str()
+               );
+
+    if(ber_flatten2(ber, &bv, 0) < 0)
+    {
+        return false;
+    }
+
+    std::string oid{LDAP_EXOP_MODIFY_PASSWD};
+    std::string value(bv.bv_val, bv.bv_len);
+
+    try
+    {
+        LDAPExtResult* result = m_Connection->extOperation(oid, value);
+        if (result != nullptr)
+        {
+        }
+    }
+    catch (const LDAPException& e)
+    {
+        QString msg = QString("%1\n%2").arg(e.getServerMsg().c_str()).arg(e.what());
+        QMessageBox::critical(nullptr, tr("Change password"), msg, QMessageBox::Ok);
+        bRet = false;
+    }
+    return bRet;
+}
 }
