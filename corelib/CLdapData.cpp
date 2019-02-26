@@ -55,25 +55,24 @@ void CLdapData::syslogMessageHandler(QtMsgType type, const QMessageLogContext& c
     switch (type)
     {
     case QtDebugMsg:
-        fprintf(stderr, "Debug: %s\n", localMsg.constData());
+        fprintf(stdout, "debug: %s\n", localMsg.constData());
         syslog(LOG_DEBUG, "debug: %s", localMsg.constData());
         break;
     case QtInfoMsg:
-        fprintf(stderr, "Info: %s\n", localMsg.constData());
+        fprintf(stdout, "info: %s\n", localMsg.constData());
         syslog(LOG_INFO, "info: %s", localMsg.constData());
         break;
     case QtWarningMsg:
-        fprintf(stderr, "Warning: %s\n", localMsg.constData());
+        fprintf(stdout, "warning: %s\n", localMsg.constData());
         syslog(LOG_WARNING, "warning: %s", localMsg.constData());
         break;
     case QtCriticalMsg:
-        fprintf(stderr, "Critical: %s\n", localMsg.constData());
+        fprintf(stderr, "critical: %s\n", localMsg.constData());
         syslog(LOG_CRIT, "critical: %s", localMsg.constData());
         break;
     case QtFatalMsg:
-        fprintf(stderr, "Fatal: %s\n", localMsg.constData());
+        fprintf(stderr, "alert: %s\n", localMsg.constData());
         syslog(LOG_ALERT, "alert: %s", localMsg.constData());
-        //abort();
     }
 }
 
