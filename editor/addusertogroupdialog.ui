@@ -6,9 +6,27 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>473</width>
+    <width>478</width>
     <height>289</height>
    </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>478</width>
+    <height>289</height>
+   </size>
+  </property>
+  <property name="maximumSize">
+   <size>
+    <width>478</width>
+    <height>289</height>
+   </size>
   </property>
   <property name="windowTitle">
    <string>Add/Remove User to group</string>
@@ -33,17 +51,33 @@
    <property name="geometry">
     <rect>
      <x>0</x>
-     <y>0</y>
-     <width>471</width>
+     <y>10</y>
+     <width>481</width>
      <height>241</height>
     </rect>
    </property>
-   <property name="title">
-    <string>Users</string>
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+     <horstretch>0</horstretch>
+     <verstretch>0</verstretch>
+    </sizepolicy>
    </property>
-   <layout class="QGridLayout" name="gridLayout">
+   <property name="title">
+    <string>  Users</string>
+   </property>
+   <layout class="QGridLayout" name="gridLayout" columnstretch="0,0,0" columnminimumwidth="0,0,0">
+    <property name="sizeConstraint">
+     <enum>QLayout::SetNoConstraint</enum>
+    </property>
     <item row="0" column="0">
-     <widget class="QListWidget" name="allUsersList"/>
+     <widget class="QListWidget" name="allUsersList">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="MinimumExpanding" vsizetype="Expanding">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+     </widget>
     </item>
     <item row="1" column="0">
      <widget class="QPushButton" name="addButton">
@@ -52,10 +86,17 @@
       </property>
      </widget>
     </item>
-    <item row="0" column="1" colspan="2">
-     <widget class="QListWidget" name="groupUsersList"/>
+    <item row="0" column="2">
+     <widget class="QListWidget" name="groupUsersList">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="MinimumExpanding" vsizetype="Expanding">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+     </widget>
     </item>
-    <item row="1" column="1" colspan="2">
+    <item row="1" column="2">
      <widget class="QPushButton" name="removeButton">
       <property name="text">
        <string>Remove</string>
