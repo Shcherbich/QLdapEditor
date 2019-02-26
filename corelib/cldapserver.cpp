@@ -208,7 +208,7 @@ void CLdapServer::addAttribute(CLdapEntry& entry, CLdapAttribute& attribute) noe
         entry.connectionPtr()->modify_s(entry.m_pEntry->getDN(), mod.get());
 
         {
-            QString log = QString("Successfully added attribute %1 %3/%4, value '%2'").
+            QString log = QString("Successfully added attribute %1 %3/%4, value %2").
                     arg(attribute.name()).arg(attribute.value()).arg(entry.dn()).arg(entry.guid());
             qWarning() << log;
         }
@@ -217,13 +217,13 @@ void CLdapServer::addAttribute(CLdapEntry& entry, CLdapAttribute& attribute) noe
     catch (const std::exception& ex)
     {
         {
-            QString log = QString("Failed to add attribute %1 of %4/%5, value '%2'. %3").
+            QString log = QString("Failed to add attribute %1 of %4/%5, value %2. %3").
                     arg(attribute.name()).arg(attribute.value()).arg(ex.what()).arg(entry.dn()).arg(entry.guid());
             qCritical() << log;
         }
 
 
-        auto err = QString("Add new attribute '%1': %2").arg(attribute.name()).arg(ex.what());
+        auto err = QString("Add new attribute %1: %2").arg(attribute.name()).arg(ex.what());
         throw CLdapServerException(err.toStdString().c_str());
     }
 
@@ -269,7 +269,7 @@ void CLdapServer::updateAttributes(CLdapEntry& entry, QString name, const QVecto
             qCritical() << l;
         }
 
-        auto err = QString("Update attribute '%1': %2").arg(name).arg(ex.what());
+        auto err = QString("Update attribute %1: %2").arg(name).arg(ex.what());
         throw CLdapServerException(err.toStdString().c_str());
     }
 }
@@ -299,7 +299,7 @@ void CLdapServer::delAttribute(CLdapEntry& entry, CLdapAttribute& attribute) noe
             qCritical() << l;
         }
 
-        auto err = QString("Delete attribute '%1': %2").arg(attribute.name()).arg(ex.what());
+        auto err = QString("Delete attribute %1: %2").arg(attribute.name()).arg(ex.what());
         throw CLdapServerException(err.toStdString().c_str());
     }
 }
