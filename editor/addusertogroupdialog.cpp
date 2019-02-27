@@ -7,22 +7,10 @@ File contains  implementations for CAddUserToGroupDialog class
 
 #include "addusertogroupdialog.h"
 #include "ui_addusertogroupdialog.h"
+#include "utilities.h"
 
 namespace ldapeditor
 {
-/*!
- * \brief local function returns user name from DN string
- * \param dn DN string
- * \return user name string
- */
-QString userNameFromDN(const QString dn)
-{
-    QStringList parts = dn.split(",");
-    if(parts.isEmpty()) return "";
-
-    const QString& first = parts.first();
-    return first.mid(first.lastIndexOf('=')+1).trimmed();
-}
 
 /*!
  * \brief local function created lits item from user DN string
@@ -38,23 +26,7 @@ QListWidgetItem* widgetItem(const QString& userDN)
     return item;
 }
 
-/*!
- * \brief local function for move items bettwn lists
- * \param sourceList pointer to QListWidget for moving item from
- * \param destList pointer to QListWidget for moveing item to
- */
-void moveItemBettwenLists(QListWidget* sourceList, QListWidget* destList)
-{
-    if(sourceList && destList)
-    {
-        for(auto i: sourceList->selectedItems())
-        {
-            QListWidgetItem* cloneItem = i->clone();
-            destList->addItem(cloneItem);
-        }
-        qDeleteAll(sourceList->selectedItems());
-    }
-}
+
 
 CAddUserToGroupDialog::CAddUserToGroupDialog(ldapcore::CLdapData &ldapData, CLdapSettings& settings, QWidget *parent) :
     QDialog(parent),

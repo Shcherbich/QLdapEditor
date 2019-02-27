@@ -95,16 +95,6 @@ namespace ldapeditor
         void onOkClicked();
 
         /*!
-         * \brief Protected slot, called when user adds auxiliary class to selected list
-         */
-        void onAddClicked();
-
-        /*!
-         * \brief Protected slot, called when user removes auxiliary class from selected list
-         */
-        void onRemoveClicked();
-
-        /*!
          * \brief Protected slot, called when user changed structural class in combobox
          */
         void onStructuralComboChanged(const QString&);

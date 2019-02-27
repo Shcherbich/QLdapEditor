@@ -7,6 +7,8 @@ File contains  implementations for dialog 'Add/EditLDPA Entity' class
 
 #include "ldapnewentrydialog.h"
 #include "ui_ldapnewentrydialog.h"
+#include "utilities.h"
+
 #include <QComboBox>
 #include <QListWidgetItem>
 #include <QMessageBox>
@@ -46,10 +48,30 @@ CLdapNewEntryDialog::CLdapNewEntryDialog(QWidget* parent, QString parentDn, ldap
 {
     ui->setupUi(this);
 
+    ui->listAll->setSortingEnabled(true);
+    ui->listNeeded->setSortingEnabled(true);
+
+    ui->addButton->setEnabled(false);
+    ui->removeButton->setEnabled(false);
+
     connect(ui->closeButton, &QAbstractButton::clicked, this, &CLdapNewEntryDialog::onCloseClicked);
     connect(ui->okButton, &QAbstractButton::clicked, this, &CLdapNewEntryDialog::onOkClicked);
-    connect(ui->addButton, &QAbstractButton::clicked, this, &CLdapNewEntryDialog::onAddClicked);
-    connect(ui->removeButton, &QAbstractButton::clicked, this, &CLdapNewEntryDialog::onRemoveClicked);
+
+    connect(ui->addButton, &QAbstractButton::clicked, [this](){
+         moveItemBettwenLists(ui->listAll, ui->listNeeded);
+    });
+
+    connect(ui->removeButton, &QAbstractButton::clicked, [this](){
+         moveItemBettwenLists(ui->listNeeded, ui->listAll);
+    });
+
+    connect(ui->listAll, &QListWidget::itemSelectionChanged, this, [this](){
+        ui->addButton->setEnabled(!ui->listAll->selectedItems().isEmpty());
+    });
+
+    connect(ui->listNeeded, &QListWidget::itemSelectionChanged, this, [this](){
+        ui->removeButton->setEnabled(!ui->listNeeded->selectedItems().isEmpty());
+    });
     connect(ui->structuralCombo, &QComboBox::currentTextChanged, this, &CLdapNewEntryDialog::onStructuralComboChanged);
 
     ui->parentdnEdit->setText(parentDn);
@@ -73,23 +95,29 @@ CLdapNewEntryDialog::CLdapNewEntryDialog(QWidget* parent, QString dn, QString rd
 
 {
     ui->setupUi(this);
+    ui->listAll->setSortingEnabled(true);
+    ui->listNeeded->setSortingEnabled(true);
 
     ui->addButton->setEnabled(false);
     ui->removeButton->setEnabled(false);
 
     connect(ui->closeButton, &QAbstractButton::clicked, this, &CLdapNewEntryDialog::onCloseClicked);
     connect(ui->okButton, &QAbstractButton::clicked, this, &CLdapNewEntryDialog::onOkClicked);
-    connect(ui->addButton, &QAbstractButton::clicked, this, &CLdapNewEntryDialog::onAddClicked);
-    connect(ui->removeButton, &QAbstractButton::clicked, this, &CLdapNewEntryDialog::onRemoveClicked);
 
-
-    connect(ui->listAll, &QListWidget::currentItemChanged, this, [this](QListWidgetItem* current, QListWidgetItem* previous){
-        Q_UNUSED(previous);
-        ui->addButton->setEnabled(current != nullptr);
+    connect(ui->addButton, &QAbstractButton::clicked, [this](){
+         moveItemBettwenLists(ui->listAll, ui->listNeeded);
     });
-    connect(ui->listNeeded, &QListWidget::currentItemChanged, this, [this](QListWidgetItem* current, QListWidgetItem* previous){
-        Q_UNUSED(previous);
-        ui->removeButton->setEnabled(current != nullptr);
+
+    connect(ui->removeButton, &QAbstractButton::clicked, [this](){
+         moveItemBettwenLists(ui->listNeeded, ui->listAll);
+    });
+
+    connect(ui->listAll, &QListWidget::itemSelectionChanged, this, [this](){
+        ui->addButton->setEnabled(!ui->listAll->selectedItems().isEmpty());
+    });
+
+    connect(ui->listNeeded, &QListWidget::itemSelectionChanged, this, [this](){
+        ui->removeButton->setEnabled(!ui->listNeeded->selectedItems().isEmpty());
     });
 
     ui->structuralCombo->addItem(structuralClass.c_str());
@@ -163,28 +191,6 @@ void CLdapNewEntryDialog::onOkClicked()
     accept();
 }
 
-void CLdapNewEntryDialog::onAddClicked()
-{
-    QList<QListWidgetItem*> l = ui->listAll->selectedItems();
-    if (!l.isEmpty())
-    {
-        QListWidgetItem* item = l.first();
-        ui->listNeeded->addItem(item->text());
-        delete ui->listAll->takeItem(ui->listAll->row(item));
-    }    
-}
-
-void CLdapNewEntryDialog::onRemoveClicked()
-{
-    QList<QListWidgetItem*> l = ui->listNeeded->selectedItems();
-    if (!l.isEmpty())
-    {
-        QListWidgetItem* item = l.first();
-        ui->listAll->addItem(item->text());
-        delete ui->listNeeded->takeItem(ui->listNeeded->row(item));
-    }
-}
-
 QString CLdapNewEntryDialog::rdn() const
 {
     return m_rdn;
@@ -201,10 +207,11 @@ void CLdapNewEntryDialog::onStructuralComboChanged(const QString&)
     QString selected = ui->structuralCombo->currentText();
     auto& schema = m_LdapData.schema();
 
+    QString rdnValue = ui->rdnEdit->text();
     auto startRdn = schema.startRdn(selected);
     if (!startRdn.isEmpty())
-    {
-        ui->rdnEdit->setText(startRdn + "=");
+    {        
+        ui->rdnEdit->setText(startRdn + "=" + rdnValue.mid(rdnValue.indexOf('=')+1));
         ui->rdnEdit->setCursorPosition(ui->rdnEdit->selectedText().size() - 1);
     }
 
@@ -223,12 +230,18 @@ void CLdapNewEntryDialog::fillListAll(QString structuralClass)
         v << schema.auxiliaryClassesBySup(sup);
         selected = sup == selected ? "" : sup;
     } while (!selected.isEmpty());
+
     qSort(v);
-    v.erase(std::unique(v.begin(), v.end()), v.end());
+    v.erase(std::unique(v.begin(), v.end()), v.end());    
     ui->listAll->clear();
     ui->listNeeded->clear();
+
     for (auto& c : v)
-        ui->listAll->addItem(c);
+    {
+        QListWidgetItem* item = new QListWidgetItem(c);
+        ui->listAll->addItem(item);
+    }
+
 }
 
 QString CLdapNewEntryDialog::structuralClass() const
