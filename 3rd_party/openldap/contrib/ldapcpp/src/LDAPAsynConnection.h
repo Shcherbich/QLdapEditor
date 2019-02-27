@@ -269,6 +269,11 @@ public :
 	 */
 	const std::string& getHost() const;
 
+    /**
+     * @returns The last ldap server error.
+     */
+    std::string getServerMsg();
+
 	/**
 	 * @returns The Port to which this connection is connecting to on
 	 *      the remote server.

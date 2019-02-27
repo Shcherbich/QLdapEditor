@@ -472,6 +472,18 @@ const string& LDAPAsynConnection::getHost() const
 	return m_uri.getHost();
 }
 
+string LDAPAsynConnection::getServerMsg()
+{
+    const char* err_string = nullptr;
+    int ret = ldap_get_option(cur_session, LDAP_OPT_ERROR_STRING, &err_string);
+    if (ret == LDAP_SUCCESS && err_string)
+    {
+        return std::string(err_string);
+    }
+    return "";
+}
+
+
 int LDAPAsynConnection::getPort() const
 {
 	DEBUG(LDAP_DEBUG_TRACE, "LDAPAsynConnection::getPort()" << endl);
@@ -563,7 +575,7 @@ void  LDAPAsynConnection::modify_s(const string& dn, LDAPModList* mod)
 	ldap_mods_free(tmpMods, 1);
 	if (err != LDAP_SUCCESS)
 	{
-		throw LDAPException(err);
+        throw LDAPException(err, getServerMsg());
 	}
 }
 
