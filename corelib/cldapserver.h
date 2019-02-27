@@ -65,6 +65,15 @@ public:
      */
     void delAttribute(CLdapEntry& entry, CLdapAttribute& attribute) noexcept(false);
 
+    /*!
+     * @brief entryOfUser The entry that contains user to enable
+     */
+    void enableUser(CLdapEntry& entryOfUser) noexcept(false);
+
+    /*!
+     * @brief entryOfUser The entry that contains user to disable
+     */
+    void disableUser(CLdapEntry& entryOfUser) noexcept(false);
 };
 
 }

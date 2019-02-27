@@ -67,9 +67,9 @@ void CLdapServer::add(CLdapEntry& entry) noexcept(false)
             {
                 try
                 {
-                    LDAPModList* mod = new LDAPModList();
+                    std::unique_ptr<LDAPModList> mod(new LDAPModList());
                     mod->addModification(LDAPModification(LDAPAttribute("sAMAccountName", cn->toString()), LDAPModification::OP_REPLACE));
-                    entry.connectionPtr()->modify_s(dn, mod);
+                    entry.connectionPtr()->modify_s(dn, mod.get());
                     entry.flushAttributesCache();
                 }
                 catch (const std::exception& e)
@@ -104,7 +104,7 @@ void CLdapServer::update(CLdapEntry& entry) noexcept(false)
         QVector<CLdapAttribute> realAttributes;
         entry.loadAttributes(realAttributes);
 
-        LDAPModList* mod = new LDAPModList();
+        std::unique_ptr<LDAPModList> mod(new LDAPModList());
 
         // 1. Add/Modify attributes
         StringList objectClasses;
@@ -178,7 +178,7 @@ void CLdapServer::update(CLdapEntry& entry) noexcept(false)
         }
 
         auto& dn = entry.m_pEntry->getDN();
-        entry.connectionPtr()->modify_s(dn, mod);
+        entry.connectionPtr()->modify_s(dn, mod.get());
         entry.m_isEdit = false;
 
         {
@@ -256,7 +256,7 @@ void CLdapServer::updateAttributes(CLdapEntry& entry, QString name, const QVecto
     try
     {
         LDAPModification::mod_op op = LDAPModification::OP_REPLACE;
-        LDAPModList* mod = new LDAPModList();
+        std::unique_ptr<LDAPModList> mod(new LDAPModList());
         auto q = entry.connectionPtr()->search(entry.m_pEntry->getDN(), LDAPAsynConnection::SEARCH_SUB, "objectClass=*", StringList());
         uEntry en(q->getNext());
         auto find = en->getAttributeByName(name.toStdString());
@@ -273,7 +273,7 @@ void CLdapServer::updateAttributes(CLdapEntry& entry, QString name, const QVecto
             }
         const_cast<LDAPAttribute*>(find)->setValues(newList);
         mod->addModification(LDAPModification(*find, op));
-        entry.connectionPtr()->modify_s(entry.m_pEntry->getDN(), mod);
+        entry.connectionPtr()->modify_s(entry.m_pEntry->getDN(), mod.get());
 
         {
             QString l = QString("Successfully updated attribute %1 %3/%4, value %2").
@@ -322,6 +322,72 @@ void CLdapServer::delAttribute(CLdapEntry& entry, CLdapAttribute& attribute) noe
 
         auto err = QString("Delete attribute %1: %2").arg(attribute.name()).arg(ex.what());
         throw CLdapServerException(err.toStdString().c_str());
+    }
+}
+
+/*
+ Based on some observing found, that 'userAccountControl' is status control flag of Samba AD user
+ And second bit is enable flag of user
+ if this flag = 0, user is active
+ if this flag = 1, user is inactive and disable
+ */
+void CLdapServer::enableUser(CLdapEntry& entry) noexcept(false)
+{
+    auto userAccountControl = entry.m_pEntry->getAttributeByName("userAccountControl");
+    if (userAccountControl == nullptr)
+    {
+        return;
+    }
+    try
+    {
+        bool ok;
+        long val = QString(userAccountControl->toString().c_str()).toLong(&ok, 10);
+        val &= ~2; // ENABLE user
+        std::unique_ptr<LDAPModList> mod(new LDAPModList());
+        mod->addModification(LDAPModification(LDAPAttribute("userAccountControl", QString("%1").arg(val).toStdString()),
+                                              LDAPModification::OP_REPLACE));
+        auto& dn = entry.m_pEntry->getDN();
+        entry.connectionPtr()->modify_s(dn, mod.get());
+        StringList values;
+        values.add(QString("%1").arg(val).toStdString());
+        const_cast<LDAPAttribute*>(userAccountControl)->setValues(values);
+    }
+    catch (const std::exception& e)
+    {
+        throw CLdapServerException(e.what());
+    }
+}
+
+/*
+ Based on some observing found, that 'userAccountControl' is status control flag of Samba AD user
+ And second bit is enable flag of user
+ if this flag = 0, user is active
+ if this flag = 1, user is inactive and disable
+ */
+void CLdapServer::disableUser(CLdapEntry& entry) noexcept(false)
+{
+    auto userAccountControl = entry.m_pEntry->getAttributeByName("userAccountControl");
+    if (userAccountControl == nullptr)
+    {
+        return;
+    }
+    try
+    {
+        bool ok;
+        long val = QString(userAccountControl->toString().c_str()).toLong(&ok, 10);
+        val |= 2; // DISABLE user
+        std::unique_ptr<LDAPModList> mod(new LDAPModList());
+        mod->addModification(LDAPModification(LDAPAttribute("userAccountControl", QString("%1").arg(val).toStdString()),
+                                              LDAPModification::OP_REPLACE));
+        auto& dn = entry.m_pEntry->getDN();
+        entry.connectionPtr()->modify_s(dn, mod.get());
+        StringList values;
+        values.add(QString("%1").arg(val).toStdString());
+        const_cast<LDAPAttribute*>(userAccountControl)->setValues(values);
+    }
+    catch (const std::exception& e)
+    {
+        throw CLdapServerException(e.what());
     }
 }
 
