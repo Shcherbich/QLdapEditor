@@ -25,6 +25,7 @@ CLdapServer::CLdapServer()
 
 void CLdapServer::add(CLdapEntry& entry) noexcept(false)
 {
+    bool isUser = false;
     QStringList log;
     try
     {
@@ -38,6 +39,7 @@ void CLdapServer::add(CLdapEntry& entry) noexcept(false)
                 QString l = QString("Adding attribute %1, value %2. ").arg("objectClass").arg(c);
                 log.push_back(l);
             }
+            isUser = isUser ? isUser : c == "user";
         }
         attrs->addAttribute(LDAPAttribute("objectClass", objectClasses));
         static std::set<QString> excludedAttributeNames {"cn"};
@@ -57,6 +59,25 @@ void CLdapServer::add(CLdapEntry& entry) noexcept(false)
         entry.connectionPtr()->add(e.get());
         entry.m_isNew = false;
         entry.flushAttributesCache();
+        if (isUser)
+        {
+            auto cn = entry.m_pEntry->getAttributeByName("cn");
+            auto sAMAccountName = entry.m_pEntry->getAttributeByName("sAMAccountName");
+            if (cn != nullptr && sAMAccountName != nullptr) // to sambe needs to set 'sAMAccountName' as 'cn' value
+            {
+                try
+                {
+                    LDAPModList* mod = new LDAPModList();
+                    mod->addModification(LDAPModification(LDAPAttribute("sAMAccountName", cn->toString()), LDAPModification::OP_REPLACE));
+                    entry.connectionPtr()->modify_s(dn, mod);
+                    entry.flushAttributesCache();
+                }
+                catch (const std::exception& e)
+                {
+                    Q_UNUSED(e);
+                }
+            }
+        }
 
         {
             qWarning() << QString("Successfully added entry %1. %2").arg(entry.dn()).arg(log.join(";"));
