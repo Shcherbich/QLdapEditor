@@ -319,35 +319,31 @@ QStringList CLdapData::search(const _tSearchOptions& searchOptions)
 	return objList;
 }
 
-bool CLdapData::changeUserPassword(CLdapEntry* entry, const QString& userDN, const QString& newPassword)
+void CLdapData::changeUserPassword(CLdapEntry* entry, const QString& userDN, const QString& newPassword)
 {
-     bool bRet{true};
-     LDAPModList* mods = new LDAPModList();
-     std::string dn = userDN.toStdString();
-     std::u16string wStr = QString("\"%1\"").arg(newPassword).toStdU16String();
-     QByteArray bytes = QByteArray::fromRawData(reinterpret_cast<const char*>(wStr.c_str()), wStr.length() * sizeof(char16_t));
-     std::string pwdData = bytes.toStdString();
+    std::unique_ptr<LDAPModList> mods(new LDAPModList());
+    std::string dn = userDN.toStdString();
+    std::u16string wStr = QString("\"%1\"").arg(newPassword).toStdU16String();
+    QByteArray bytes = QByteArray::fromRawData(reinterpret_cast<const char*>(wStr.c_str()), wStr.length() * sizeof(char16_t));
+    std::string pwdData = bytes.toStdString();
 
-     try
-     {
-         mods->addModification(LDAPModification(LDAPAttribute("unicodePwd", pwdData), LDAPModification::OP_REPLACE));
-         entry->connectionPtr()->modify_s(dn, mods);
-      }
-      catch(const LDAPException& e)
-      {
-          QString msg =QString("%1\n%2").arg(e.getServerMsg().c_str()).arg(e.what());
-          qCritical() << QString("Failed to change password for user '%1': %2").arg(userDN).arg(msg);
-          //throw CLdapServerException(msg.toStdString().c_str());
-          bRet = false;
-      }
-      catch(const std::exception& e)
-      {
-          QString msg =QString("%1").arg(e.what());
-          qCritical() << QString("Failed to change password for user '%1': %2").arg(userDN).arg(msg);
-          //throw CLdapServerException(msg.toStdString().c_str());
-          bRet = false;
-      }
-     delete mods;
-     return bRet;
- }
+    try
+    {
+        mods->addModification(LDAPModification(LDAPAttribute("unicodePwd", pwdData), LDAPModification::OP_REPLACE));
+        entry->connectionPtr()->modify_s(dn, mods.get());
+    }
+    catch(const LDAPException& e)
+    {
+        QString msg =QString("%1\n%2").arg(e.getServerMsg().c_str()).arg(e.what());
+        qCritical() << QString(tr("Failed to change password for user '%1': %2")).arg(userDN).arg(msg);
+        throw CLdapServerException(msg.toStdString().c_str());
+    }
+    catch(const std::exception& e)
+    {
+        QString msg =QString("%1").arg(e.what());
+        qCritical() << QString(tr("Failed to change password for user '%1': %2")).arg(userDN).arg(msg);
+        throw CLdapServerException(msg.toStdString().c_str());
+    }
+}
+
 }

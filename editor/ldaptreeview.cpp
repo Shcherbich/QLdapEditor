@@ -6,6 +6,7 @@ File contains  implementation for LDAP tree view
 */
 #include "ldaptreeview.h"
 #include "ldaptreemodel.h"
+#include "changepassworddialog.h"
 
 #include "CLdapData.h"
 #include "CLdapEntry.h"
@@ -271,23 +272,31 @@ void CLdapTreeView::onDeleteEntry()
 
 void CLdapTreeView::onChangePassword()
 {
+    CChangePasswordDialog dlg;
+    if(dlg.exec() != QDialog::Accepted)
+        return;
+
     QAction* a = qobject_cast<QAction*>(sender());
     QModelIndex i = a->data().toModelIndex();
     ldapcore::CLdapEntry* thisEntry = static_cast<ldapcore::CLdapEntry*>(i.internalPointer());
 
+
     QString user = thisEntry->dn();
-    QString newPassword = "newPassword";
-    if(!m_LdapData.changeUserPassword(thisEntry, user, newPassword))
+    QString newPassword = dlg.password();
+    try
     {
-        QMessageBox::critical(this, tr("Change password"),
-                              QString(tr("Failed of changing password for item '%1'")).arg(user), QMessageBox::Ok);
-    }
-    else
-    {
+        m_LdapData.changeUserPassword(thisEntry, user, newPassword);
+
         QMessageBox::information(this, tr("Change password"),
                               QString(tr("Success of changing password for item '%1'")).arg(user), QMessageBox::Ok);
-
     }
+    catch(const std::exception& e)
+    {
+        QMessageBox::critical(this, tr("Change password"),
+                              QString(tr("Failed of changing password for item '%1': %2")).arg(user).arg(e.what()),
+                              QMessageBox::Ok);
+    }
+
 }
 
 void  CLdapTreeView::expand(const QModelIndex& index)

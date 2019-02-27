@@ -41,7 +41,11 @@ namespace ldapeditor
 
         connect(ui->cancelButton, &QAbstractButton::clicked, this, &CConnectionDialog::onCancelClicked);
         connect(ui->connectButton, &QAbstractButton::clicked, this, &CConnectionDialog::onConnectClicked);
-        connect(ui->showPasswordCheck, &QAbstractButton::clicked, this, &CConnectionDialog::onShowPasswordClicked);
+
+        connect(ui->showPasswordCheck, &QAbstractButton::clicked, [this](bool checked){
+            ui->pwdEdit->setEchoMode(checked ? QLineEdit::Normal: QLineEdit::Password);
+        });
+
 
         connect(&m_LdapData,  SIGNAL(onConnectionCompleted(bool, QString)), this, SLOT(onConnectionCompleted(bool, QString)));
         connect(ui->connectionsCombo, &QComboBox::editTextChanged, this, &CConnectionDialog::enableConnection );
@@ -232,8 +236,4 @@ namespace ldapeditor
         ui->connectButton->setEnabled(enableConnection);
     }
 
-    void CConnectionDialog::onShowPasswordClicked()
-    {
-        ui->pwdEdit->setEchoMode(ui->showPasswordCheck->isChecked() ? QLineEdit::Normal: QLineEdit::Password);
-    }
 } // namespace ldapeditor
