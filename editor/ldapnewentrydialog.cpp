@@ -62,7 +62,7 @@ CLdapNewEntryDialog::CLdapNewEntryDialog(QWidget* parent, QString parentDn, ldap
     });
 
     connect(ui->removeButton, &QAbstractButton::clicked, [this](){
-         moveItemBettwenLists(ui->listNeeded, ui->listAll);
+        moveItemBettwenLists(ui->listNeeded, ui->listAll);
     });
 
     connect(ui->listAll, &QListWidget::itemSelectionChanged, this, [this](){
@@ -87,10 +87,12 @@ CLdapNewEntryDialog::CLdapNewEntryDialog(QWidget* parent, QString parentDn, ldap
 CLdapNewEntryDialog::CLdapNewEntryDialog(QWidget* parent, QString dn, QString rdn,
     std::string& structuralClass,
     std::vector<std::string>& auxClasses,
-    ldapcore::CLdapData& ldapData)
+    ldapcore::CLdapData& ldapData,
+    ldapcore::CLdapEntry* entry)
     : QDialog(parent)
     , ui(new Ui::CLdapNewEntryDialog)
     , m_LdapData(ldapData)
+    , m_entry(entry)
     , m_editMode(true)
 
 {
@@ -109,7 +111,43 @@ CLdapNewEntryDialog::CLdapNewEntryDialog(QWidget* parent, QString dn, QString rd
     });
 
     connect(ui->removeButton, &QAbstractButton::clicked, [this](){
-         moveItemBettwenLists(ui->listNeeded, ui->listAll);
+        QStringList classesList;
+        QVector<ldapcore::CLdapAttribute> attrs;
+        for(QListWidgetItem* item: ui->listNeeded->selectedItems())
+            classesList << item->text();
+
+        std::map<std::string, std::string> a2v;
+        attrs << m_LdapData.schema().attributeByClasses(classesList, a2v);
+
+        QVector<ldapcore::CLdapAttribute> theseAttributes;
+        m_entry->loadAttributes(theseAttributes, false);
+
+        QStringList attrs2Delete;
+        for (const ldapcore::CLdapAttribute& entryA : theseAttributes)
+        {
+            if (entryA.value().isEmpty()) continue;
+
+            if(std::find_if(attrs.begin(), attrs.end(), [&](const ldapcore::CLdapAttribute & a)
+                            {
+                                return entryA.name().compare(a.name(), Qt::CaseInsensitive) == 0;
+                            }) != attrs.end() )
+            {
+                attrs2Delete << entryA.name();
+            }
+        }
+
+        bool bContinue{true};
+        if(!attrs2Delete.isEmpty())
+        {
+            bContinue = QMessageBox::question(this, tr("Remove auxiliary class"),
+                                              QString(tr("These attributes with values will be lost.\nContinue to remove:\n%1")).arg(attrs2Delete.join(";\n")),
+                                                 QMessageBox::No | QMessageBox::Yes) == QMessageBox::Yes;
+        }
+
+        if(bContinue)
+        {
+             moveItemBettwenLists(ui->listNeeded, ui->listAll);
+        }
     });
 
     connect(ui->listAll, &QListWidget::itemSelectionChanged, this, [this](){

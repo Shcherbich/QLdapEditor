@@ -48,11 +48,13 @@ namespace ldapeditor
          * \param structuralClass structural class string
          * \param auxClasses array of auxiliary classes
          * \param ldapData reference to ldapcore::CLdapData
+         * \param entry pointer to ldapcore::CLdapEntry
          *
          * Used for editing LDAP entity
          */
         explicit CLdapNewEntryDialog(QWidget *parent, QString dn, QString rdn, std::string& structuralClass,
-                                     std::vector<std::string>& auxClasses,  ldapcore::CLdapData& ldapData);
+                                     std::vector<std::string>& auxClasses,
+                                     ldapcore::CLdapData& ldapData, ldapcore::CLdapEntry* entry);
 
         /*!
         * @brief Destructor of   CLdapNewEntryDialog class
@@ -105,7 +107,9 @@ namespace ldapeditor
         QStringList vSelectedClasses;  ///< array of selected auxiliary classes
         ldapcore::CLdapData& m_LdapData;    ///< CLDapData reference member
         QString          m_structuralClass; ///< Structural class string
+        ldapcore::CLdapEntry* m_entry{nullptr}; ///< CLdapEntry pointer member
         bool m_editMode {false};            /// is dialof in Edit (true) ot Add New (false) entity mode
+
     };
 }//namespace ldapeditor
 
