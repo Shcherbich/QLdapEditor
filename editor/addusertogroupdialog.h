@@ -55,27 +55,9 @@ namespace ldapeditor
          * \param list of string with DN of users in group
          */
         void setMembersList(const QStringList& list);
+
     protected slots:
 
-        /*!
-         * \brief Protected slot, called when user changed selection of items in 'all users list'
-         */
-        void onAllUsersSelectionChanged();
-
-        /*!
-         * \brief Protected slot, called when user wants to add item to group
-         */
-        void onAddUserToGroup();
-
-        /*!
-         * \brief Protected slot, called when user changed selection of items in 'group's users list'
-         */
-        void onGroupUsersSelectionChanged();
-
-        /*!
-         * \brief Protected slot, called when user wants to remove item from group
-         */
-        void onRemoveUserFromGroup();
 
     private:
         Ui::CAddUserToGroupDialog *ui; ///< pointer yo UI implementation memeber

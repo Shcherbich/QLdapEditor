@@ -10,6 +10,52 @@ File contains  implementations for CAddUserToGroupDialog class
 
 namespace ldapeditor
 {
+/*!
+ * \brief local function returns user name from DN string
+ * \param dn DN string
+ * \return user name string
+ */
+QString userNameFromDN(const QString dn)
+{
+    QStringList parts = dn.split(",");
+    if(parts.isEmpty()) return "";
+
+    const QString& first = parts.first();
+    return first.mid(first.lastIndexOf('=')+1).trimmed();
+}
+
+/*!
+ * \brief local function created lits item from user DN string
+ * \param userDN user DN string
+ * \return created QListWidgetItem pointer
+ */
+QListWidgetItem* widgetItem(const QString& userDN)
+{
+    QString name = userNameFromDN(userDN);
+    QListWidgetItem* item = new QListWidgetItem(name);
+    if(item)
+        item->setData(Qt::UserRole+1, userDN);
+    return item;
+}
+
+/*!
+ * \brief local function for move items bettwn lists
+ * \param sourceList pointer to QListWidget for moving item from
+ * \param destList pointer to QListWidget for moveing item to
+ */
+void moveItemBettwenLists(QListWidget* sourceList, QListWidget* destList)
+{
+    if(sourceList && destList)
+    {
+        for(auto i: sourceList->selectedItems())
+        {
+            QListWidgetItem* cloneItem = i->clone();
+            destList->addItem(cloneItem);
+        }
+        qDeleteAll(sourceList->selectedItems());
+    }
+}
+
 CAddUserToGroupDialog::CAddUserToGroupDialog(ldapcore::CLdapData &ldapData, CLdapSettings& settings, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::CAddUserToGroupDialog)
@@ -26,15 +72,30 @@ CAddUserToGroupDialog::CAddUserToGroupDialog(ldapcore::CLdapData &ldapData, CLda
     searchOptions.scope = 1;  //LDAPConnection::SEARCH_ONE
 
     QStringList allUsers = ldapData.search(searchOptions);
-    ui->allUsersList->addItems(allUsers);
+    for(const QString& userDN : allUsers )
+    {
+        ui->allUsersList->addItem(widgetItem(userDN));
+    }
+
 
     ui->addButton->setEnabled(!ui->allUsersList->selectedItems().isEmpty());
-    connect(ui->allUsersList, &QListWidget::itemSelectionChanged, this, &CAddUserToGroupDialog::onAllUsersSelectionChanged);
-    connect(ui->addButton, &QPushButton::clicked, this, &CAddUserToGroupDialog::onAddUserToGroup);
-
     ui->removeButton->setEnabled(!ui->groupUsersList->selectedItems().isEmpty());
-    connect(ui->groupUsersList, &QListWidget::itemSelectionChanged, this, &CAddUserToGroupDialog::onGroupUsersSelectionChanged);
-    connect(ui->removeButton, &QPushButton::clicked, this, &CAddUserToGroupDialog::onRemoveUserFromGroup);
+
+    connect(ui->allUsersList, &QListWidget::itemSelectionChanged, [this](){
+        ui->addButton->setEnabled(!ui->allUsersList->selectedItems().isEmpty());
+    });
+
+    connect(ui->addButton, &QPushButton::clicked, [this](){
+        moveItemBettwenLists(ui->allUsersList,ui->groupUsersList);
+    });
+
+    connect(ui->groupUsersList, &QListWidget::itemSelectionChanged, [this](){
+        ui->removeButton->setEnabled(!ui->groupUsersList->selectedItems().isEmpty());
+    });
+
+    connect(ui->removeButton, &QPushButton::clicked, [this](){
+        moveItemBettwenLists(ui->groupUsersList, ui->allUsersList);
+    });
 }
 
 CAddUserToGroupDialog::~CAddUserToGroupDialog()
@@ -42,44 +103,20 @@ CAddUserToGroupDialog::~CAddUserToGroupDialog()
     delete ui;
 }
 
-void CAddUserToGroupDialog::onAllUsersSelectionChanged()
-{
-    ui->addButton->setEnabled(!ui->allUsersList->selectedItems().isEmpty());
-}
-
-void CAddUserToGroupDialog::onAddUserToGroup()
-{
-    for(auto i: ui->allUsersList->selectedItems())
-    {
-        ui->groupUsersList->addItem(i->text());
-    }
-    qDeleteAll(ui->allUsersList->selectedItems());
-}
-
-void CAddUserToGroupDialog::onGroupUsersSelectionChanged()
-{
-    ui->removeButton->setEnabled(!ui->groupUsersList->selectedItems().isEmpty());
-}
-
-void CAddUserToGroupDialog::onRemoveUserFromGroup()
-{
-    for(auto i: ui->groupUsersList->selectedItems())
-    {
-        ui->allUsersList->addItem(i->text());
-    }
-    qDeleteAll(ui->groupUsersList->selectedItems());
-}
-
 QStringList CAddUserToGroupDialog::membersList() const
 {
     QStringList list;
     for(int i=0; i< ui->groupUsersList->count();i++)
-        list << ui->groupUsersList->item(i)->text();
+        list << ui->groupUsersList->item(i)->data(Qt::UserRole+1).toString();
     return list;
 }
+
 void CAddUserToGroupDialog::setMembersList(const QStringList& list)
 {
-    ui->groupUsersList->addItems(list);
+    for(const QString& userDN : list )
+    {
+        ui->groupUsersList->addItem(widgetItem(userDN));
+    }
 }
 
 } //namespace ldapeditor
