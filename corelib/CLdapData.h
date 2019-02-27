@@ -115,7 +115,7 @@ public:
      * \param newPassword new password string
      * \return true if password changes, false - if not
      */
-    bool changeUserPassword(const QString& userDN, const QString& newPassword);
+    bool changeUserPassword(CLdapEntry* entry,const QString& userDN, const QString& newPassword);
 
 Q_SIGNALS:
     void onConnectionCompleted(bool isSucceed, QString errorDescription);

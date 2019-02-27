@@ -31,6 +31,7 @@ CLdapTreeView::CLdapTreeView(QWidget* parent, ldapcore::CLdapData& ldapData)
     m_contextMenu.addAction(m_newEntry);
     m_contextMenu.addAction(m_editEntry);
     m_contextMenu.addAction(m_deleteEntry);
+    m_contextMenu.addSeparator();
     m_contextMenu.addAction(m_changePassword);
     setContextMenuPolicy(Qt::CustomContextMenu);
 
@@ -276,10 +277,10 @@ void CLdapTreeView::onChangePassword()
 
     QString user = thisEntry->dn();
     QString newPassword = "newPassword";
-    if(!m_LdapData.changeUserPassword(user, newPassword))
+    if(!m_LdapData.changeUserPassword(thisEntry, user, newPassword))
     {
-//        QMessageBox::critical(this, tr("Change password"),
-//                              QString(tr("Failed of changing password for item '%1'")).arg(user), QMessageBox::Ok);
+        QMessageBox::critical(this, tr("Change password"),
+                              QString(tr("Failed of changing password for item '%1'")).arg(user), QMessageBox::Ok);
     }
     else
     {
