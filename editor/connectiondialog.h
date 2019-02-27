@@ -96,13 +96,20 @@ namespace ldapeditor
          */
         void saveSettings();
 
-        void loadConnectionsList();
+        /*!
+         * \brief Method loads list of available connections
+         * \param lastConnection - last used connection
+         */
+        void loadConnectionsList(const QString &lastConnection);
 
         Ui::CConnectionDialog *ui{nullptr}; ///< pointer to UI implementation memeber
         CLdapSettings* m_Settings{nullptr}; ///< pointer to connection settings
         ldapcore::CLdapData& m_LdapData;    ///< reference to ldapcore::CLdapData
         int m_WaitTime;                     ///< current value of connection time
+
         QString m_configDirPath;           ///< path to folder with connection settings files
+        QString m_sessionSettingsPath;     ///< session settings (e.g. last used  connection)
+        QString m_lastConnectionFile;      ///< last connection file name
     };
 } //namespace ldapeditor
 

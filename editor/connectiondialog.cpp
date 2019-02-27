@@ -30,10 +30,14 @@ namespace ldapeditor
         m_configDirPath = QStandardPaths::writableLocation(QStandardPaths::ConfigLocation);
         m_configDirPath += QString("/%1").arg(OrganizationName);
 
-        //QSettings::setPath(QSettings::IniFormat, QSettings::UserScope, m_configDirPath);
+        m_sessionSettingsPath = QString("%1/%2").arg(m_configDirPath).arg("last.session");
+
+        QSettings session(m_sessionSettingsPath, QSettings::IniFormat);
+        m_lastConnectionFile = session.value("last_connection", "").toString();
+
         ui->connectionsCombo->setInsertPolicy(QComboBox::InsertAlphabetically);
 
-        loadConnectionsList();
+        loadConnectionsList(m_lastConnectionFile);
 
         connect(ui->connectionsCombo, static_cast<void(QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this, &CConnectionDialog::onConnectionChanged);
         connect(ui->radioSimpleAuth, &QAbstractButton::clicked, this, &CConnectionDialog::onAuthTypeChanged);
@@ -55,8 +59,7 @@ namespace ldapeditor
         ui->versionSpin->setVisible(false);
         ui->versionLabel->setVisible(false);
 
-        int currentIdx = ui->connectionsCombo->currentIndex();
-        loadSettings(ui->connectionsCombo->itemData(currentIdx).toBool() ? "" : ui->connectionsCombo->currentText());
+        loadSettings(ui->connectionsCombo->currentData().toString());
 
         // Hide unused controls
         ui->radioGssAuth->setVisible(false);
@@ -78,15 +81,35 @@ namespace ldapeditor
     }
 
 
-    void CConnectionDialog::loadConnectionsList()
+    void CConnectionDialog::loadConnectionsList(const QString& lastConnection )
     {
         QDir configDir(m_configDirPath);
-         QStringList connectionsList = configDir.entryList(QStringList{"*.ini"}, QDir::Files|QDir::Readable|QDir::Writable);
+        QStringList connectionsList = configDir.entryList(QStringList{"*.ini"}, QDir::Files|QDir::Readable|QDir::Writable);
 
-         // leading spaces are needed t okeep this item first in list
-         ui->connectionsCombo->addItem(tr("  New Connection"), true);
-         for(QString& strFile: connectionsList)
-            ui->connectionsCombo->addItem(strFile, false);
+        ui->connectionsCombo->addItem(tr("--New Connection--"), "");
+        for(QString& strFile: connectionsList)
+        {
+            QSettings connectionSettings(m_configDirPath + "/" + strFile, QSettings::IniFormat);
+            QString connectionName = connectionSettings.value("connection/name", "").toString();
+            ui->connectionsCombo->addItem(connectionName, strFile);
+        }
+
+        int foundLastConnection = 0; //New Connection
+        if(!lastConnection.isEmpty())
+        {
+           QString fileConnection;
+           for(int i=0; i< ui->connectionsCombo->count();i++)
+           {
+               fileConnection = ui->connectionsCombo->itemData(i).toString();
+               if( !fileConnection.isEmpty() && fileConnection == lastConnection)
+               {
+                   foundLastConnection = i;
+                   break;
+               }
+           }
+        }
+        ui->connectionsCombo->setCurrentIndex(foundLastConnection);
+        onConnectionChanged();
     }
 
     void CConnectionDialog::loadSettings(QString settingsFile)
@@ -122,7 +145,13 @@ namespace ldapeditor
 
     void CConnectionDialog::saveSettings()
     {
-        QString fName =  ui->connectionsCombo->currentText() + ".ini";
+
+        QString fName =  ui->connectionsCombo->currentData().toString();
+        if(fName.isEmpty())
+        {
+            QString fDesc = ui->connectionsCombo->currentText();
+            fName = fDesc.isEmpty() ? "New Connection.ini" : fDesc + ".ini";
+        }
         QString iniPath = m_configDirPath + "/" + fName;
         CLdapSettings* tmpSettings = new CLdapSettings(iniPath);
 
@@ -143,11 +172,13 @@ namespace ldapeditor
 
         tmpSettings->saveSettings();
 
+        m_lastConnectionFile = fName;
+
         int index = ui->connectionsCombo->findText(fName);
         if(index == -1)
         {
             // add new connection to list
-            ui->connectionsCombo->addItem(fName, false);
+            ui->connectionsCombo->addItem(fName, fName);
             ui->connectionsCombo->model()->sort(0);
 
             // find and set new added connection as current
@@ -176,10 +207,10 @@ namespace ldapeditor
     void CConnectionDialog::onConnectionChanged()
     {
         int currentIdx = ui->connectionsCombo->currentIndex();
-        if(ui->connectionsCombo->itemData(currentIdx).toBool())
+        if(ui->connectionsCombo->itemData(currentIdx).toString().isEmpty())
             ui->connectionsCombo->setCurrentText("");
 
-        loadSettings(ui->connectionsCombo->currentText());
+        loadSettings(ui->connectionsCombo->currentData().toString());
     }
 
     void CConnectionDialog::onCancelClicked()
@@ -219,6 +250,9 @@ namespace ldapeditor
             m_WaitTime = 0;
             setWindowTitle(tr("Connection properties dialog"));
             setEnabled(true);
+
+            QSettings session(m_sessionSettingsPath, QSettings::IniFormat);
+            session.setValue("last_connection", m_lastConnectionFile);
             accept();
         }
         else
