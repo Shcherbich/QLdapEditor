@@ -113,9 +113,10 @@ public:
      * \brief Method for changing user's passowrd by administrator
      * \param userDN DN of user for changing password
      * \param newPassword new password string
-     * \return true if password changes, false - if not
+
+     Throws CLdapServerException with description if got error from server
      */
-    bool changeUserPassword(CLdapEntry* entry,const QString& userDN, const QString& newPassword);
+    void changeUserPassword(CLdapEntry* entry,const QString& userDN, const QString& newPassword);
 
 Q_SIGNALS:
     void onConnectionCompleted(bool isSucceed, QString errorDescription);

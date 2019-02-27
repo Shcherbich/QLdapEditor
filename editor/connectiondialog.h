@@ -73,10 +73,6 @@ namespace ldapeditor
          */
         void enableConnection();
 
-        /*!
-         * \brief Private slot, called when user changed visibiluty of password
-         */
-        void onShowPasswordClicked();
 
         /*!
          * \brief Private slot, called when connection item is changed
