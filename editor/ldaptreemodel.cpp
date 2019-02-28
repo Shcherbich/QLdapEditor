@@ -118,16 +118,16 @@ namespace ldapeditor
                 classes.append(c);
 
             // icon is defined by top + one of other classes
-            if(classes.contains("top",Qt::CaseInsensitive))
+            switch(entry->kind())
             {
-                if(classes.contains("group",Qt::CaseInsensitive))
-                    return QIcon(":/group");
-                else if(classes.contains("person",Qt::CaseInsensitive))
-                    return QIcon(":/person");
-                else if(classes.contains("organizationalUnit",Qt::CaseInsensitive))
-                    return QIcon(":/diagram");
-                else
-                    return QIcon(":/folder");
+            case ldapcore::DirectoryKind::Group:
+                return QIcon(":/group");
+            case ldapcore::DirectoryKind::User:
+                return entry->userEnabled() ? QIcon(":/person") : QIcon(":/person-disable") ;
+            case ldapcore::DirectoryKind::OrganizationalUnit:
+                return QIcon(":/diagram");
+             default:
+                return QIcon(":/folder");
             }
         }
         else if(role == Qt::ForegroundRole)

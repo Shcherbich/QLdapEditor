@@ -25,9 +25,10 @@ class CLdapData;
 enum class DirectoryKind
 {
     Unknown = 0,
-    User = 1,
-    Containter = 2,
-    Group = 3
+    User,
+    Containter,
+    Group,
+    OrganizationalUnit
 };
 
 /*!

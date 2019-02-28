@@ -12,5 +12,6 @@
         <file alias="save">images/save.png</file>
         <file alias="search">images/search.png</file>
         <file alias="network">images/wifi.png</file>
+        <file alias="person-disable">images/user-disable.png</file>
     </qresource>
 </RCC>

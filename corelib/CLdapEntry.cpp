@@ -492,6 +492,10 @@ DirectoryKind CLdapEntry::kind() const
         {
             return DirectoryKind::User;
         }
+        else if (c.compare("organizationalUnit", Qt::CaseInsensitive) == 0)
+        {
+            return DirectoryKind::OrganizationalUnit;
+        }
         else if (c.compare("container", Qt::CaseInsensitive) == 0)
         {
             return DirectoryKind::Containter;
