@@ -319,6 +319,25 @@ QStringList CLdapData::search(const _tSearchOptions& searchOptions)
 	return objList;
 }
 
+bool CLdapData::isDnExist(QString dn)
+{
+    try
+    {
+        QString filter = QString(tr("%1")).arg(dn);
+        auto results = m_Connection->search(dn.toStdString(), LDAPConnection::SEARCH_BASE);
+        if (results != nullptr)
+        {
+            std::unique_ptr<LDAPEntry> entry(results->getNext());
+            return entry.get() != nullptr;
+        }
+    }
+    catch (const LDAPException& e)
+    {
+        Q_UNUSED(e);
+    }
+    return false;
+}
+
 void CLdapData::changeUserPassword(CLdapEntry* entry, const QString& userDN, const QString& newPassword)
 {
     std::unique_ptr<LDAPModList> mods(new LDAPModList());

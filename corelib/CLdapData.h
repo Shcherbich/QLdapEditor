@@ -110,6 +110,13 @@ public:
 	QString baseDN();
 
     /*!
+     * @brief Method check given dn on exist on ldap server
+     * @param dn distinguished name to check
+     * @return bool true if exist, otherwise false
+     */
+    bool isDnExist(QString dn);
+
+    /*!
      * \brief Method for changing user's passowrd by administrator
      * \param userDN DN of user for changing password
      * \param newPassword new password string

@@ -213,13 +213,22 @@ void CLdapNewEntryDialog::onOkClicked()
         return;
     }
 
+    if (!m_editMode)
+    {
+        QString newDn = m_rdn;
+        newDn += ",";
+        newDn += ui->parentdnEdit->text();
+        if (m_LdapData.isDnExist(newDn))
+        {
+            QMessageBox::critical(this, tr("Error"), QString(tr("The DN '%1' is already exist!")).arg(newDn), QMessageBox::Ok);
+            return;
+        }
+
+
+    }
+
     vSelectedClasses.clear();
     QString structuralClass = ui->structuralCombo->currentText();
-//    if (structuralClass != "top")
-//    {
-//        vSelectedClasses << "top";
-//    }
-//    vSelectedClasses << structuralClass;
     m_structuralClass = structuralClass;
     for (int i = 0; i < ui->listNeeded->count(); ++i)
     {
