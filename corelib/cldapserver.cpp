@@ -348,9 +348,7 @@ void CLdapServer::enableUser(CLdapEntry& entry) noexcept(false)
                                               LDAPModification::OP_REPLACE));
         auto& dn = entry.m_pEntry->getDN();
         entry.connectionPtr()->modify_s(dn, mod.get());
-        StringList values;
-        values.add(QString("%1").arg(val).toStdString());
-        const_cast<LDAPAttribute*>(userAccountControl)->setValues(values);
+        entry.flushAttributesCache();
     }
     catch (const std::exception& e)
     {
@@ -381,9 +379,7 @@ void CLdapServer::disableUser(CLdapEntry& entry) noexcept(false)
                                               LDAPModification::OP_REPLACE));
         auto& dn = entry.m_pEntry->getDN();
         entry.connectionPtr()->modify_s(dn, mod.get());
-        StringList values;
-        values.add(QString("%1").arg(val).toStdString());
-        const_cast<LDAPAttribute*>(userAccountControl)->setValues(values);
+        entry.flushAttributesCache();
     }
     catch (const std::exception& e)
     {

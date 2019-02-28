@@ -306,7 +306,7 @@ void CLdapAttributesModel::changedRows(
         return;
     }
     QVector<ldapcore::CLdapAttribute> reallyAttributes;
-    m_entry->loadAttributes(reallyAttributes);
+    m_entry->loadAttributes(reallyAttributes, false);
 
     // first - save new attributes
     for (auto& a : *m_pAttributes)

@@ -44,7 +44,7 @@ CLdapTreeView::CLdapTreeView(QWidget* parent, ldapcore::CLdapData& ldapData)
     connect(m_editEntry, &QAction::triggered, this, &CLdapTreeView::onEditEntry);
     connect(m_deleteEntry, &QAction::triggered, this, &CLdapTreeView::onDeleteEntry);
     connect(m_changePassword, &QAction::triggered, this, &CLdapTreeView::onChangePassword);
-    connect(m_changePassword, &QAction::triggered, this, &CLdapTreeView::onEnableUser);
+    connect(m_enableUser, &QAction::triggered, this, &CLdapTreeView::onEnableUser);
 
     connect(this, &QTreeView::expanded, this, &CLdapTreeView::expand);
 
