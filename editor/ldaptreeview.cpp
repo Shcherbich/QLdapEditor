@@ -181,7 +181,7 @@ void CLdapTreeView::onEditEntry()
         }
     });
 
-    QString dn = thisEntry->dn();
+    QString dn = thisEntry->parent()->dn();
     QString rdn = thisEntry->rDn();
     ldapeditor::CLdapNewEntryDialog dialog(nullptr, dn, rdn, structuralObjectClass, auxClasses, m_LdapData, thisEntry);
     if (dialog.exec() == QDialog::Rejected)
