@@ -22,7 +22,7 @@ namespace ldapeditor
     , m_contextMenu(this)
     , m_newAttr(new QAction(tr("New attribute"), this))
     , m_delAttr(new QAction(tr("Delete attribute"), this))
-    , m_addUser2Group(new QAction(tr("Manage users in group"), this))
+    , m_manageUsersInGroup(new QAction(tr("Manage users in group"), this))
     {
         setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
         setAlternatingRowColors(true);
@@ -32,11 +32,12 @@ namespace ldapeditor
 
         connect(m_newAttr, &QAction::triggered, this, &CLdapTableView::onNewAttribute);
         connect(m_delAttr, &QAction::triggered, this, &CLdapTableView::onDeleteAttribute);
-        connect(m_addUser2Group, &QAction::triggered, this, &CLdapTableView::onAddUserToGroup);
+        connect(m_manageUsersInGroup, &QAction::triggered, this, &CLdapTableView::onManageUsersInGroup);
 
         m_contextMenu.addAction(m_newAttr);
         m_contextMenu.addAction(m_delAttr);
-        m_contextMenu.addAction(m_addUser2Group);
+        m_contextMenu.addSeparator();
+        m_contextMenu.addAction(m_manageUsersInGroup);
 
         setContextMenuPolicy(Qt::CustomContextMenu);
         connect(this, &QTableView::customContextMenuRequested, this, &CLdapTableView::customContextMenuRequested);
@@ -115,7 +116,6 @@ namespace ldapeditor
         const QStringList exludeAttributes{"member","memberOf"};
         QModelIndex index = indexAt(pos);
 
-
         bool delEnable{false};
         if(index.isValid())
         {
@@ -126,9 +126,8 @@ namespace ldapeditor
         m_delAttr->setEnabled(delEnable);
         m_delAttr->setData(index);
 
-        bool add2GroupVisible = m_entry->kind() == ldapcore::DirectoryKind::Group;
-        m_addUser2Group->setVisible(add2GroupVisible);
-
+        bool manageUsersInGroupVisible = m_entry->kind() == ldapcore::DirectoryKind::Group;
+        m_manageUsersInGroup->setVisible(manageUsersInGroupVisible);
         m_contextMenu.popup(viewport()->mapToGlobal(pos));
     }
 
@@ -182,7 +181,7 @@ namespace ldapeditor
         return bRet;
     }
 
-    void CLdapTableView::onAddUserToGroup()
+    void CLdapTableView::onManageUsersInGroup()
     {
         QStringList originalMembers;
         const QVector<ldapcore::CLdapAttribute>* attrs = m_entry->attributes();
@@ -202,7 +201,7 @@ namespace ldapeditor
         }
 
         QStringList newMembers = dlg.membersList();
-        QStringList classes {"group"};//= m_entry->classes();
+        QStringList classes {"group"};
         CLdapAttributesModel* srcModel = static_cast<CLdapAttributesModel*>(model());
 
         // add appended members attributes
@@ -229,7 +228,8 @@ namespace ldapeditor
             if(srcModel && !newMembers.contains(s))
             {
               // find index by value
-               indexes = srcModel->match(srcModel->index(0,static_cast<int>(ldapeditor::AttributeColumn::Value)), Qt::DisplayRole, s, 1, Qt::MatchExactly);
+               indexes = srcModel->match(srcModel->index(0, static_cast<int>(ldapeditor::AttributeColumn::Value)),
+                                                          Qt::DisplayRole, s, 1, Qt::MatchExactly);
                for(QModelIndex idx : indexes)
                {
                    srcModel->removeRows(idx.row(),1);

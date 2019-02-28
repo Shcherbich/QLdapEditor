@@ -77,9 +77,9 @@ namespace ldapeditor
         void onDeleteAttribute();
 
         /*!
-         * \brief Protected slot, called by 'Add User to group' action
+         * \brief Protected slot, called by 'Manage User in group' action
          */
-        void onAddUserToGroup();
+        void onManageUsersInGroup();
     protected:
 
         /*!
@@ -112,7 +112,7 @@ namespace ldapeditor
         QMenu m_contextMenu;                        ///< Context menu instance member
         QAction* m_newAttr{nullptr};                ///< 'New Attribute' action pointer member
         QAction* m_delAttr{nullptr};                ///< 'Delete Attribute' action pointer member
-        QAction* m_addUser2Group{nullptr};              ///< 'Add to group' action pointer member
+        QAction* m_manageUsersInGroup{nullptr};              ///< 'Manage users in group' action pointer member
         ldapcore::CLdapEntry* m_entry{nullptr};     ///< CLdapEntry data pointer
     };
 
