@@ -18,6 +18,20 @@ class CLdapData;
 
 /*!
  * @ingroup ldapcore
+ * @brief The DirectoryKind enumeration
+ *
+ * It is presented kinds of Samba AD common types of entry
+ */
+enum class DirectoryKind
+{
+    Unknown = 0,
+    User = 1,
+    Containter = 2,
+    Group = 3
+};
+
+/*!
+ * @ingroup ldapcore
  * @brief The ldap data class
  *
  * The CLdapEntry is represented ldap entry of server.
@@ -122,6 +136,20 @@ public:
      * @return QString global unique identifier
      */
     QString                 guid() const;
+
+    /*!
+     * @brief Method gets kind of entry
+     * @return DirectoryKind kind of entry
+     */
+    DirectoryKind           kind() const;
+
+
+    /*!
+     * @brief Method enabled state of user
+     * @return bool true if entry kind is user and user is enabled,
+     * otherwise entry kind is not an user or user is disabled
+     */
+    bool                    userEnabled() const;
 
     /*!
      * @brief Method creates new instance of CLdapAttribute by attributeName

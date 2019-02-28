@@ -338,7 +338,7 @@ void CLdapTreeView::customContextMenuRequested(QPoint pos)
     if(!modelIndex.isValid()) return;
 
     ldapcore::CLdapEntry* entry = static_cast<ldapcore::CLdapEntry*>(modelIndex.internalPointer());
-    bool allowChangePassword = entry->classes().contains("user");
+    bool allowChangePassword = entry->kind() == ldapcore::DirectoryKind::User;
     m_changePassword->setEnabled(allowChangePassword);
     m_changePassword->setData(modelIndex);
 

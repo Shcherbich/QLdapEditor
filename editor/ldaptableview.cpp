@@ -126,13 +126,10 @@ namespace ldapeditor
         m_delAttr->setEnabled(delEnable);
         m_delAttr->setData(index);
 
-        QStringList classes = m_entry->classes();
-        bool add2GroupVisible = std::find_if(classes.begin(), classes.end(), [](const QString& c){
-                                             return c.compare("group", Qt::CaseInsensitive) == 0;
-                                 })!= classes.end();
+        bool add2GroupVisible = m_entry->kind() == ldapcore::DirectoryKind::Group;
         m_addUser2Group->setVisible(add2GroupVisible);
 
-       m_contextMenu.popup(viewport()->mapToGlobal(pos));
+        m_contextMenu.popup(viewport()->mapToGlobal(pos));
     }
 
     void CLdapTableView::onNewAttribute()

@@ -281,7 +281,7 @@ void CLdapEntry::loadAttributes(QVector<CLdapAttribute>& vRet, bool needToLoadSy
         auto attributeTypeByName = m_pData->schema().attributesSchema()->getAttributeTypeByName(name);
         auto attrClasses = m_pData->schema().classesByAttributeName(name, m_classes);
         bool must = isMust(name);
-        for (auto& v: i->getValues())
+        for (auto& v : i->getValues())
         {
             CLdapAttribute attr(name.c_str(), v.c_str(), tp, must, attributeTypeByName.getDesc().c_str(),
                                 attrClasses, (isMust(name) && !isNew()) ? AttributeState::AttributeReadOnly : editState);
@@ -331,7 +331,7 @@ void CLdapEntry::loadAttributes(QVector<CLdapAttribute>& vRet, bool needToLoadSy
                         auto attributeTypeByName = m_pData->schema().attributesSchema()->getAttributeTypeByName(name);
                         auto attrClasses = m_pData->schema().classesByAttributeName(name, m_classes);
                         bool must = isMust(name);
-                        for (auto& v: i->getValues())
+                        for (auto& v : i->getValues())
                         {
                             CLdapAttribute attr(name.c_str(), v.c_str(), tp, must, attributeTypeByName.getDesc().c_str(),
                                                 attrClasses, AttributeState::AttributeReadOnly);
@@ -462,6 +462,42 @@ QString CLdapEntry::guid() const
     return m_guid;
 }
 
+bool CLdapEntry::userEnabled() const
+{
+    auto userAccountControl = m_pEntry->getAttributeByName("userAccountControl");
+    if (userAccountControl == nullptr)
+    {
+        return false;
+    }
+    bool ok;
+    long val = QString(userAccountControl->toString().c_str()).toLong(&ok, 10);
+    if (!ok)
+    {
+        return false;
+    }
+    return (val & 2) == 0; // DISABLE user
+}
+
+DirectoryKind CLdapEntry::kind() const
+{
+    for (const auto& c : m_classes)
+    {
+        if (c.compare("group", Qt::CaseInsensitive) == 0)
+        {
+            return DirectoryKind::Group;
+        }
+        else if (c.compare("user", Qt::CaseInsensitive) == 0)
+        {
+            return DirectoryKind::User;
+        }
+        else if (c.compare("container", Qt::CaseInsensitive) == 0)
+        {
+            return DirectoryKind::Containter;
+        }
+    }
+    return DirectoryKind::Unknown;
+}
+
 void CLdapEntry::validateAttribute(CLdapAttribute& attr)
 {
     m_pData->schema().isNameExist(attr.name().toStdString());
@@ -529,13 +565,15 @@ void CLdapEntry::setClasses(QStringList cList, bool updateAttributes)
     }
 
     QVector<CLdapAttribute> newAttributes;
-    for (auto& a: m_attributes)
+    for (auto& a : m_attributes)
         if (a.name() != "objectClass")
+        {
             newAttributes << a;
+        }
 
     auto aClass = createEmptyAttribute("objectClass");
     aClass->m_isMust = true;
-    for (auto& a: m_classes)
+    for (auto& a : m_classes)
     {
         aClass->m_Value = a;
         newAttributes.push_back(*aClass.get());
