@@ -270,7 +270,7 @@ void MainWindow::onTreeItemChanged(const QModelIndex& current, const QModelIndex
             if (hasChanges && m_LdapTree->updatesEnabled())
 			{
                 const QString s1(tr("You have changes in attributes.\nDo you want to save these changes to server?"));
-                const QString s2(tr("The entry was updated.\nDo you want to save editable entry to server?"));
+                const QString s2(tr("The entry was updated.\nDo you want to save edited entry to server?"));
                 auto ret = QMessageBox::question(this, tr("Question"),
                                                  m_TableModel->isEdit() ? s2 : s1,
                                                  QMessageBox::Yes | QMessageBox::No);
