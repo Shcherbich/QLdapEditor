@@ -22,7 +22,6 @@ namespace ldapeditor
     , m_contextMenu(this)
     , m_newAttr(new QAction(tr("New attribute"), this))
     , m_delAttr(new QAction(tr("Delete attribute"), this))
-    , m_manageUsersInGroup(new QAction(tr("Manage users in group"), this))
     {
         setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
         setAlternatingRowColors(true);
@@ -32,12 +31,9 @@ namespace ldapeditor
 
         connect(m_newAttr, &QAction::triggered, this, &CLdapTableView::onNewAttribute);
         connect(m_delAttr, &QAction::triggered, this, &CLdapTableView::onDeleteAttribute);
-        connect(m_manageUsersInGroup, &QAction::triggered, this, &CLdapTableView::onManageUsersInGroup);
 
         m_contextMenu.addAction(m_newAttr);
         m_contextMenu.addAction(m_delAttr);
-        m_contextMenu.addSeparator();
-        m_contextMenu.addAction(m_manageUsersInGroup);
 
         setContextMenuPolicy(Qt::CustomContextMenu);
         connect(this, &QTableView::customContextMenuRequested, this, &CLdapTableView::customContextMenuRequested);
@@ -126,8 +122,6 @@ namespace ldapeditor
         m_delAttr->setEnabled(delEnable);
         m_delAttr->setData(index);
 
-        bool manageUsersInGroupVisible = m_entry->kind() == ldapcore::DirectoryKind::Group;
-        m_manageUsersInGroup->setVisible(manageUsersInGroupVisible);
         m_contextMenu.popup(viewport()->mapToGlobal(pos));
     }
 

@@ -67,6 +67,11 @@ signals:
      */
     void onRemoveAttribute(const ldapcore::CLdapAttribute& attr);
 
+    /*!
+     * \brief Signal about manage user in group entity
+     */
+    void manageUsersInGroup();
+
 protected :
     /*!
      * @brief protected method called when current item is changed
@@ -125,6 +130,15 @@ protected slots:
     void onEnableUser();
 
 
+    /*!
+     * @brief Method is called by 'Manage users in group' command
+     */
+    void onManageUsersInGroup();
+
+    /*!
+     * @brief Method is called by 'New attribute' command
+     */
+    void onNewAttribute();
 private:
     QMenu       m_contextMenu;          ///< Context menu pointer member
     QAction*    m_newEntry{nullptr};    ///< 'New Entry' action member
@@ -132,6 +146,8 @@ private:
     QAction*    m_deleteEntry{nullptr}; ///< 'Delete Entry' action member
     QAction*    m_changePassword{nullptr}; ///< 'Change password' action member
     QAction*    m_enableUser{nullptr}; ///< 'Enable/Disable user' action member
+    QAction*    m_manageUsersInGroup{nullptr};  ///< 'Manage users in group' action pointer member
+    QAction*    m_newAttr{nullptr};             ///< 'New Attribute' action pointer member
 
     ldapcore::CLdapData& m_LdapData;    ///< ldapcore::CLdapData reference member
 };

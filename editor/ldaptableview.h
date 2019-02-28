@@ -65,6 +65,13 @@ namespace ldapeditor
          */
         void customContextMenuRequested(QPoint pos);
 
+        /*!
+         * \brief Public slot, called by 'Manage User in group' action
+         *
+         * Also can be called by manageUserIngroup signal from CLdapTree view
+         */
+        void onManageUsersInGroup();
+
     protected slots:
         /*!
          * \brief Protected slot, called by 'New Attribute' action
@@ -76,14 +83,11 @@ namespace ldapeditor
          */
         void onDeleteAttribute();
 
-        /*!
-         * \brief Protected slot, called by 'Manage User in group' action
-         */
-        void onManageUsersInGroup();
+
     protected:
 
         /*!
-         * \brief SProtected method starts editing the item at index, creating an editor if necessary
+         * \brief Protected method starts editing the item at index, creating an editor if necessary
          * \param index index of item for edit
          * \param trigger actions which will initiate item editing
          * \param event associated event
@@ -112,7 +116,7 @@ namespace ldapeditor
         QMenu m_contextMenu;                        ///< Context menu instance member
         QAction* m_newAttr{nullptr};                ///< 'New Attribute' action pointer member
         QAction* m_delAttr{nullptr};                ///< 'Delete Attribute' action pointer member
-        QAction* m_manageUsersInGroup{nullptr};              ///< 'Manage users in group' action pointer member
+
         ldapcore::CLdapEntry* m_entry{nullptr};     ///< CLdapEntry data pointer
     };
 

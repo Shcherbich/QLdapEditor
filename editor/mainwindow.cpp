@@ -110,6 +110,7 @@ MainWindow::MainWindow(CLdapSettings& settings, ldapcore::CLdapData& ldapData, Q
 
     connect(m_LdapTree, &CLdapTreeView::onRemoveAttribute, m_TableModel, &CLdapAttributesModel::onRemoveAttribute);
     connect(m_LdapTree, &CLdapTreeView::onAddAttribute, m_TableModel, &CLdapAttributesModel::onAddAttribute);
+    connect(m_LdapTree, &CLdapTreeView::manageUsersInGroup, m_AttributesList, &CLdapTableView::onManageUsersInGroup);
 
     connect(this, &MainWindow::removeEntity, m_TreeModel, &CLdapTreeModel::onRemoveEntity);
 

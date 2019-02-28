@@ -6,12 +6,13 @@ File contains  implementation for LDAP tree view
 */
 #include "ldaptreeview.h"
 #include "ldaptreemodel.h"
-#include "changepassworddialog.h"
-
 #include "CLdapData.h"
 #include "CLdapEntry.h"
 #include "ldapeditordefines.h"
+#include "ldapnewattributedialog.h"
 #include "ldapnewentrydialog.h"
+#include "changepassworddialog.h"
+
 #include <QMessageBox>
 #include <functional>
 #include <tuple>
@@ -29,14 +30,19 @@ CLdapTreeView::CLdapTreeView(QWidget* parent, ldapcore::CLdapData& ldapData)
     , m_deleteEntry(new QAction(tr("Delete entry"), this))
     , m_changePassword(new QAction(tr("Change password"), this))
     , m_enableUser(new QAction(tr("Enable user"), this))
+    , m_manageUsersInGroup(new QAction(tr("Manage users in group"), this))
+    , m_newAttr(new QAction(tr("New attribute"), this))
 {
     m_contextMenu.addAction(m_newEntry);
     m_contextMenu.addAction(m_editEntry);
     m_contextMenu.addAction(m_deleteEntry);
     m_contextMenu.addSeparator();
-    m_contextMenu.addAction(m_changePassword);
+    m_contextMenu.addAction(m_newAttr);
     m_contextMenu.addSeparator();
+    m_contextMenu.addAction(m_changePassword);
     m_contextMenu.addAction(m_enableUser);
+    m_contextMenu.addAction(m_manageUsersInGroup);
+
     setContextMenuPolicy(Qt::CustomContextMenu);
 
     connect(this, &QTreeView::customContextMenuRequested, this, &CLdapTreeView::customContextMenuRequested);
@@ -45,7 +51,8 @@ CLdapTreeView::CLdapTreeView(QWidget* parent, ldapcore::CLdapData& ldapData)
     connect(m_deleteEntry, &QAction::triggered, this, &CLdapTreeView::onDeleteEntry);
     connect(m_changePassword, &QAction::triggered, this, &CLdapTreeView::onChangePassword);
     connect(m_enableUser, &QAction::triggered, this, &CLdapTreeView::onEnableUser);
-
+    connect(m_manageUsersInGroup, &QAction::triggered, this, &CLdapTreeView::onManageUsersInGroup);
+    connect(m_newAttr, &QAction::triggered, this, &CLdapTreeView::onNewAttribute);
     connect(this, &QTreeView::expanded, this, &CLdapTreeView::expand);
 
     setRootIsDecorated(false);
@@ -309,15 +316,38 @@ void CLdapTreeView::onEnableUser()
     if(!index.isValid())
         return;
 
-    ldapcore::CLdapEntry* thisEntry = static_cast<ldapcore::CLdapEntry*>(index.internalPointer());
-    if(!thisEntry)
+    ldapcore::CLdapEntry* entry = static_cast<ldapcore::CLdapEntry*>(index.internalPointer());
+    if(!entry)
         return;
 
-    if(thisEntry->userEnabled())
-        m_LdapData.server().disableUser(*thisEntry);
+    if(entry->userEnabled())
+        m_LdapData.server().disableUser(*entry);
     else
-        m_LdapData.server().enableUser(*thisEntry);
+        m_LdapData.server().enableUser(*entry);
     update(index);
+}
+
+void CLdapTreeView::onManageUsersInGroup()
+{
+    emit manageUsersInGroup();
+}
+
+void CLdapTreeView::onNewAttribute()
+{
+    QAction* a = qobject_cast<QAction*>(sender());
+    QModelIndex index = a->data().toModelIndex();
+    if(!index.isValid())
+        return;
+
+    ldapcore::CLdapEntry* entry = static_cast<ldapcore::CLdapEntry*>(index.internalPointer());
+    if(!entry)
+        return;
+
+    ldapeditor::CLdapNewAttributeDialog dlg(m_LdapData, entry);
+    if(dlg.exec() == QDialog::Accepted)
+    {
+        emit onAddAttribute(dlg.attribute());
+    }
 }
 
 void  CLdapTreeView::expand(const QModelIndex& index)
@@ -358,10 +388,16 @@ void CLdapTreeView::customContextMenuRequested(QPoint pos)
     QModelIndex modelIndex = static_cast<CLdapTreeProxyModel*>(model())->mapToSource(indexAt(pos));
     if(!modelIndex.isValid()) return;
 
+   m_newAttr->setData(modelIndex);
+
+    m_changePassword->setVisible(false);
+    m_enableUser->setVisible(false);
+    m_manageUsersInGroup->setVisible(false);
+
     ldapcore::CLdapEntry* entry = static_cast<ldapcore::CLdapEntry*>(modelIndex.internalPointer());
     if(entry->kind() == ldapcore::DirectoryKind::User)
     {
-        m_changePassword->setEnabled(true);
+        m_changePassword->setVisible(true);
         m_changePassword->setData(modelIndex);
 
         if(entry->userEnabled())
@@ -372,13 +408,12 @@ void CLdapTreeView::customContextMenuRequested(QPoint pos)
         {
             m_enableUser->setText(tr("Enable user"));
         }
-        m_enableUser->setEnabled(true);
+        m_enableUser->setVisible(true);
         m_enableUser->setData(modelIndex);
     }
-    else
+    else if(entry->kind() == ldapcore::DirectoryKind::Group)
     {
-        m_changePassword->setEnabled(false);
-        m_enableUser->setEnabled(false);
+        m_manageUsersInGroup->setVisible(true);
     }
 
     m_contextMenu.popup(viewport()->mapToGlobal(pos));
