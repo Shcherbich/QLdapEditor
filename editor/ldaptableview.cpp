@@ -142,7 +142,6 @@ namespace ldapeditor
                 setCurrentIndex(newAttr);
             }
         }
-
     }
 
     void CLdapTableView::onDeleteAttribute()

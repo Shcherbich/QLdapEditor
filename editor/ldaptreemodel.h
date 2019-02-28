@@ -13,6 +13,7 @@ File contains  declarations for LDAP tree models
 #include <QString>
 
 namespace ldapcore {
+class CLdapData;
 class CLdapEntry;
 class CLdapAttribute;
 }
@@ -64,10 +65,10 @@ namespace ldapeditor
     public:
         /*!
          * @brief Constructor CLdapTreeModel
-         * @param baseDN base DN string
+         * @param ldapData reference to ldapcore::CLdapData
          * @param parent pointer to parent QObject
          */
-        explicit CLdapTreeModel(const QString& baseDN, QObject *parent = nullptr);
+        explicit CLdapTreeModel(ldapcore::CLdapData& ldapData, QObject *parent = nullptr);
 
         /*!
          * @brief Method sets top items for model
@@ -196,6 +197,7 @@ namespace ldapeditor
     private:
         ldapcore::CLdapEntry*           m_invisibleRoot{nullptr}; ///< hidden root item for LDAP tree
         QVector<ldapcore::CLdapEntry*>  m_topItems;               ///< Top items for LDAP tree
+        ldapcore::CLdapData& m_LdapData;                          ///< reference to ldapcore::CLdapData
 
     signals:
         /*!

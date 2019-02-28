@@ -7,9 +7,10 @@ File contains  implementation for LDAP tree models
 
 #include "ldaptreemodel.h"
 #include "ldapeditordefines.h"
+#include "CLdapData.h"
 #include "CLdapEntry.h"
-
 #include <QIcon>
+#include <QBrush>
 
 namespace ldapeditor
 {
@@ -20,8 +21,9 @@ namespace ldapeditor
         return dnLeft.compare(dnRight, Qt::CaseInsensitive) < 0;
     }
 
-    CLdapTreeModel::CLdapTreeModel(const QString &baseDN, QObject *parent)
+    CLdapTreeModel::CLdapTreeModel(ldapcore::CLdapData &ldapData, QObject *parent)
         : QAbstractItemModel(parent)
+        , m_LdapData(ldapData)
         //, m_baseDN(baseDN)
     {
        // m_invisibleRoot = new tLdapItem(QString(), QString());
@@ -96,23 +98,23 @@ namespace ldapeditor
 
         // FIXME: Implement me!
         if (index.column() != 0) return QVariant();
-        ldapcore::CLdapEntry* item = static_cast<ldapcore::CLdapEntry*>(index.internalPointer());
-        if(!item) return QVariant();
+        ldapcore::CLdapEntry* entry = static_cast<ldapcore::CLdapEntry*>(index.internalPointer());
+        if(!entry) return QVariant();
 
         if(role == LdapTreeRoles::TreeDnRole)
         {
-            return item->dn();
+            return entry->dn();
         }
         else if(role == Qt::DisplayRole)
         {
-            return item->rDn();
+            return entry->rDn();
         }
         else if(role == Qt::DecorationRole)
         {
-            if(!item->parent()) return QIcon(":/home");
+            if(!entry->parent()) return QIcon(":/home");
 
             QStringList classes;
-            for(auto& c: item->classes())
+            for(auto& c: entry->classes())
                 classes.append(c);
 
             // icon is defined by top + one of other classes
@@ -127,7 +129,11 @@ namespace ldapeditor
                 else
                     return QIcon(":/folder");
             }
-
+        }
+        else if(role == Qt::ForegroundRole)
+        {
+            if(entry->kind() == ldapcore::DirectoryKind::User && !entry->userEnabled() )
+                return QBrush(Qt::darkGray);
         }
 
         return QVariant();

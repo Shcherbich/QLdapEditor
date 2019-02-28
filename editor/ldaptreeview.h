@@ -118,12 +118,20 @@ protected slots:
      * @brief Method is called by 'Change password' command
      */
     void onChangePassword();
-private:    
+
+    /*!
+     * @brief Method is called by 'Enable/Disable user' command
+     */
+    void onEnableUser();
+
+
+private:
     QMenu       m_contextMenu;          ///< Context menu pointer member
     QAction*    m_newEntry{nullptr};    ///< 'New Entry' action member
     QAction*    m_editEntry{nullptr};   ///< 'Edit Entry' action member
     QAction*    m_deleteEntry{nullptr}; ///< 'Delete Entry' action member
     QAction*    m_changePassword{nullptr}; ///< 'Change password' action member
+    QAction*    m_enableUser{nullptr}; ///< 'Enable/Disable user' action member
 
     ldapcore::CLdapData& m_LdapData;    ///< ldapcore::CLdapData reference member
 };

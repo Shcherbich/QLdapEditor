@@ -464,11 +464,13 @@ QString CLdapEntry::guid() const
 
 bool CLdapEntry::userEnabled() const
 {
-    auto userAccountControl = m_pEntry->getAttributeByName("userAccountControl");
-    if (userAccountControl == nullptr)
-    {
+    if(!m_pEntry)
         return false;
-    }
+
+    const LDAPAttribute* userAccountControl = m_pEntry->getAttributeByName("userAccountControl");
+    if (!userAccountControl)
+        return false;
+
     bool ok;
     long val = QString(userAccountControl->toString().c_str()).toLong(&ok, 10);
     if (!ok)

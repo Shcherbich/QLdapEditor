@@ -79,7 +79,7 @@ MainWindow::MainWindow(CLdapSettings& settings, ldapcore::CLdapData& ldapData, Q
 
     QString baseDN = normilizeDN(m_Settings.baseDN());
 
-    m_TreeModel = new CLdapTreeModel(baseDN, this);
+    m_TreeModel = new CLdapTreeModel(m_LdapData, this);
     m_TreeProxyModel = new CLdapTreeProxyModel(this);
 
     m_TableModel = new CLdapAttributesModel(m_LdapData, this);
