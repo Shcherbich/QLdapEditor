@@ -395,6 +395,9 @@ void CLdapTreeView::customContextMenuRequested(QPoint pos)
     m_manageUsersInGroup->setVisible(false);
 
     ldapcore::CLdapEntry* entry = static_cast<ldapcore::CLdapEntry*>(modelIndex.internalPointer());
+    // check is root item clicked - no context menu to show
+    if(!entry->parent()) return;
+
     if(entry->kind() == ldapcore::DirectoryKind::User)
     {
         m_changePassword->setVisible(true);

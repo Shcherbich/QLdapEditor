@@ -113,6 +113,7 @@ namespace ldapeditor
         QModelIndex index = indexAt(pos);
 
         bool delEnable{false};
+        bool isRootAttributes = m_entry ? !m_entry->parent() : true;
         if(index.isValid())
         {
             // attribute can be deleted and Not ('member' or 'memberOf')'
@@ -122,7 +123,8 @@ namespace ldapeditor
         m_delAttr->setEnabled(delEnable);
         m_delAttr->setData(index);
 
-        m_contextMenu.popup(viewport()->mapToGlobal(pos));
+        if(!isRootAttributes)
+            m_contextMenu.popup(viewport()->mapToGlobal(pos));
     }
 
     void CLdapTableView::onNewAttribute()
