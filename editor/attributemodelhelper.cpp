@@ -10,6 +10,7 @@ File contains  implementation for attribute helper class
 #include <QDateTime>
 #include <QBrush>
 #include <QFont>
+#include <QIcon>
 
 namespace ldapeditor
 {
@@ -89,12 +90,16 @@ QVariant CAttributeModelHelper::data(const ldapcore::CLdapAttribute&  attr, cons
     {
     case Qt::DisplayRole:
         return displayRoleData(attr, index);
+    case Qt::DecorationRole:
+        return decorationRoleData(attr, index);
     case Qt::EditRole:
         return editRoleData(attr, index);
     case Qt::ToolTipRole:
         return tooltipRoleData(attr,index);
     case Qt::ForegroundRole:
         return foregroundRoleData(attr,index);
+    case Qt::BackgroundRole:
+        return backgroundRoleData(attr,index);
     case Qt::FontRole:
         return fontRoleData(attr,index);
     case Qt::CheckStateRole:
@@ -203,6 +208,19 @@ QString CAttributeModelHelper::displayRoleData(const ldapcore::CLdapAttribute &a
     return QString();
 }
 
+QVariant  CAttributeModelHelper::decorationRoleData(const ldapcore::CLdapAttribute &attr, const QModelIndex &index)const
+{
+    if(index.column() != static_cast<int>(AttributeColumn::Value))
+        return QVariant();
+
+    if(attr.editState() != ldapcore::AttributeState::AttributeReadOnly)
+        return QIcon(":/edit");
+
+     return QVariant();
+}
+
+
+
 QVariant CAttributeModelHelper::editRoleData(const ldapcore::CLdapAttribute &attr, const QModelIndex &index)const
 {
     QString v = displayRoleData(attr, index);
@@ -277,25 +295,12 @@ QVariant CAttributeModelHelper::foregroundRoleData(const ldapcore::CLdapAttribut
     {
         return m_LdapEntry->isNew() ? QColor(Qt::blue) : QColor("#126180");
     }
-    switch(attr.editState())
-    {
-        case ldapcore::AttributeState::AttributeReadOnly:
-            return QBrush(Qt::darkGray);
-        case ldapcore::AttributeState::AttributeReadWrite:
-            break;
-            if(index.column() > static_cast<int>(AttributeColumn::Name) && index.column() != static_cast<int>(AttributeColumn::Size))
-            {
-                return attr.isModified() ? QBrush(Qt::blue) : QBrush(Qt::black);
-            }
-        case ldapcore::AttributeState::AttributeValueReadWrite:
-            break;
-            if(index.column() == static_cast<int>(AttributeColumn::Value))
-            {
-                return attr.isModified() ? QBrush(Qt::blue) : QBrush(Qt::black);
-            }
-        default:break;
-    }
     return QBrush(Qt::black);
+}
+
+QVariant  CAttributeModelHelper::backgroundRoleData(const ldapcore::CLdapAttribute &attr, const QModelIndex &index)const
+{
+    return attr.isModified() ? QBrush(Qt::yellow) : QVariant();
 }
 
 bool CAttributeModelHelper::setCheckStateRoleData(ldapcore::CLdapAttribute &attr, const QVariant& value, const QModelIndex &index)

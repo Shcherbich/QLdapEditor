@@ -124,6 +124,22 @@ private:
     QString  displayRoleData(const ldapcore::CLdapAttribute &attr, const QModelIndex &index)const;
 
     /*!
+     * \brief Method returns icon for item
+     * @param attr reference to ldapcore::CLdapAttribute
+     * @param index index of item for getting data
+     * \return QIcon for item
+     */
+    QVariant  decorationRoleData(const ldapcore::CLdapAttribute &attr, const QModelIndex &index)const;
+
+    /*!
+     * \brief Method returns background value
+     * @param attr reference to ldapcore::CLdapAttribute
+     * @param index index of item for getting data
+     * \return QBrush for background
+     */
+    QVariant  backgroundRoleData(const ldapcore::CLdapAttribute &attr, const QModelIndex &index)const;
+
+    /*!
      * @brief Method returns value for editor
      * @param attr reference to ldapcore::CLdapAttribute
      * @param index index of item for getting data

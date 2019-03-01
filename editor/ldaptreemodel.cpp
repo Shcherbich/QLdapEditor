@@ -123,7 +123,7 @@ namespace ldapeditor
             case ldapcore::DirectoryKind::Group:
                 return QIcon(":/group");
             case ldapcore::DirectoryKind::User:
-                return entry->userEnabled() ? QIcon(":/person") : QIcon(":/person-disable") ;
+                return entry->userEnabled() ? QIcon(":/person") : QIcon(":/locked") ;
             case ldapcore::DirectoryKind::OrganizationalUnit:
                 return QIcon(":/diagram");
              default:
