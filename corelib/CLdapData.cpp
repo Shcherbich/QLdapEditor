@@ -1,4 +1,4 @@
-#include <CLdapData.h>
+﻿#include <CLdapData.h>
 #include "qfunctional.h"
 #include <LDAPConnection.h>
 #include "StringList.h"
@@ -6,6 +6,9 @@
 #include <string>
 #include <QMessageBox>
 #include <QString>
+#include <QDebug>
+#include <stdio.h>
+#include <syslog.h>
 
 namespace ldapcore
 {
@@ -45,13 +48,56 @@ CLdapData::~CLdapData()
 	resetConnection();
 }
 
+void CLdapData::syslogMessageHandler(QtMsgType type, const QMessageLogContext& context, const QString& msg)
+{
+    Q_UNUSED(context)
+    QByteArray localMsg = msg.toLocal8Bit();
+    switch (type)
+    {
+    case QtDebugMsg:
+        fprintf(stdout, "debug: %s\n", localMsg.constData());
+        syslog(LOG_DEBUG, "debug: %s", localMsg.constData());
+        break;
+    case QtInfoMsg:
+        fprintf(stdout, "info: %s\n", localMsg.constData());
+        syslog(LOG_INFO, "info: %s", localMsg.constData());
+        break;
+    case QtWarningMsg:
+        fprintf(stdout, "warning: %s\n", localMsg.constData());
+        syslog(LOG_WARNING, "warning: %s", localMsg.constData());
+        break;
+    case QtCriticalMsg:
+        fprintf(stderr, "critical: %s\n", localMsg.constData());
+        syslog(LOG_CRIT, "critical: %s", localMsg.constData());
+        break;
+    case QtFatalMsg:
+        fprintf(stderr, "alert: %s\n", localMsg.constData());
+        syslog(LOG_ALERT, "alert: %s", localMsg.constData());
+    }
+}
+
+void CLdapData::initialize()
+{
+    static bool isInitialized = false;
+    if (isInitialized)
+    {
+        return;
+    }
+    isInitialized = true;
+    QtMessageHandler handler = CLdapData::syslogMessageHandler;
+    qInstallMessageHandler(handler);
+
+}
+
 void CLdapData::connect(const tConnectionOptions& connectOptions)
 {
+    initialize();
 	resetConnection();
     auto func = [&]()
     {
         try
         {
+            qWarning() << "Connecting to " << connectOptions.host.c_str();
             std::unique_ptr<LDAPConnection> localConn(new LDAPConnection(connectOptions.host, connectOptions.port));
             if (connectOptions.useTLS)
             {
@@ -90,9 +136,11 @@ void CLdapData::connect(const tConnectionOptions& connectOptions)
             m_Schema.build(m_Connection.get());
             build();
             emit this->onConnectionCompleted(true, "");
+            qWarning() << "Successfully connected to " << connectOptions.host.c_str();
         }
         catch (const LDAPException& e)
         {
+            qCritical() << "Connection error to " << connectOptions.host.c_str() << ". " << e.what();
             emit this->onConnectionCompleted(false, e.what());
         }
     };
@@ -270,4 +318,51 @@ QStringList CLdapData::search(const _tSearchOptions& searchOptions)
 	}
 	return objList;
 }
+
+bool CLdapData::isDnExist(QString dn)
+{
+    try
+    {
+        QString filter = QString(tr("%1")).arg(dn);
+        auto results = m_Connection->search(dn.toStdString(), LDAPConnection::SEARCH_BASE);
+        if (results != nullptr)
+        {
+            std::unique_ptr<LDAPEntry> entry(results->getNext());
+            return entry.get() != nullptr;
+        }
+    }
+    catch (const LDAPException& e)
+    {
+        Q_UNUSED(e);
+    }
+    return false;
+}
+
+void CLdapData::changeUserPassword(CLdapEntry* entry, const QString& userDN, const QString& newPassword)
+{
+    std::unique_ptr<LDAPModList> mods(new LDAPModList());
+    std::string dn = userDN.toStdString();
+    std::u16string wStr = QString("\"%1\"").arg(newPassword).toStdU16String();
+    QByteArray bytes = QByteArray::fromRawData(reinterpret_cast<const char*>(wStr.c_str()), wStr.length() * sizeof(char16_t));
+    std::string pwdData = bytes.toStdString();
+
+    try
+    {
+        mods->addModification(LDAPModification(LDAPAttribute("unicodePwd", pwdData), LDAPModification::OP_REPLACE));
+        entry->connectionPtr()->modify_s(dn, mods.get());
+    }
+    catch(const LDAPException& e)
+    {
+        QString msg =QString("%1\n%2").arg(e.getServerMsg().c_str()).arg(e.what());
+        qCritical() << QString(tr("Failed to change password for user '%1': %2")).arg(userDN).arg(msg);
+        throw CLdapServerException(msg.toStdString().c_str());
+    }
+    catch(const std::exception& e)
+    {
+        QString msg =QString("%1").arg(e.what());
+        qCritical() << QString(tr("Failed to change password for user '%1': %2")).arg(userDN).arg(msg);
+        throw CLdapServerException(msg.toStdString().c_str());
+    }
+}
+
 }

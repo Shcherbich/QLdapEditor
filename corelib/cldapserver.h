@@ -53,9 +53,10 @@ public:
     /*!
      * @brief Method To update attribute of entry on ldap server
      * @param entry The entry that contains given attribute
-     * @param attribute The attribute to update
+     * @param name The name of attribute to update
+     * @param values The values of attributes to update
      */
-    void updateAttribute(CLdapEntry& entry, CLdapAttribute& attribute) noexcept(false);
+    void updateAttributes(CLdapEntry& entry, QString name, const QVector<ldapcore::CLdapAttribute>& values) noexcept(false);
 
     /*!
      * @brief Method To delete attribute of entry from ldap server
@@ -64,6 +65,15 @@ public:
      */
     void delAttribute(CLdapEntry& entry, CLdapAttribute& attribute) noexcept(false);
 
+    /*!
+     * @brief entryOfUser The entry that contains user to enable
+     */
+    void enableUser(CLdapEntry& entryOfUser) noexcept(false);
+
+    /*!
+     * @brief entryOfUser The entry that contains user to disable
+     */
+    void disableUser(CLdapEntry& entryOfUser) noexcept(false);
 };
 
 }

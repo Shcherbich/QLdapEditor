@@ -11,6 +11,7 @@ File contains  declarations for LDAP Entity's attributes model class
 #include <QAbstractTableModel>
 #include <QStringList>
 #include <QVector>
+#include <QMap>
 #include <QString>
 #include "CLdapAttribute.h"
 #include "CLdapEntry.h"
@@ -157,7 +158,7 @@ namespace ldapeditor
          * \param deleteRows - number of removed rows
          * \param updateRows - number of modified rows
          */
-        void GetChangedRows(QVector<ldapcore::CLdapAttribute>& newRows, QVector<ldapcore::CLdapAttribute>& deleteRows, QVector<ldapcore::CLdapAttribute>& updateRows);
+        void changedRows(QVector<ldapcore::CLdapAttribute>& newRows, QVector<ldapcore::CLdapAttribute>& deleteRows, QMap<QString, QVector<ldapcore::CLdapAttribute>>& updateMap);
 
         /*!
          * \brief Saves atttributes to server

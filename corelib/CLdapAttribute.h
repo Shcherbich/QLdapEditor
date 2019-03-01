@@ -117,7 +117,7 @@ public:
      * \param classes list of classes which can contain this attribute
      * \param editState current editable state of attribute
      */
-    explicit CLdapAttribute(QString name, QString value, AttrType type, bool isMust, QString desc, QVector<QString>& classes,
+    explicit CLdapAttribute(QString name, QString value, AttrType type, bool isMust, QString desc, QStringList& classes,
                             AttributeState editState = AttributeState::AttributeValueReadWrite);
 
     /*!
@@ -190,9 +190,9 @@ public:
 
     /*!
      * @brief Method returns list of classes which can contain this attribute
-     * @return QVector<QString> classes
+     * @return QStringList classes
      */
-    QVector<QString> classes() const;
+    QStringList classes() const;
 
     /*!
      * @brief Method sets name of attribute
@@ -229,11 +229,11 @@ public:
      * @brief Method sets list of classes which can contain this attribute
      * @param list classes to set
      */
-    void setClasses(QVector<QString>& list);
+    void setClasses(QStringList& list);
 
     /*!
      * @brief Method returns boolean flag is atrribute explicitly marked as ignored
-     * @return QVector<QString> classes
+     * @return QStringList classes
      */
     inline bool isIgnore() const {return m_isIgnore;}
 
@@ -272,7 +272,7 @@ private:
     /*!
      * @brief member list of classes which can contain this attribute
      */
-    QVector<QString> m_Classes;
+    QStringList m_Classes;
 
     /*!
      * @brief member Editable state enumeration
@@ -302,6 +302,9 @@ private:
 signals:
 
 public slots:
+
+    friend class CLdapEntry;
+
 };
 
 }

@@ -5,12 +5,14 @@
 #include <QString>
 #include <QVector>
 #include <QList>
-#include "CLdapObject.h"
 #include "CLdapEntry.h"
 #include "cldapserver.h"
 #include "datatypes.h"
 #include "CLdapSchema.h"
 #include <memory>
+#include <QtGlobal>
+#include <QString>
+#include <QByteArray>
 
 class LDAPConnection;
 
@@ -42,6 +44,11 @@ public:
      */
 	~CLdapData();
 public:
+
+    /*!
+     * @brief Method initializes internal data (once on run-time)
+     */
+    static void initialize();
 
     /*!
      * @brief Method To try to connect to server. onConnectionCompleted will fired with success ot failed status.
@@ -102,6 +109,22 @@ public:
      */
 	QString baseDN();
 
+    /*!
+     * @brief Method check given dn on exist on ldap server
+     * @param dn distinguished name to check
+     * @return bool true if exist, otherwise false
+     */
+    bool isDnExist(QString dn);
+
+    /*!
+     * \brief Method for changing user's passowrd by administrator
+     * \param userDN DN of user for changing password
+     * \param newPassword new password string
+
+     Throws CLdapServerException with description if got error from server
+     */
+    void changeUserPassword(CLdapEntry* entry,const QString& userDN, const QString& newPassword);
+
 Q_SIGNALS:
     void onConnectionCompleted(bool isSucceed, QString errorDescription);
 
@@ -124,6 +147,16 @@ private:
 
 private:
 
+
+    /*!
+     * @brief Method installs a Qt message handler which has been defined previously
+     * @param type Qt context
+     * @param context This enum describes the messages that can be sent to a message handler (QtMessageHandler)
+     * @param msg the message
+     */
+    static void syslogMessageHandler(QtMsgType type, const QMessageLogContext& context, const QString& msg);
+
+private:
     /*!
      * @brief member m_Entries list of top entries
      */

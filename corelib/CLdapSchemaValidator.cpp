@@ -13,7 +13,7 @@
 // https://releases.pagure.org/389-ds-base/389-ds-base-1.4.1.1.tar.bz2
 namespace DirectoryServer389
 {
-char* strnchr(const char* s, size_t count, int c)
+char* strnchr(const char* s, int c, size_t count)
 {
     for (; count-- && *s != '\0'; ++s)
         if (*s == (char)c)
@@ -831,7 +831,7 @@ static std::map<std::string, validateInfo > syntaxNumber2toCheckFunction
     {"1.3.6.1.4.1.1466.115.121.1.14", {"Delivery Method", CheckUTF8}},
     {"1.3.6.1.4.1.1466.115.121.1.15", {"Directory String", CheckUTF8}},
     {"1.3.6.1.4.1.1466.115.121.1.22", {"Facsimile Telephone Number", std::bind(CheckCountryStringImpl, _1, validSetOfCountry2, false)}},
-    {"1.3.6.1.4.1.1466.115.121.1.24", {"Generalized Time	", CheckGeneralizedTime}},
+    {"1.3.6.1.4.1.1466.115.121.1.24", {"Generalized Time", CheckGeneralizedTime}},
     {"1.3.6.1.4.1.1466.115.121.1.26", {"IA5 String", CheckIA5String}},
     {"1.3.6.1.4.1.1466.115.121.1.27", {"Integer", Check62Integer}},
     {"1.3.6.1.4.1.1466.115.121.1.36", {"Numeric String", CheckNumericString}},

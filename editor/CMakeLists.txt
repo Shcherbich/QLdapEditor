@@ -24,12 +24,14 @@ INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR})
 
 # Populate a CMake variable with the sources
 SET(ldapeditor_SOURCES
+    utilities.cpp
+    changepassworddialog.cpp
+    changepassworddialog.ui
+    addusertogroupdialog.cpp
+    addusertogroupdialog.ui
     resources.qrc
     ldapnewattributedialog.cpp
     ldapnewattributedialog.ui
-    TableModel.h
-    ModelDataAdapter.h
-    cmustmaymodel.h
     cmustmaymodel.cpp
     ldapdataeditdelegate.cpp
     attributemodelhelper.cpp
@@ -47,9 +49,18 @@ SET(ldapeditor_SOURCES
     ldapnewentrydialog.ui
     mainwindow.cpp
     main.cpp
+# not used at the moment
+#    TableModel.h
+#    ModelDataAdapter.h
 )
-SET(ldapeditor_HEADERS    
+
+
+SET(ldapeditor_HEADERS
+    utilities.h
+    changepassworddialog.h
+    addusertogroupdialog.h
     ldapnewattributedialog.h
+    cmustmaymodel.h
     ldapdataeditdelegate.h
     attributemodelhelper.h
     ldapsettings.h
@@ -63,7 +74,7 @@ SET(ldapeditor_HEADERS
     ldapnewentrydialog.h
     mainwindow.h
     ldapeditordefines.h
-    ${CMAKE_BINARY_DIR}/version.h
+#    ${CMAKE_BINARY_DIR}/version.h
 )
 
 SET(ldapeditor_OTHER

@@ -79,7 +79,7 @@ MainWindow::MainWindow(CLdapSettings& settings, ldapcore::CLdapData& ldapData, Q
 
     QString baseDN = normilizeDN(m_Settings.baseDN());
 
-    m_TreeModel = new CLdapTreeModel(baseDN, this);
+    m_TreeModel = new CLdapTreeModel(m_LdapData, this);
     m_TreeProxyModel = new CLdapTreeProxyModel(this);
 
     m_TableModel = new CLdapAttributesModel(m_LdapData, this);
@@ -110,6 +110,7 @@ MainWindow::MainWindow(CLdapSettings& settings, ldapcore::CLdapData& ldapData, Q
 
     connect(m_LdapTree, &CLdapTreeView::onRemoveAttribute, m_TableModel, &CLdapAttributesModel::onRemoveAttribute);
     connect(m_LdapTree, &CLdapTreeView::onAddAttribute, m_TableModel, &CLdapAttributesModel::onAddAttribute);
+    connect(m_LdapTree, &CLdapTreeView::manageUsersInGroup, m_AttributesList, &CLdapTableView::onManageUsersInGroup);
 
     connect(this, &MainWindow::removeEntity, m_TreeModel, &CLdapTreeModel::onRemoveEntity);
 
@@ -259,16 +260,17 @@ void MainWindow::onTreeItemChanged(const QModelIndex& current, const QModelIndex
 		}
 		else
 		{
-			QVector<ldapcore::CLdapAttribute> newRows, deleteRows, updateRows;
-			m_TableModel->GetChangedRows(newRows, deleteRows, updateRows);
+            QVector<ldapcore::CLdapAttribute> newRows, deleteRows;
+            QMap<QString, QVector<ldapcore::CLdapAttribute>> updateMap;
+            m_TableModel->changedRows(newRows, deleteRows, updateMap);
             // first check
-            bool hasChanges = !(newRows.empty() && deleteRows.empty() && updateRows.empty());
+            bool hasChanges = !(newRows.empty() && deleteRows.empty() && updateMap.empty());
             // second check
             hasChanges |= m_TableModel->isEdit();
             if (hasChanges && m_LdapTree->updatesEnabled())
 			{
                 const QString s1(tr("You have changes in attributes.\nDo you want to save these changes to server?"));
-                const QString s2(tr("The entry was updated.\nDo you want to save editable entry to server?"));
+                const QString s2(tr("The entry was updated.\nDo you want to save edited entry to server?"));
                 auto ret = QMessageBox::question(this, tr("Question"),
                                                  m_TableModel->isEdit() ? s2 : s1,
                                                  QMessageBox::Yes | QMessageBox::No);
@@ -279,9 +281,9 @@ void MainWindow::onTreeItemChanged(const QModelIndex& current, const QModelIndex
                 else
                 {
                     ldapcore::CLdapEntry* prevEntry = static_cast<ldapcore::CLdapEntry*>(srcPrev.internalPointer());
-                    QVector<QString> cls;
+                    QStringList cls;
                     prevEntry->setClasses(cls);
-                    prevEntry->flushAttributeCache();
+                    prevEntry->flushAttributesCache();
                     (void*)prevEntry->attributes();
                     m_LdapTree->update(mainPrev);
                 }
@@ -292,6 +294,7 @@ void MainWindow::onTreeItemChanged(const QModelIndex& current, const QModelIndex
     ldapcore::CLdapEntry* currentEntry = static_cast<ldapcore::CLdapEntry*>(srcCur.internalPointer());
 	if (currentEntry)
 	{
+        currentEntry->flushAttributesCache();
 		m_TableModel->setLdapEntry(currentEntry);
 		m_AttributesList->setLdapEntry(currentEntry);
 	}

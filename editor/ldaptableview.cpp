@@ -11,6 +11,7 @@ File contains  implementations for LDAP attributes view class
 
 #include "ldapattributesmodel.h"
 #include "ldapnewattributedialog.h"
+#include "addusertogroupdialog.h"
 
 namespace ldapeditor
 {
@@ -33,9 +34,9 @@ namespace ldapeditor
 
         m_contextMenu.addAction(m_newAttr);
         m_contextMenu.addAction(m_delAttr);
+
         setContextMenuPolicy(Qt::CustomContextMenu);
         connect(this, &QTableView::customContextMenuRequested, this, &CLdapTableView::customContextMenuRequested);
-
     }
 
     void CLdapTableView::setLdapEntry(ldapcore::CLdapEntry* entry)
@@ -103,15 +104,27 @@ namespace ldapeditor
         m_LdapSettings.setColumnValue(columnWidth(static_cast<int>(AttributeColumn::Value)));
         m_LdapSettings.setColumnType(columnWidth(static_cast<int>(AttributeColumn::Type)));
         m_LdapSettings.setColumnSize(columnWidth(static_cast<int>(AttributeColumn::Size)));
-        m_LdapSettings.sync();
+       // m_LdapSettings.sync();
     }
 
     void CLdapTableView::customContextMenuRequested(QPoint pos)
     {
+        const QStringList exludeAttributes{"member","memberOf"};
         QModelIndex index = indexAt(pos);
+
+        bool delEnable{false};
+        bool isRootAttributes = m_entry ? !m_entry->parent() : true;
+        if(index.isValid())
+        {
+            // attribute can be deleted and Not ('member' or 'memberOf')'
+            delEnable = m_ldapDataDelegate.canDeleteRow(index) &&
+                        !exludeAttributes.contains(index.data(ldapeditor::LDapEditorRoles::AttrNameRole).toString());
+        }
+        m_delAttr->setEnabled(delEnable);
         m_delAttr->setData(index);
-        m_delAttr->setEnabled(index.isValid() && m_ldapDataDelegate.canDeleteRow(index));
-        m_contextMenu.popup(viewport()->mapToGlobal(pos));
+
+        if(!isRootAttributes)
+            m_contextMenu.popup(viewport()->mapToGlobal(pos));
     }
 
     void CLdapTableView::onNewAttribute()
@@ -125,7 +138,6 @@ namespace ldapeditor
                 setCurrentIndex(newAttr);
             }
         }
-
     }
 
     void CLdapTableView::onDeleteAttribute()
@@ -163,4 +175,62 @@ namespace ldapeditor
         }
         return bRet;
     }
+
+    void CLdapTableView::onManageUsersInGroup()
+    {
+        QStringList originalMembers;
+        const QVector<ldapcore::CLdapAttribute>* attrs = m_entry->attributes();
+        if(attrs)
+        {
+            std::for_each(attrs->begin(), attrs->end(),[&originalMembers](const ldapcore::CLdapAttribute& a) {
+                if(a.name().compare("member", Qt::CaseInsensitive) == 0)
+                    originalMembers << a.value();
+            });
+        }
+
+        CAddUserToGroupDialog dlg(m_LdapData, m_LdapSettings);
+        dlg.setMembersList(originalMembers);
+        if(dlg.exec() != QDialog::Accepted)
+        {
+            return;
+        }
+
+        QStringList newMembers = dlg.membersList();
+        QStringList classes {"group"};
+        CLdapAttributesModel* srcModel = static_cast<CLdapAttributesModel*>(model());
+
+        // add appended members attributes
+        for(const QString& s : newMembers)
+        {
+            if(srcModel && !originalMembers.contains(s))
+            {
+
+                ldapcore::CLdapAttribute newAttr;
+                newAttr.setEditState(ldapcore::AttributeState::AttributeReadWrite);
+                newAttr.setClasses(classes);
+                newAttr.setName("member");
+                newAttr.setValue(s);
+                newAttr.setType(ldapcore::AttrType::DN);
+                newAttr.setEditState(ldapcore::AttributeState::AttributeReadOnly);
+                (void) srcModel->addAttribute(newAttr);
+            }
+        }
+
+        // delete removed members attributes
+        QModelIndexList indexes;
+        for(const QString& s : originalMembers)
+        {
+            if(srcModel && !newMembers.contains(s))
+            {
+              // find index by value
+               indexes = srcModel->match(srcModel->index(0, static_cast<int>(ldapeditor::AttributeColumn::Value)),
+                                                          Qt::DisplayRole, s, 1, Qt::MatchExactly);
+               for(QModelIndex idx : indexes)
+               {
+                   srcModel->removeRows(idx.row(),1);
+               }
+            }
+        }
+    }
+
 } //namespace ldapeditor

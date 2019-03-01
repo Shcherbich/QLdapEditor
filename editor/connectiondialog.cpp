@@ -7,38 +7,59 @@ File contains  implementations for LDAP Connection settings class
 #include "connectiondialog.h"
 #include "ui_connectiondialog.h"
 #include "ldapsettings.h"
+#include "ldapeditordefines.h"
 
 #include "CLdapData.h"
 
 #include <QSettings>
 #include <QTimer>
 #include <QMessageBox>
+#include <QStandardPaths>
+#include <QDir>
+#include <QDebug>
 
 namespace ldapeditor
 {
-    CConnectionDialog::CConnectionDialog(CLdapSettings& settings, ldapcore::CLdapData& ldapData, QWidget *parent) :
+    CConnectionDialog::CConnectionDialog(ldapcore::CLdapData& ldapData, QWidget *parent) :
         QDialog(parent, Qt::CustomizeWindowHint|Qt::WindowTitleHint)
         , ui(new Ui::CConnectionDialog)
-        , m_Settings(settings)
         , m_LdapData(ldapData)
     {
         ui->setupUi(this);
 
+        m_configDirPath = QStandardPaths::writableLocation(QStandardPaths::ConfigLocation);
+        m_configDirPath += QString("/%1").arg(OrganizationName);
+
+        m_sessionSettingsPath = QString("%1/%2").arg(m_configDirPath).arg("last.session");
+
+        QSettings session(m_sessionSettingsPath, QSettings::IniFormat);
+        m_lastConnectionFile = session.value("last_connection", "").toString();
+
+        ui->connectionsCombo->setInsertPolicy(QComboBox::InsertAlphabetically);
+
+        loadConnectionsList(m_lastConnectionFile);
+
+        connect(ui->connectionsCombo, static_cast<void(QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this, &CConnectionDialog::onConnectionChanged);
         connect(ui->radioSimpleAuth, &QAbstractButton::clicked, this, &CConnectionDialog::onAuthTypeChanged);
         connect(ui->radioGssAuth, &QAbstractButton::clicked, this, &CConnectionDialog::onAuthTypeChanged);
 
         connect(ui->cancelButton, &QAbstractButton::clicked, this, &CConnectionDialog::onCancelClicked);
         connect(ui->connectButton, &QAbstractButton::clicked, this, &CConnectionDialog::onConnectClicked);
-        connect(ui->showPasswordCheck, &QAbstractButton::clicked, this, &CConnectionDialog::onShowPasswordClicked);
+
+        connect(ui->showPasswordCheck, &QAbstractButton::clicked, [this](bool checked){
+            ui->pwdEdit->setEchoMode(checked ? QLineEdit::Normal: QLineEdit::Password);
+        });
+
 
         connect(&m_LdapData,  SIGNAL(onConnectionCompleted(bool, QString)), this, SLOT(onConnectionCompleted(bool, QString)));
+        connect(ui->connectionsCombo, &QComboBox::editTextChanged, this, &CConnectionDialog::enableConnection );
         connect(ui->hostBox, &QLineEdit::textChanged, this, &CConnectionDialog::enableConnection );
         connect(ui->baseEdit, &QLineEdit::textChanged, this, &CConnectionDialog::enableConnection );
 
         ui->versionSpin->setVisible(false);
         ui->versionLabel->setVisible(false);
 
-        loadSettings();
+        loadSettings(ui->connectionsCombo->currentData().toString());
 
         // Hide unused controls
         ui->radioGssAuth->setVisible(false);
@@ -59,49 +80,114 @@ namespace ldapeditor
         delete ui;
     }
 
-    void CConnectionDialog::loadSettings()
+
+    void CConnectionDialog::loadConnectionsList(const QString& lastConnection )
     {
-        ui->connectionNameEdit->setText(m_Settings.name());
-        ui->hostBox->setText(m_Settings.host());
-        ui->portSpin->setValue(m_Settings.port());
-        ui->versionSpin->setValue(m_Settings.version());
-        ui->baseEdit->setText(m_Settings.baseDN());
-        ui->radioSimpleAuth->setChecked(m_Settings.simpleAuth());
-        ui->sslCheck->setChecked(m_Settings.useSSL());
+        QDir configDir(m_configDirPath);
+        QStringList connectionsList = configDir.entryList(QStringList{"*.ini"}, QDir::Files|QDir::Readable|QDir::Writable);
+
+        ui->connectionsCombo->addItem(tr("--New Connection--"), "");
+        for(QString& strFile: connectionsList)
+        {
+            QSettings connectionSettings(m_configDirPath + "/" + strFile, QSettings::IniFormat);
+            QString connectionName = connectionSettings.value("connection/name", "").toString();
+            ui->connectionsCombo->addItem(connectionName, strFile);
+        }
+
+        int foundLastConnection = 0; //New Connection
+        if(!lastConnection.isEmpty())
+        {
+           QString fileConnection;
+           for(int i=0; i< ui->connectionsCombo->count();i++)
+           {
+               fileConnection = ui->connectionsCombo->itemData(i).toString();
+               if( !fileConnection.isEmpty() && fileConnection == lastConnection)
+               {
+                   foundLastConnection = i;
+                   break;
+               }
+           }
+        }
+        ui->connectionsCombo->setCurrentIndex(foundLastConnection);
+        onConnectionChanged();
+    }
+
+    void CConnectionDialog::loadSettings(QString settingsFile)
+    {
+        if(m_Settings)
+        {
+            delete m_Settings;
+        }
+
+        QString filePath = m_configDirPath + "/" + settingsFile;
+        m_Settings = new CLdapSettings(filePath) ;
+
+        ui->connectionsCombo->setEditText(m_Settings->name());
+        ui->hostBox->setText(m_Settings->host());
+        ui->portSpin->setValue(m_Settings->port());
+        ui->versionSpin->setValue(m_Settings->version());
+        ui->baseEdit->setText(m_Settings->baseDN());
+        ui->radioSimpleAuth->setChecked(m_Settings->simpleAuth());
+        ui->sslCheck->setChecked(m_Settings->useSSL());
         ui->sslCheck->setEnabled(ui->radioSimpleAuth->isChecked());
-        ui->tlsCheck->setChecked(m_Settings.useTLS());
+        ui->tlsCheck->setChecked(m_Settings->useTLS());
         ui->tlsCheck->setEnabled(true);
 
         ui->radioGssAuth->setChecked(!ui->radioSimpleAuth->isChecked());
-        ui->saslCheck->setChecked(m_Settings.useSASL());
+        ui->saslCheck->setChecked(m_Settings->useSASL());
         ui->saslCheck->setEnabled(ui->radioGssAuth->isChecked());
 
-        ui->userEdit->setText(m_Settings.username());
-        ui->pwdEdit->setText(m_Settings.password());
+        ui->userEdit->setText(m_Settings->username());
+        ui->pwdEdit->setText(m_Settings->password());
 
-        ui->anonymousCheck->setChecked(m_Settings.useAnonymous());
-
+        ui->anonymousCheck->setChecked(m_Settings->useAnonymous());
     }
 
     void CConnectionDialog::saveSettings()
     {
-        m_Settings.setName(ui->connectionNameEdit->text());
-        m_Settings.setHost(ui->hostBox->text());
-        m_Settings.setPort(ui->portSpin->value());
-        m_Settings.setVersion(ui->versionSpin->value());
-        m_Settings.setBaseDN(ui->baseEdit->text());
 
-        m_Settings.setSimpleAuth(ui->radioSimpleAuth->isChecked());
-        m_Settings.setUseSSL(ui->sslCheck->isChecked());
-        m_Settings.setUseTLS(ui->tlsCheck->isChecked());
-        m_Settings.setUseSASL(ui->saslCheck->isChecked());
+        QString fName =  ui->connectionsCombo->currentData().toString();
+        if(fName.isEmpty())
+        {
+            QString fDesc = ui->connectionsCombo->currentText();
+            fName = fDesc.isEmpty() ? "New Connection.ini" : fDesc + ".ini";
+        }
+        QString iniPath = m_configDirPath + "/" + fName;
+        CLdapSettings* tmpSettings = new CLdapSettings(iniPath);
 
-        m_Settings.setUsername(ui->userEdit->text());
-        m_Settings.setPassword(ui->pwdEdit->text());
+        tmpSettings->setName(ui->connectionsCombo->currentText());
+        tmpSettings->setHost(ui->hostBox->text());
+        tmpSettings->setPort(ui->portSpin->value());
+        tmpSettings->setVersion(ui->versionSpin->value());
+        tmpSettings->setBaseDN(ui->baseEdit->text());
 
-        m_Settings.setUseAnonymous(ui->anonymousCheck->isChecked());
+        tmpSettings->setSimpleAuth(ui->radioSimpleAuth->isChecked());
+        tmpSettings->setUseSSL(ui->sslCheck->isChecked());
+        tmpSettings->setUseTLS(ui->tlsCheck->isChecked());
+        tmpSettings->setUseSASL(ui->saslCheck->isChecked());
 
-        m_Settings.sync();
+        tmpSettings->setUsername(ui->userEdit->text());
+        tmpSettings->setPassword(ui->pwdEdit->text());
+        tmpSettings->setUseAnonymous(ui->anonymousCheck->isChecked());
+
+        tmpSettings->saveSettings();
+
+        m_lastConnectionFile = fName;
+
+        int index = ui->connectionsCombo->findText(fName);
+        if(index == -1)
+        {
+            // add new connection to list
+            ui->connectionsCombo->addItem(fName, fName);
+            ui->connectionsCombo->model()->sort(0);
+
+            // find and set new added connection as current
+            index = ui->connectionsCombo->findText(fName);
+            ui->connectionsCombo->setCurrentIndex(index);
+        }
+
+        delete m_Settings;
+        m_Settings = tmpSettings;
     }
 
     void CConnectionDialog::onAuthTypeChanged()
@@ -118,6 +204,15 @@ namespace ldapeditor
                                       );
     }
 
+    void CConnectionDialog::onConnectionChanged()
+    {
+        int currentIdx = ui->connectionsCombo->currentIndex();
+        if(ui->connectionsCombo->itemData(currentIdx).toString().isEmpty())
+            ui->connectionsCombo->setCurrentText("");
+
+        loadSettings(ui->connectionsCombo->currentData().toString());
+    }
+
     void CConnectionDialog::onCancelClicked()
     {
         reject();
@@ -127,10 +222,10 @@ namespace ldapeditor
     {
         saveSettings();        
         setEnabled(false);
-        m_WaitTime = m_Settings.timeout();
+        m_WaitTime = m_Settings->timeout();
         setWindowTitle(QString("Connecting ... %1s").arg(0));
 
-        m_LdapData.connect(m_Settings.connectionOptions());
+        m_LdapData.connect(m_Settings->connectionOptions());
         QTimer::singleShot(1000, this, &CConnectionDialog::onTimer );
     }
 
@@ -138,7 +233,7 @@ namespace ldapeditor
     {
         if(--m_WaitTime > 0)
         {
-            setWindowTitle(QString("Connecting ... %1s").arg(m_Settings.timeout() - m_WaitTime));
+            setWindowTitle(QString("Connecting ... %1s").arg(m_Settings->timeout() - m_WaitTime));
             QTimer::singleShot(1000, this, &CConnectionDialog::onTimer );
         }
         else
@@ -155,6 +250,9 @@ namespace ldapeditor
             m_WaitTime = 0;
             setWindowTitle(tr("Connection properties dialog"));
             setEnabled(true);
+
+            QSettings session(m_sessionSettingsPath, QSettings::IniFormat);
+            session.setValue("last_connection", m_lastConnectionFile);
             accept();
         }
         else
@@ -166,12 +264,10 @@ namespace ldapeditor
 
     void CConnectionDialog::enableConnection()
     {
-        bool enableConnection= !ui->hostBox->text().trimmed().isEmpty() && !ui->baseEdit->text().trimmed().isEmpty();
+        bool enableConnection = !ui->connectionsCombo->currentText().trimmed().isEmpty() &&
+                                !ui->hostBox->text().trimmed().isEmpty() &&
+                                !ui->baseEdit->text().trimmed().isEmpty();
         ui->connectButton->setEnabled(enableConnection);
     }
 
-    void CConnectionDialog::onShowPasswordClicked()
-    {
-        ui->pwdEdit->setEchoMode(ui->showPasswordCheck->isChecked() ? QLineEdit::Normal: QLineEdit::Password);
-    }
 } // namespace ldapeditor

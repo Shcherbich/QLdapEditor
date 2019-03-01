@@ -6,11 +6,13 @@ File contains  implementation for LDAP tree view
 */
 #include "ldaptreeview.h"
 #include "ldaptreemodel.h"
-
 #include "CLdapData.h"
 #include "CLdapEntry.h"
 #include "ldapeditordefines.h"
+#include "ldapnewattributedialog.h"
 #include "ldapnewentrydialog.h"
+#include "changepassworddialog.h"
+
 #include <QMessageBox>
 #include <functional>
 #include <tuple>
@@ -26,18 +28,32 @@ CLdapTreeView::CLdapTreeView(QWidget* parent, ldapcore::CLdapData& ldapData)
     , m_newEntry(new QAction(tr("New entry"), this))
     , m_editEntry(new QAction(tr("Edit entry"), this))
     , m_deleteEntry(new QAction(tr("Delete entry"), this))
+    , m_changePassword(new QAction(tr("Change password"), this))
+    , m_enableUser(new QAction(tr("Enable user"), this))
+    , m_manageUsersInGroup(new QAction(tr("Manage users in group"), this))
+    , m_newAttr(new QAction(tr("New attribute"), this))
 {
     m_contextMenu.addAction(m_newEntry);
     m_contextMenu.addAction(m_editEntry);
     m_contextMenu.addAction(m_deleteEntry);
+    m_contextMenu.addSeparator();
+    m_contextMenu.addAction(m_newAttr);
+    m_contextMenu.addSeparator();
+    m_contextMenu.addAction(m_changePassword);
+    m_contextMenu.addAction(m_enableUser);
+    m_contextMenu.addAction(m_manageUsersInGroup);
+
     setContextMenuPolicy(Qt::CustomContextMenu);
 
     connect(this, &QTreeView::customContextMenuRequested, this, &CLdapTreeView::customContextMenuRequested);
     connect(m_newEntry, &QAction::triggered, this, &CLdapTreeView::onNewEntry);
     connect(m_editEntry, &QAction::triggered, this, &CLdapTreeView::onEditEntry);
     connect(m_deleteEntry, &QAction::triggered, this, &CLdapTreeView::onDeleteEntry);
-
-    connect(this, &QTreeView::expanded, this, &CLdapTreeView::expand );
+    connect(m_changePassword, &QAction::triggered, this, &CLdapTreeView::onChangePassword);
+    connect(m_enableUser, &QAction::triggered, this, &CLdapTreeView::onEnableUser);
+    connect(m_manageUsersInGroup, &QAction::triggered, this, &CLdapTreeView::onManageUsersInGroup);
+    connect(m_newAttr, &QAction::triggered, this, &CLdapTreeView::onNewAttribute);
+    connect(this, &QTreeView::expanded, this, &CLdapTreeView::expand);
 
     setRootIsDecorated(false);
     setSortingEnabled(true);
@@ -47,19 +63,21 @@ CLdapTreeView::CLdapTreeView(QWidget* parent, ldapcore::CLdapData& ldapData)
 void CLdapTreeView::currentChanged(const QModelIndex& current, const QModelIndex& previous)
 {
     emit treeItemChanged(current, previous);
-    QTreeView::currentChanged(current,previous);
+    QTreeView::currentChanged(current, previous);
 }
 
 
-void CLdapTreeView::drawBranches(QPainter *painter, const QRect &rect, const QModelIndex &index) const
+void CLdapTreeView::drawBranches(QPainter* painter, const QRect& rect, const QModelIndex& index) const
 {
     CLdapTreeProxyModel* proxyModel = static_cast<CLdapTreeProxyModel*>(model());
     QModelIndex thisIndex = proxyModel->mapToSource(index);
     ldapcore::CLdapEntry* thisEntry = static_cast<ldapcore::CLdapEntry*>(thisIndex.internalPointer());
     if (thisEntry)
     {
-        if(thisEntry->isLoaded() && thisEntry->children().isEmpty())
+        if (thisEntry->isLoaded() && thisEntry->children().isEmpty())
+        {
             return;
+        }
     }
     QTreeView::drawBranches(painter, rect, index);
 }
@@ -84,30 +102,27 @@ void CLdapTreeView::onNewEntry()
     }
 
 
-    QVector<QString> classes = m_LdapData.schema().consistentClassesByStructuralAndOther(dialog.structuralClass(), dialog.selectedClasses());
+    QStringList classes = m_LdapData.schema().consistentClassesByStructuralAndOther(dialog.structuralClass(), dialog.selectedClasses());
 
     QString rdn = dialog.rdn();
     std::string delim = "=";
     auto v = split(rdn.toStdString(), delim);
     std::map<std::string, std::string> a2v;
-    QStringList list;
-    for (auto cl: classes)
-        list << cl;
-    a2v["objectClass"] = list.join(";").toStdString();
     if (v.size() > 1)
     {
         a2v[v[0]] = v[1];
     }
-
     QVector<ldapcore::CLdapAttribute> all_attributes = m_LdapData.schema().attributeByClasses(classes, a2v);
     QVector<ldapcore::CLdapAttribute> newEntryAttributes ;
-    for(ldapcore::CLdapAttribute& a: all_attributes)
+    for (ldapcore::CLdapAttribute& a : all_attributes)
     {
-        if(!a.isMust() && a.value().isEmpty())
+        if (!a.isMust() && a.value().isEmpty())
+        {
             continue;
+        }
 
         a.setIsIgnore(a.isMust() && a.value().isEmpty());
-        QVector<QString> attrClasses;
+        QStringList attrClasses;
         attrClasses = m_LdapData.schema().classesByAttributeName(a.name().toStdString(), classes);
         a.setClasses(attrClasses);
         newEntryAttributes.push_back(a);
@@ -138,71 +153,45 @@ void CLdapTreeView::onEditEntry()
     QVector<ldapcore::CLdapAttribute> reallyAttributes;
     thisEntry->loadAttributes(reallyAttributes);
 
-    auto fObjectClass = std::find_if(reallyAttributes.begin(), reallyAttributes.end(), [&](const ldapcore::CLdapAttribute& a)
-    {
-        return a.name().compare("objectClass", Qt::CaseInsensitive) == 0;
-    });
-
     QString fStructuralObjectClass = thisEntry->structuralClass();
-
-    if (fObjectClass == reallyAttributes.end())
-    {
-        QMessageBox::critical(this, tr("Edit Entry Error"), tr("No found attribut 'objectClass'"), QMessageBox::Ok);
-        return;
-    }
     if (fStructuralObjectClass.isEmpty())
     {
-        QMessageBox::critical(this, tr("Edit Entry Error"), tr("'structuralObjectClass' is not found"),QMessageBox::Ok);
+        QMessageBox::critical(this, tr("Edit Entry Error"), tr("'structuralObjectClass' is not found"), QMessageBox::Ok);
         return;
     }
 
     auto structuralObjectClass = fStructuralObjectClass.toStdString();
     std::string delim = ";";
 
-    QVector<QString> originalClasses = thisEntry->classes();
-    QVector<QString> auxEntryClasses = thisEntry->auxiliaryClasses();
-    QVector<QString> structClasses            ;
+    QStringList originalClasses = thisEntry->classes();
+    QStringList auxEntryClasses = thisEntry->auxiliaryClasses();
+    QStringList structClasses;
     std::vector<std::string> auxClasses;
-    for(QString c: auxEntryClasses)
+    for (QString c : auxEntryClasses)
     {
-         auxClasses.push_back(c.toStdString());
+        auxClasses.push_back(c.toStdString());
     }
 
     // fill struct classes
-    std::for_each(originalClasses.constBegin(), originalClasses.constEnd(), [&structClasses,&auxClasses](const QString& c){
-      if(std::find(auxClasses.begin(),auxClasses.end(),c.toStdString()) == auxClasses.end())
-          structClasses.append(c);
+    std::for_each(originalClasses.constBegin(), originalClasses.constEnd(), [&structClasses, &auxClasses](const QString & c)
+    {
+        if (std::find(auxClasses.begin(), auxClasses.end(), c.toStdString()) == auxClasses.end())
+        {
+            structClasses.append(c);
+        }
     });
 
-    QString dn = thisEntry->dn();
+    QString dn = thisEntry->parent()->dn();
     QString rdn = thisEntry->rDn();
-    ldapeditor::CLdapNewEntryDialog dialog(nullptr, dn, rdn, structuralObjectClass, auxClasses, m_LdapData);
+    ldapeditor::CLdapNewEntryDialog dialog(nullptr, dn, rdn, structuralObjectClass, auxClasses, m_LdapData, thisEntry);
     if (dialog.exec() == QDialog::Rejected)
     {
         return;
     }
     QVector<ldapcore::CLdapAttribute> theseAttributes;
     thisEntry->loadAttributes(theseAttributes, false);
-
-    auto fDelete = std::find_if(theseAttributes.begin(), theseAttributes.end(), [&](const ldapcore::CLdapAttribute& a) {
-        return a.name().compare("objectClass", Qt::CaseInsensitive) == 0;
-    });
-
-    if (theseAttributes.end() != fDelete)
-        theseAttributes.remove(std::distance(theseAttributes.begin(), fDelete));
-
-    QVector<QString> newClasses = structClasses ;
+    QStringList newClasses = structClasses ;
     newClasses << dialog.selectedClasses();
-
-    auto fObjectClassToUpdate = std::find_if(thisEntry->attributes()->begin(), thisEntry->attributes()->end(), [&](const ldapcore::CLdapAttribute& a)
-    {
-        return a.name().compare("objectClass", Qt::CaseInsensitive) == 0;
-    });
-    if(fObjectClassToUpdate != thisEntry->attributes()->end())
-    {
-        fObjectClassToUpdate->setClasses(newClasses);
-    }
-
 
     std::map<std::string, std::string> a2v;
     auto prevAttributes = m_LdapData.schema().attributeByClasses(originalClasses, a2v);
@@ -211,11 +200,13 @@ void CLdapTreeView::onEditEntry()
     // delete attributes, which are not needed now
     for (auto& thisA : theseAttributes)
     {
-        auto bPrev = std::find_if(prevAttributes.begin(), prevAttributes.end(), [&](const ldapcore::CLdapAttribute& a) {
+        auto bPrev = std::find_if(prevAttributes.begin(), prevAttributes.end(), [&](const ldapcore::CLdapAttribute & a)
+        {
             return a.name().compare(thisA.name(), Qt::CaseInsensitive) == 0;
         }) != prevAttributes.end();
 
-        auto bCurr = std::find_if(currAttributes.begin(), currAttributes.end(), [&](const ldapcore::CLdapAttribute& a) {
+        auto bCurr = std::find_if(currAttributes.begin(), currAttributes.end(), [&](const ldapcore::CLdapAttribute & a)
+        {
             return a.name().compare(thisA.name(), Qt::CaseInsensitive) == 0;
         }) != currAttributes.end();
 
@@ -235,7 +226,8 @@ void CLdapTreeView::onEditEntry()
     for (auto& currA : currAttributes)
     {
 
-        auto bThese = std::find_if(theseAttributes.begin(), theseAttributes.end(), [&](const ldapcore::CLdapAttribute& a) {
+        auto bThese = std::find_if(theseAttributes.begin(), theseAttributes.end(), [&](const ldapcore::CLdapAttribute & a)
+        {
             return a.name().compare(a.name(), Qt::CaseInsensitive) == 0;
         }) != theseAttributes.end();
 
@@ -246,7 +238,7 @@ void CLdapTreeView::onEditEntry()
         }
     }
 
-    thisEntry->setClasses(newClasses);
+    thisEntry->setClasses(newClasses, true);
     thisEntry->setEditable(true);
 }
 
@@ -265,7 +257,7 @@ void CLdapTreeView::onDeleteEntry()
         return;
     }
 
-    auto ret = QMessageBox::question(this, tr("Question"), QString(tr("Do you really want to delete '%1' entry?").arg(thisEntry->dn())), QMessageBox::Yes|QMessageBox::No);
+    auto ret = QMessageBox::question(this, tr("Question"), QString(tr("Do you really want to delete '%1' entry?").arg(thisEntry->dn())), QMessageBox::Yes | QMessageBox::No);
     if (ret != QMessageBox::Yes)
     {
         return;
@@ -282,14 +274,83 @@ void CLdapTreeView::onDeleteEntry()
     }
 
     QModelIndex parent = index.parent();
-    if(model()->removeRows(index.row(), 1, parent))
+    if (model()->removeRows(index.row(), 1, parent))
     {
         setCurrentIndex(parent);
         scrollTo(parent, QAbstractItemView::PositionAtCenter);
     }
 }
 
-void  CLdapTreeView::expand(const QModelIndex &index)
+void CLdapTreeView::onChangePassword()
+{
+    CChangePasswordDialog dlg;
+    if(dlg.exec() != QDialog::Accepted)
+        return;
+
+    QAction* a = qobject_cast<QAction*>(sender());
+    QModelIndex i = a->data().toModelIndex();
+    ldapcore::CLdapEntry* thisEntry = static_cast<ldapcore::CLdapEntry*>(i.internalPointer());
+
+
+    QString user = thisEntry->dn();
+    QString newPassword = dlg.password();
+    try
+    {
+        m_LdapData.changeUserPassword(thisEntry, user, newPassword);
+
+        QMessageBox::information(this, tr("Change password"),
+                              QString(tr("Success of changing password for item '%1'")).arg(user), QMessageBox::Ok);
+    }
+    catch(const std::exception& e)
+    {
+        QMessageBox::critical(this, tr("Change password"),
+                              QString(tr("Failed of changing password for item '%1': %2")).arg(user).arg(e.what()),
+                              QMessageBox::Ok);
+    }
+}
+
+void CLdapTreeView::onEnableUser()
+{
+    QAction* a = qobject_cast<QAction*>(sender());
+    QModelIndex index = a->data().toModelIndex();
+    if(!index.isValid())
+        return;
+
+    ldapcore::CLdapEntry* entry = static_cast<ldapcore::CLdapEntry*>(index.internalPointer());
+    if(!entry)
+        return;
+
+    if(entry->userEnabled())
+        m_LdapData.server().disableUser(*entry);
+    else
+        m_LdapData.server().enableUser(*entry);
+    update(index);
+}
+
+void CLdapTreeView::onManageUsersInGroup()
+{
+    emit manageUsersInGroup();
+}
+
+void CLdapTreeView::onNewAttribute()
+{
+    QAction* a = qobject_cast<QAction*>(sender());
+    QModelIndex index = a->data().toModelIndex();
+    if(!index.isValid())
+        return;
+
+    ldapcore::CLdapEntry* entry = static_cast<ldapcore::CLdapEntry*>(index.internalPointer());
+    if(!entry)
+        return;
+
+    ldapeditor::CLdapNewAttributeDialog dlg(m_LdapData, entry);
+    if(dlg.exec() == QDialog::Accepted)
+    {
+        emit onAddAttribute(dlg.attribute());
+    }
+}
+
+void  CLdapTreeView::expand(const QModelIndex& index)
 {
     if (!index.isValid())
     {
@@ -308,7 +369,7 @@ void  CLdapTreeView::expand(const QModelIndex &index)
         return;
     }
 
-    if(!thisEntry->isLoaded())
+    if (!thisEntry->isLoaded())
     {
         CLdapTreeProxyModel* proxyModel = static_cast<CLdapTreeProxyModel*>(model());
         auto size = thisEntry->children().size();
@@ -324,13 +385,46 @@ void  CLdapTreeView::expand(const QModelIndex &index)
 
 void CLdapTreeView::customContextMenuRequested(QPoint pos)
 {
+    QModelIndex modelIndex = static_cast<CLdapTreeProxyModel*>(model())->mapToSource(indexAt(pos));
+    if(!modelIndex.isValid()) return;
+
+   m_newAttr->setData(modelIndex);
+
+    m_changePassword->setVisible(false);
+    m_enableUser->setVisible(false);
+    m_manageUsersInGroup->setVisible(false);
+
+    ldapcore::CLdapEntry* entry = static_cast<ldapcore::CLdapEntry*>(modelIndex.internalPointer());
+    // check is root item clicked - no context menu to show
+    if(!entry->parent()) return;
+
+    if(entry->kind() == ldapcore::DirectoryKind::User)
+    {
+        m_changePassword->setVisible(true);
+        m_changePassword->setData(modelIndex);
+
+        if(entry->userEnabled())
+        {
+            m_enableUser->setText(tr("Disable user"));
+        }
+        else
+        {
+            m_enableUser->setText(tr("Enable user"));
+        }
+        m_enableUser->setVisible(true);
+        m_enableUser->setData(modelIndex);
+    }
+    else if(entry->kind() == ldapcore::DirectoryKind::Group)
+    {
+        m_manageUsersInGroup->setVisible(true);
+    }
+
     m_contextMenu.popup(viewport()->mapToGlobal(pos));
 }
 
 std::tuple<QModelIndex, ldapcore::CLdapEntry*> CLdapTreeView::findByDn(QString dn)
 {
     QTreeView& tv(*this);
-   // QModelIndex modelIndex = tv.indexAt(tv.rect().topLeft());
     QModelIndex modelIndex = static_cast<CLdapTreeProxyModel*>(model())->mapToSource(tv.indexAt(tv.rect().topLeft()));
     while (modelIndex.isValid())
     {

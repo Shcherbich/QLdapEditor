@@ -7,9 +7,10 @@ File contains  implementation for LDAP tree models
 
 #include "ldaptreemodel.h"
 #include "ldapeditordefines.h"
+#include "CLdapData.h"
 #include "CLdapEntry.h"
-
 #include <QIcon>
+#include <QBrush>
 
 namespace ldapeditor
 {
@@ -20,8 +21,9 @@ namespace ldapeditor
         return dnLeft.compare(dnRight, Qt::CaseInsensitive) < 0;
     }
 
-    CLdapTreeModel::CLdapTreeModel(const QString &baseDN, QObject *parent)
+    CLdapTreeModel::CLdapTreeModel(ldapcore::CLdapData &ldapData, QObject *parent)
         : QAbstractItemModel(parent)
+        , m_LdapData(ldapData)
         //, m_baseDN(baseDN)
     {
        // m_invisibleRoot = new tLdapItem(QString(), QString());
@@ -96,38 +98,42 @@ namespace ldapeditor
 
         // FIXME: Implement me!
         if (index.column() != 0) return QVariant();
-        ldapcore::CLdapEntry* item = static_cast<ldapcore::CLdapEntry*>(index.internalPointer());
-        if(!item) return QVariant();
+        ldapcore::CLdapEntry* entry = static_cast<ldapcore::CLdapEntry*>(index.internalPointer());
+        if(!entry) return QVariant();
 
         if(role == LdapTreeRoles::TreeDnRole)
         {
-            return item->dn();
+            return entry->dn();
         }
         else if(role == Qt::DisplayRole)
         {
-            return item->rDn();
+            return entry->rDn();
         }
         else if(role == Qt::DecorationRole)
         {
-            if(!item->parent()) return QIcon(":/home");
+            if(!entry->parent()) return QIcon(":/home");
 
             QStringList classes;
-            for(auto& c: item->classes())
+            for(auto& c: entry->classes())
                 classes.append(c);
 
             // icon is defined by top + one of other classes
-            if(classes.contains("top",Qt::CaseInsensitive))
+            switch(entry->kind())
             {
-                if(classes.contains("group",Qt::CaseInsensitive))
-                    return QIcon(":/group");
-                else if(classes.contains("person",Qt::CaseInsensitive))
-                    return QIcon(":/person");
-                else if(classes.contains("organizationalUnit",Qt::CaseInsensitive))
-                    return QIcon(":/diagram");
-                else
-                    return QIcon(":/folder");
+            case ldapcore::DirectoryKind::Group:
+                return QIcon(":/group");
+            case ldapcore::DirectoryKind::User:
+                return entry->userEnabled() ? QIcon(":/person") : QIcon(":/person-disable") ;
+            case ldapcore::DirectoryKind::OrganizationalUnit:
+                return QIcon(":/diagram");
+             default:
+                return QIcon(":/folder");
             }
-
+        }
+        else if(role == Qt::ForegroundRole)
+        {
+            if(entry->kind() == ldapcore::DirectoryKind::User && !entry->userEnabled() )
+                return QBrush(Qt::darkGray);
         }
 
         return QVariant();
@@ -177,7 +183,7 @@ namespace ldapeditor
         emit onAddAttribute(name);
     }
 
-    QModelIndex CLdapTreeModel::addNewEntry(QModelIndex parent, QString rdn, QString dn, QVector<QString>& classes, QVector<ldapcore::CLdapAttribute>& attributes)
+    QModelIndex CLdapTreeModel::addNewEntry(QModelIndex parent, QString rdn, QString dn, QStringList& classes, QVector<ldapcore::CLdapAttribute>& attributes)
     {
         ldapcore::CLdapEntry* parentEntry = static_cast<ldapcore::CLdapEntry*>(parent.internalPointer());
         if (!parentEntry)
@@ -190,6 +196,7 @@ namespace ldapeditor
 
         ldapcore::CLdapEntry* addEntry = new ldapcore::CLdapEntry(parentEntry, rdn, dn, classes, nullptr);
         addEntry->addAttributes(attributes);
+        addEntry->setClasses(classes, true);
 
         beginInsertRows(parent, row, row + count - 1);
         parentEntry->addChild(addEntry);

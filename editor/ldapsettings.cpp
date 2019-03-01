@@ -7,16 +7,25 @@ File contains  implementation for application settings class
 
 #include "ldapsettings.h"
 #include "ldapeditordefines.h"
-
+#include "ldapeditordefines.h"
 
 namespace ldapeditor
 {
-    CLdapSettings::CLdapSettings(QObject* parent):
-        QSettings(QSettings::IniFormat, QSettings::UserScope, OrganizationName, ApplicationName, parent)
+    CLdapSettings::CLdapSettings(QString configFile, QObject* parent):
+        QSettings(configFile, QSettings::IniFormat, parent)
       , m_crypto(Q_UINT64_C(0x208babde2123560e))
+      , m_configFile{configFile}
     {
 
     }
+
+//    CLdapSettings::CLdapSettings(QObject* parent):
+//        QSettings(QSettings::IniFormat, QSettings::UserScope, QString(OrganizationName), QString(), parent)
+//      , m_crypto(Q_UINT64_C(0x208babde2123560e))
+//    {
+
+//    }
+
     QString CLdapSettings::name() const
     {
         return readString("name","connection");
@@ -143,7 +152,7 @@ namespace ldapeditor
         return readInt("timeout", "connection", 15);
     }
 
-    void CLdapSettings::sync()
+    void CLdapSettings::saveSettings()
     {
         QSettings::sync();
     }
@@ -218,6 +227,17 @@ namespace ldapeditor
     void CLdapSettings::setColumnSize(int w)
     {
         return writeInt("columnSize", "attrList",w);
+    }
+
+
+    QString CLdapSettings::findUsersBaseDN() const
+    {
+        return QString{"CN=Users,DC=sc4i,DC=local"};
+    }
+
+    QString     CLdapSettings::findUsersFilter() const
+    {
+        return QString{"objectClass=user"};
     }
 
     QString CLdapSettings::makeKey(const QString& key, const QString& section) const

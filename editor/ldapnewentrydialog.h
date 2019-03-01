@@ -48,11 +48,13 @@ namespace ldapeditor
          * \param structuralClass structural class string
          * \param auxClasses array of auxiliary classes
          * \param ldapData reference to ldapcore::CLdapData
+         * \param entry pointer to ldapcore::CLdapEntry
          *
          * Used for editing LDAP entity
          */
         explicit CLdapNewEntryDialog(QWidget *parent, QString dn, QString rdn, std::string& structuralClass,
-                                     std::vector<std::string>& auxClasses,  ldapcore::CLdapData& ldapData);
+                                     std::vector<std::string>& auxClasses,
+                                     ldapcore::CLdapData& ldapData, ldapcore::CLdapEntry* entry);
 
         /*!
         * @brief Destructor of   CLdapNewEntryDialog class
@@ -67,9 +69,9 @@ namespace ldapeditor
 
         /*!
          * \brief returns array of names for selected auxiliary claases
-         * \return QVector<QString>
+         * \return QStringList
          */
-        QVector<QString> selectedClasses() const;
+        QStringList selectedClasses() const;
 
         /*!
          * \brief returns name of structural class
@@ -95,16 +97,6 @@ namespace ldapeditor
         void onOkClicked();
 
         /*!
-         * \brief Protected slot, called when user adds auxiliary class to selected list
-         */
-        void onAddClicked();
-
-        /*!
-         * \brief Protected slot, called when user removes auxiliary class from selected list
-         */
-        void onRemoveClicked();
-
-        /*!
          * \brief Protected slot, called when user changed structural class in combobox
          */
         void onStructuralComboChanged(const QString&);
@@ -112,10 +104,12 @@ namespace ldapeditor
     private:
         Ui::CLdapNewEntryDialog* ui;        ///< pointer to UI implementation
         QString          m_rdn;             ///< RDN string member
-        QVector<QString> vSelectedClasses;  ///< array of selected auxiliary classes
+        QStringList vSelectedClasses;  ///< array of selected auxiliary classes
         ldapcore::CLdapData& m_LdapData;    ///< CLDapData reference member
         QString          m_structuralClass; ///< Structural class string
+        ldapcore::CLdapEntry* m_entry{nullptr}; ///< CLdapEntry pointer member
         bool m_editMode {false};            /// is dialof in Edit (true) ot Add New (false) entity mode
+
     };
 }//namespace ldapeditor
 
