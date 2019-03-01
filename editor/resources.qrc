@@ -13,5 +13,8 @@
         <file alias="search">images/search.png</file>
         <file alias="network">images/wifi.png</file>
         <file alias="person-disable">images/user-disable.png</file>
+        <file alias="unlocked">images/unlocked.png</file>
+        <file alias="locked">images/locked.png</file>
+        <file alias="edit">images/edit.png</file>
     </qresource>
 </RCC>

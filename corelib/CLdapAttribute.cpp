@@ -27,7 +27,7 @@ CLdapAttribute::CLdapAttribute(const CLdapAttribute& src)
 		m_Value = src.m_Value;
 		m_Type = src.m_Type;
 		m_editState = src.m_editState;
-		m_isModified = src.isModified();
+        m_isModified = src.m_isModified;
         m_isMust = src.m_isMust;
         m_Description = src.m_Description;
         m_Classes << src.m_Classes;
@@ -56,7 +56,7 @@ CLdapAttribute& CLdapAttribute::operator = (const CLdapAttribute& src)
     m_Value = src.m_Value;
     m_Type = src.m_Type;
     m_editState = src.m_editState;
-    m_isModified = src.isModified();
+    m_isModified = src.m_isModified;
     m_isMust = src.m_isMust;
     m_Description = src.m_Description;
     m_Classes << src.m_Classes;
@@ -70,7 +70,7 @@ CLdapAttribute& CLdapAttribute::operator = (CLdapAttribute&& src)
     m_Value = std::move(src.m_Value);
     m_Type = src.m_Type;
     m_editState = src.m_editState;
-    m_isModified = src.isModified();
+    m_isModified = src.m_isModified;
     m_isMust = src.m_isMust;
     m_Description = src.m_Description;
     m_Classes = std::move(src.m_Classes);
