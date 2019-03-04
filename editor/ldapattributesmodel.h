@@ -46,6 +46,14 @@ protected:
      * @return true if sourceRow should be shown in view, and false if not
      */
     virtual bool filterAcceptsRow(int sourceRow,  const QModelIndex &sourceParent) const;
+
+    /*!
+     * @brief Protected method, used for sort model itens
+     * @param source_left - 1st model item
+     * @param source_right - 2nd model item
+     * @return true if source_left should be placed before source_right, and false if not
+     */
+    virtual bool lessThan(const QModelIndex &source_left, const QModelIndex &source_right) const;
 };
 
 

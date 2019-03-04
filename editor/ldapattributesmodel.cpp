@@ -28,6 +28,13 @@ bool CLdapAttributesProxyModel::filterAcceptsRow(int sourceRow,  const QModelInd
   return true;
 }
 
+bool CLdapAttributesProxyModel::lessThan(const QModelIndex &source_left, const QModelIndex &source_right) const
+{
+    QString strLeft = sourceModel()->data(source_left,Qt::DisplayRole).toString();
+    QString strRight = sourceModel()->data(source_right,Qt::DisplayRole).toString();
+    return strLeft.compare(strRight, Qt::CaseInsensitive) < 0;
+}
+
 
 CLdapAttributesModel::CLdapAttributesModel(ldapcore::CLdapData& ldapData, QObject* parent)
     : QAbstractTableModel(parent)

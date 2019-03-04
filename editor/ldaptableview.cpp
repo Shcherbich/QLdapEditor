@@ -244,7 +244,12 @@ namespace ldapeditor
     {
         m_attrList->horizontalHeader()->setDefaultSectionSize(100);
         m_attrList->horizontalHeader()->setStretchLastSection(true);
+        m_attrList->horizontalHeader()->setSortIndicatorShown(true);
         m_attrList->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+
+        connect(m_attrList->horizontalHeader(), &QHeaderView::sortIndicatorChanged, [this](int logicalIndex, Qt::SortOrder order){
+           this->m_attrList->sortByColumn(logicalIndex, order);
+        });
 
         m_filterEdit->setPlaceholderText("Attribute name/value filter");
         m_filterEdit->setClearButtonEnabled(true);
