@@ -1,8 +1,43 @@
 # QLdapEditor
 LDAP Editor based on Qt and ldapc++ wrapper
 
-It's the 1st demo version of LDAP Editor application built with Qt 5.9.2 and openldap cpp sources.
-Prepare development environment for CentOS7
+## Feature list
+### Connection to LDAP server
+* Connect to LDAP server using different settings
+  * Anonymous connection
+  * Simple authenticated connection
+  * TLS authenticated connection 
+* Save last used successful connection settings
+* load last used succesful connection settings on start
+* Reconnect to server
+### Browse and edit LDAP tree entities
+* Add entity to LDAP tree
+* Edit entity in LDAP tree
+* Delete entity in LDAP tree 
+* Refresh LDAP entities tree
+* Save/Reject done changes on LDAP server
+* Load LDAP tree iteratively by expand tree item action
+### Browse anf edit LDAP attributes list
+* Add attribute
+* Delete attribute
+* Using different colors for show May/Must attributes
+* Using icon for show editable data
+### Search LDAP data
+* Setup base DN for search
+* Setup entity filter for search
+* Setup list of attributes to be return
+### Manage LDAP User and Group 
+* Create user entity
+* Change password for user by administrator
+* Manage members list (add/remove) in groups
+* Lock/Inlock user's account on LDAP server with indication by icon
+### Setup package
+* Support of RPM setup package for CentOS7
+* Adding application into 'Utilities' Main menu's group (Gnome/KDE) after installtion 
+ 
+
+
+## Prepare development environment for CentOS7
 - $sudo yum -y install epel-release
 - $sudo yum -y install cmake3
 - $sudo yum -y install qt5-qtbase-devel
@@ -12,6 +47,4 @@ Prepare development environment for CentOS7
 - $chmod a+x ./qt-opensource-linux-x64-5.8.2.run
 - $./qt-opensource-linux-x64-5.8.2.run
 
-
 [Fortress LDAP Schema and Config](https://github.com/apache/directory-fortress-core/tree/master/ldap) for reference.
-
