@@ -86,14 +86,13 @@ MainWindow::MainWindow(CLdapSettings& settings, ldapcore::CLdapData& ldapData, Q
     m_AttributesList = new CLdapTableView(this, m_LdapData, m_Settings);
 
     setCentralWidget(m_AttributesList);
-    m_AttributesList->horizontalHeader()->setDefaultSectionSize(100);
-    m_AttributesList->horizontalHeader()->setStretchLastSection(true);
+
 
     m_TreeModel->setTopItems(m_LdapData.topList());
 
     m_TableModel->setBaseDN(baseDN);
     m_AttributesList->setModel(m_TableModel);
-    m_AttributesList->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+
     m_AttributesList->RestoreView();
 
     m_TreeProxyModel->setDynamicSortFilter(true);

@@ -14,12 +14,16 @@ File contains  declarations for LDAP attributes view class
 #include <QMenu>
 #include <QAction>
 #include <QMouseEvent>
+#include <QVBoxLayout>
 #include "ldapdataeditdelegate.h"
 #include "CLdapEntry.h"
 #include "ldapsettings.h"
 
 namespace ldapeditor
 {
+    class CLdapAttributesProxyModel;
+    class CLdapAttributesModel;
+
     /*!
      * @ingroup ldapeditor
      * @brief LDAP attributes view class
@@ -27,7 +31,7 @@ namespace ldapeditor
      * Class provides LDAP attributes view functionality
      *
      */
-    class CLdapTableView : public QTableView
+    class CAttributesList : public QTableView
     {
         Q_OBJECT
     public:
@@ -37,7 +41,7 @@ namespace ldapeditor
          * \param parent pointer to parent QWidget
          * \param s  reference to CLdapSettings
          */
-        explicit CLdapTableView(QWidget *parent, ldapcore::CLdapData&, CLdapSettings& s);
+        explicit CAttributesList(QWidget *parent, ldapcore::CLdapData&, CLdapSettings& s);
 
         /*!
          * \brief Method sets pointer to CLdapEntry
@@ -63,7 +67,7 @@ namespace ldapeditor
          * \brief Public slot, called when user requested show of Context menu on item
          * \param pos position in view for context menu
          */
-        void customContextMenuRequested(QPoint pos);
+      //  void customContextMenuRequested(QPoint pos);
 
         /*!
          * \brief Public slot, called by 'Manage User in group' action
@@ -73,6 +77,13 @@ namespace ldapeditor
         void onManageUsersInGroup();
 
     protected slots:
+
+        /*!
+         * \brief Public slot, called when user requested show of Context menu on item
+         * \param pos position in view for context menu
+         */
+        void customContextMenuRequested(QPoint pos);
+
         /*!
          * \brief Protected slot, called by 'New Attribute' action
          */
@@ -120,5 +131,59 @@ namespace ldapeditor
         ldapcore::CLdapEntry* m_entry{nullptr};     ///< CLdapEntry data pointer
     };
 
+    /*!
+     * @ingroup ldapeditor
+     * @brief LDAP view class
+     *
+     * Class provides LDAP attributes view functionality
+     *
+     */
+    class CLdapTableView : public QWidget
+    {
+        Q_OBJECT
+    public:
+
+        /*!
+         * \brief Constructor CLdapTableView
+         * \param parent pointer to parent QWidget
+         * \param s  reference to CLdapSettings
+         */
+        explicit CLdapTableView(QWidget *parent, ldapcore::CLdapData&, CLdapSettings& s);
+
+        void setModel(QAbstractItemModel *model);
+
+        /*!
+         * \brief Method sets pointer to CLdapEntry
+         * \param entry pointer to CLdapSettings
+         */
+        void setLdapEntry(ldapcore::CLdapEntry* entry);
+
+        /*!
+         * \brief Method restores view settings
+         */
+        void RestoreView();
+
+        /*!
+         * \brief Method saves attributes data
+         * \return true if data saved, false - if not
+         */
+        bool SaveData();
+
+    public slots:
+
+        /*!
+         * \brief Public slot, called by 'Manage User in group' action
+         *
+         * Also can be called by manageUserIngroup signal from CLdapTree view
+         */
+        void onManageUsersInGroup();
+
+
+    protected:
+        QVBoxLayout*     m_layout {nullptr};    ///< layout controls member
+        QLineEdit*       m_filterEdit{nullptr}; ///< filter edit  member
+        CAttributesList* m_attrList{nullptr};   ///< attributes list member
+        CLdapAttributesProxyModel* m_proxyModel{nullptr};
+    };
 } //namespace ldapeditor
 #endif // LDAPTABLEVIEW_H

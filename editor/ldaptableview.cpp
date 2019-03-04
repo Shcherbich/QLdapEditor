@@ -8,6 +8,7 @@ File contains  implementations for LDAP attributes view class
 #include "ldapeditordefines.h"
 #include "CLdapAttribute.h"
 #include <QHeaderView>
+#include <QLineEdit>
 
 #include "ldapattributesmodel.h"
 #include "ldapnewattributedialog.h"
@@ -15,7 +16,7 @@ File contains  implementations for LDAP attributes view class
 
 namespace ldapeditor
 {
-    CLdapTableView::CLdapTableView(QWidget *parent, ldapcore::CLdapData& ldapData, CLdapSettings& s)
+    CAttributesList::CAttributesList(QWidget *parent, ldapcore::CLdapData& ldapData, CLdapSettings& s)
         : QTableView(parent), m_LdapData(ldapData), m_LdapSettings(s)
     , m_ldapDataDelegate(this)
     , m_defaultDelegate(this)
@@ -29,17 +30,17 @@ namespace ldapeditor
         setSelectionBehavior(QAbstractItemView::SelectRows);
         setSortingEnabled(false);
 
-        connect(m_newAttr, &QAction::triggered, this, &CLdapTableView::onNewAttribute);
-        connect(m_delAttr, &QAction::triggered, this, &CLdapTableView::onDeleteAttribute);
+        connect(m_newAttr, &QAction::triggered, this, &CAttributesList::onNewAttribute);
+        connect(m_delAttr, &QAction::triggered, this, &CAttributesList::onDeleteAttribute);
 
         m_contextMenu.addAction(m_newAttr);
         m_contextMenu.addAction(m_delAttr);
 
         setContextMenuPolicy(Qt::CustomContextMenu);
-        connect(this, &QTableView::customContextMenuRequested, this, &CLdapTableView::customContextMenuRequested);
+        connect(this, &QTableView::customContextMenuRequested, this, &CAttributesList::customContextMenuRequested);
     }
 
-    void CLdapTableView::setLdapEntry(ldapcore::CLdapEntry* entry)
+    void CAttributesList::setLdapEntry(ldapcore::CLdapEntry* entry)
     {
         m_entry = entry;
         m_ldapDataDelegate.setLdapEntry(m_entry);
@@ -50,7 +51,7 @@ namespace ldapeditor
             showColumn(static_cast<int>(AttributeColumn::Ignore));
     }
 
-    void CLdapTableView::RestoreView()
+    void CAttributesList::RestoreView()
     {
         setColumnWidth(static_cast<int>(AttributeColumn::Ignore), m_LdapSettings.columnIgnore());
         setColumnWidth(static_cast<int>(AttributeColumn::Name), m_LdapSettings.columnDn());
@@ -63,10 +64,10 @@ namespace ldapeditor
         hideColumn(static_cast<int>(AttributeColumn::Name));
         hideColumn(static_cast<int>(AttributeColumn::Size));
 
-        connect(horizontalHeader(), &QHeaderView::sectionResized, this, &CLdapTableView::OnHeaderChanged);
+        connect(horizontalHeader(), &QHeaderView::sectionResized, this, &CAttributesList::OnHeaderChanged);
     }
 
-    bool CLdapTableView::edit(const QModelIndex& index, QAbstractItemView::EditTrigger trigger, QEvent* event)
+    bool CAttributesList::edit(const QModelIndex& index, QAbstractItemView::EditTrigger trigger, QEvent* event)
     {
         if(index.column() == static_cast<int>(AttributeColumn::Attribute))
         {
@@ -93,7 +94,7 @@ namespace ldapeditor
         return QTableView::edit(index, trigger, event);
     }
 
-    void CLdapTableView::OnHeaderChanged(int logicalIndex, int oldSize, int newSize)
+    void CAttributesList::OnHeaderChanged(int logicalIndex, int oldSize, int newSize)
     {
         Q_UNUSED(logicalIndex);
         Q_UNUSED(oldSize);
@@ -107,7 +108,7 @@ namespace ldapeditor
        // m_LdapSettings.sync();
     }
 
-    void CLdapTableView::customContextMenuRequested(QPoint pos)
+    void CAttributesList::customContextMenuRequested(QPoint pos)
     {
         const QStringList exludeAttributes{"member","memberOf"};
         QModelIndex index = indexAt(pos);
@@ -127,7 +128,7 @@ namespace ldapeditor
             m_contextMenu.popup(viewport()->mapToGlobal(pos));
     }
 
-    void CLdapTableView::onNewAttribute()
+    void CAttributesList::onNewAttribute()
     {
         ldapeditor::CLdapNewAttributeDialog dlg(m_LdapData, m_entry);
         if(dlg.exec() == QDialog::Accepted)
@@ -140,7 +141,7 @@ namespace ldapeditor
         }
     }
 
-    void CLdapTableView::onDeleteAttribute()
+    void CAttributesList::onDeleteAttribute()
     {
         QAction* a = qobject_cast<QAction*>(sender());
         QModelIndex i = a->data().toModelIndex();
@@ -150,7 +151,7 @@ namespace ldapeditor
         }
     }
 
-    void CLdapTableView::mousePressEvent(QMouseEvent *event)
+    void CAttributesList::mousePressEvent(QMouseEvent *event)
     {
         QModelIndex index = indexAt(event->pos());
         if(index.isValid())
@@ -165,7 +166,7 @@ namespace ldapeditor
         return QTableView::mousePressEvent(event);
     }
 
-    bool CLdapTableView::SaveData()
+    bool CAttributesList::SaveData()
     {
         bool isNew = m_entry->isNew();
         bool bRet = static_cast<CLdapAttributesModel*>(model())->Save();
@@ -176,7 +177,7 @@ namespace ldapeditor
         return bRet;
     }
 
-    void CLdapTableView::onManageUsersInGroup()
+    void CAttributesList::onManageUsersInGroup()
     {
         QStringList originalMembers;
         const QVector<ldapcore::CLdapAttribute>* attrs = m_entry->attributes();
@@ -233,4 +234,56 @@ namespace ldapeditor
         }
     }
 
+
+    CLdapTableView::CLdapTableView(QWidget *parent, ldapcore::CLdapData& ldapData, CLdapSettings& s)
+        : QWidget(parent)
+        , m_layout(new QVBoxLayout)
+        , m_filterEdit(new QLineEdit)
+        , m_attrList(new CAttributesList(this, ldapData, s))
+        , m_proxyModel(new CLdapAttributesProxyModel(this))
+    {
+        m_attrList->horizontalHeader()->setDefaultSectionSize(100);
+        m_attrList->horizontalHeader()->setStretchLastSection(true);
+        m_attrList->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+
+        m_filterEdit->setPlaceholderText("Attribute name/value filter");
+        m_filterEdit->setClearButtonEnabled(true);
+        connect(m_filterEdit, &QLineEdit::textEdited, [this](QString text){
+            if(this->m_proxyModel)
+            {
+                this->m_proxyModel->setFilterCaseSensitivity(Qt::CaseInsensitive);
+                this->m_proxyModel->setFilterRole(Qt::DisplayRole);
+                this->m_proxyModel->setFilterRegExp(text);
+            }
+        });
+
+        m_layout->addWidget(m_filterEdit);
+        m_layout->addWidget(m_attrList);
+        setLayout(m_layout);
+    }
+
+     void CLdapTableView::setModel(QAbstractItemModel *model)
+     {
+         m_proxyModel->setSourceModel(model);
+         m_attrList->setModel(m_proxyModel);
+     }
+
+    void CLdapTableView::setLdapEntry(ldapcore::CLdapEntry* entry)
+    {
+        m_attrList->setLdapEntry(entry);
+    }
+
+    void CLdapTableView::RestoreView()
+    {
+        m_attrList->RestoreView();
+    }
+    bool CLdapTableView::SaveData()
+    {
+        return m_attrList->SaveData();
+    }
+
+    void CLdapTableView::onManageUsersInGroup()
+    {
+        m_attrList->onManageUsersInGroup();
+    }
 } //namespace ldapeditor
