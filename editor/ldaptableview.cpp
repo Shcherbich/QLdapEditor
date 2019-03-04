@@ -244,12 +244,14 @@ namespace ldapeditor
     {
         m_attrList->horizontalHeader()->setDefaultSectionSize(100);
         m_attrList->horizontalHeader()->setStretchLastSection(true);
-        m_attrList->horizontalHeader()->setSortIndicatorShown(true);
-        m_attrList->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+       // m_attrList->horizontalHeader()->setSortIndicatorShown(true);
 
-        connect(m_attrList->horizontalHeader(), &QHeaderView::sortIndicatorChanged, [this](int logicalIndex, Qt::SortOrder order){
-           this->m_attrList->sortByColumn(logicalIndex, order);
-        });
+        m_attrList->setSortingEnabled(true);
+         m_attrList->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+
+//        connect(m_attrList->horizontalHeader(), &QHeaderView::sortIndicatorChanged, [this](int logicalIndex, Qt::SortOrder order){
+//         //  this->m_attrList->sortByColumn(logicalIndex, order);
+//        });
 
         m_filterEdit->setPlaceholderText("Attribute name/value filter");
         m_filterEdit->setClearButtonEnabled(true);
@@ -271,6 +273,11 @@ namespace ldapeditor
      {
          m_proxyModel->setSourceModel(model);
          m_attrList->setModel(m_proxyModel);
+     //    m_proxyModel->sort(static_cast<int>(ldapeditor::AttributeColumn::Attribute), Qt::AscendingOrder);
+     //    m_attrList->horizontalHeader()->setSortIndicator(static_cast<int>(ldapeditor::AttributeColumn::Attribute), Qt::AscendingOrder);
+         m_attrList->sortByColumn(static_cast<int>(ldapeditor::AttributeColumn::Attribute),Qt::AscendingOrder);
+
+
      }
 
     void CLdapTableView::setLdapEntry(ldapcore::CLdapEntry* entry)
