@@ -22,6 +22,7 @@ LDAP Editor based on Qt and ldapc++ wrapper
 * Delete attribute
 * Using different colors for show May/Must attributes
 * Using icon for show editable data
+* Filter and sort data in attributes list
 ### Search LDAP data
 * Setup base DN for search
 * Setup entity filter for search
