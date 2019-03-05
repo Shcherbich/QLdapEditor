@@ -16,5 +16,7 @@
         <file alias="unlocked">images/unlocked.png</file>
         <file alias="locked">images/locked.png</file>
         <file alias="edit">images/edit.png</file>
+        <file alias="branch-open.png">images/stylesheet-branch-open.png</file>
+        <file alias="branch-closed.png">images/stylesheet-branch-closed.png</file>
     </qresource>
 </RCC>

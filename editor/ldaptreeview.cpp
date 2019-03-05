@@ -58,6 +58,16 @@ CLdapTreeView::CLdapTreeView(QWidget* parent, ldapcore::CLdapData& ldapData)
     setRootIsDecorated(false);
     setSortingEnabled(true);
     sortByColumn(0, Qt::SortOrder::AscendingOrder);
+
+    QString style;
+    style += "QTreeView::branch:has-siblings:!adjoins-item{ border-image: url(none.png);}";
+    style += "QTreeView::branch:has-siblings:adjoins-item{ border-image: url(none.png);}";
+    style += "QTreeView::branch:!has-children:!has-siblings:adjoins-item{ border-image: url(none.png);}";
+    style += "QTreeView::branch:open:has-children:!has-siblings{ border-image: none; image: url(:/branch-open.png);}";
+    style += "QTreeView::branch:open:has-children:has-siblings{ border-image: none; image: url(:/branch-open.png);}";
+    style += "QTreeView::branch:has-children:!has-siblings:closed{ border-image: none; image: url(:/branch-closed.png);}";
+    style += "QTreeView::branch:closed:has-children:has-siblings{ border-image: none; image: url(:/branch-closed.png);}";
+    setStyleSheet(style);
 }
 
 void CLdapTreeView::currentChanged(const QModelIndex& current, const QModelIndex& previous)
