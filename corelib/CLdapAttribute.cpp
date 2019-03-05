@@ -10,8 +10,8 @@ CLdapAttribute::CLdapAttribute()
 
 }
 
-CLdapAttribute::CLdapAttribute(QString name, QString value, AttrType type, bool isMust, QString desc, QStringList& classes, AttributeState editState)
-    : m_Name(name), m_Value(value), m_Type(type), m_isMust(isMust), m_Description(desc), m_Classes(classes), m_editState(editState)
+CLdapAttribute::CLdapAttribute(QString name, QString value, AttrType type, bool isMust, QString desc, QStringList& classes, bool isSingle, AttributeState editState)
+    : m_Name(name), m_Value(value), m_Type(type), m_isMust(isMust), m_isSingle(isSingle), m_Description(desc), m_Classes(classes), m_editState(editState)
 {
 	if (m_editState == AttributeState::AttributeReadWrite)
 	{
@@ -29,6 +29,7 @@ CLdapAttribute::CLdapAttribute(const CLdapAttribute& src)
 		m_editState = src.m_editState;
         m_isModified = src.m_isModified;
         m_isMust = src.m_isMust;
+        m_isSingle = src.m_isSingle;
         m_Description = src.m_Description;
         m_Classes << src.m_Classes;
         m_isIgnore = src.m_isIgnore;
@@ -40,6 +41,7 @@ CLdapAttribute::CLdapAttribute(CLdapAttribute&& temp)
    m_Value(std::move(temp.m_Value)),
    m_Type(temp.m_Type),
    m_isMust(temp.m_isMust),
+   m_isSingle(temp.m_isSingle),
    m_Description(std::move(temp.m_Description)),
    m_Classes(std::move(temp.m_Classes)),
    m_editState(temp.m_editState),
@@ -58,6 +60,7 @@ CLdapAttribute& CLdapAttribute::operator = (const CLdapAttribute& src)
     m_editState = src.m_editState;
     m_isModified = src.m_isModified;
     m_isMust = src.m_isMust;
+    m_isSingle = src.m_isSingle;
     m_Description = src.m_Description;
     m_Classes << src.m_Classes;
     m_isIgnore = src.m_isIgnore;
@@ -72,6 +75,7 @@ CLdapAttribute& CLdapAttribute::operator = (CLdapAttribute&& src)
     m_editState = src.m_editState;
     m_isModified = src.m_isModified;
     m_isMust = src.m_isMust;
+    m_isSingle = src.m_isSingle;
     m_Description = src.m_Description;
     m_Classes = std::move(src.m_Classes);
     m_isIgnore = src.m_isIgnore;
@@ -106,6 +110,11 @@ bool CLdapAttribute::isModified() const
 bool CLdapAttribute::isMust() const
 {
     return m_isMust;
+}
+
+bool CLdapAttribute::isSingle() const
+{
+    return m_isSingle;
 }
 
 void CLdapAttribute::setName(const QString& name)

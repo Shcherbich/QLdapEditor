@@ -147,14 +147,15 @@ void CLdapSchema::build(LDAPConnection* lc)
 	}
 }
 
-std::tuple<AttrType, bool> CLdapSchema::attributeInfoByName(std::string attrName)
+std::tuple<AttrType, bool, bool> CLdapSchema::attributeInfoByName(std::string attrName)
 {
 	auto f = m_impl->attr2info.find(attrName);
 	if (f != m_impl->attr2info.end())
 	{
-		return std::tuple<AttrType, bool>(std::get<0>(f->second), std::get<1>(f->second));
+        const auto& attributeTypeByName = m_impl->attributesSchema.getAttributeTypeByName(attrName);
+        return std::tuple<AttrType, bool, bool>(std::get<0>(f->second), std::get<1>(f->second), attributeTypeByName.isSingle());
 	}
-	return std::tuple<AttrType, bool> { AttrType::UnknownText, false };
+    return std::tuple<AttrType, bool, bool> {AttrType::UnknownText, false, true};
 }
 
 
@@ -262,7 +263,7 @@ QVector<CLdapAttribute> CLdapSchema::attributeByClasses(QStringList& classes, st
 			auto info = attributeInfoByName(attributeName);
 			auto attr = m_impl->attributesSchema.getAttributeTypeByName(attributeName);
 			QStringList classes;
-			CLdapAttribute a(attributeName.c_str(), v.c_str(), std::get<0>(info), false, attr.getDesc().c_str(), classes,
+            CLdapAttribute a(attributeName.c_str(), v.c_str(), std::get<0>(info), false, attr.getDesc().c_str(), classes, std::get<2>(info),
 			                 v.empty() ? AttributeState::AttributeValueReadWrite : AttributeState::AttributeReadOnly);
 			vector.push_back(a);
 		}
@@ -281,7 +282,7 @@ QVector<CLdapAttribute> CLdapSchema::attributeByClasses(QStringList& classes, st
 			auto info = attributeInfoByName(attributeName);
 			auto attr = m_impl->attributesSchema.getAttributeTypeByName(attributeName);
 			QStringList classes;
-			CLdapAttribute a(attributeName.c_str(), v.c_str(), std::get<0>(info), true, attr.getDesc().c_str(), classes,
+            CLdapAttribute a(attributeName.c_str(), v.c_str(), std::get<0>(info), true, attr.getDesc().c_str(), classes, std::get<2>(info),
 			                 v.empty() ? AttributeState::AttributeValueReadWrite : AttributeState::AttributeReadOnly);
 			vector.push_back(a);
 		}
@@ -333,7 +334,7 @@ QVector<CLdapAttribute> CLdapSchema::mayAttributesByClass(QString cl)
         auto info = attributeInfoByName(attributeName);
         auto attr = m_impl->attributesSchema.getAttributeTypeByName(attributeName);
         QStringList classes;
-        CLdapAttribute a(attributeName.c_str(), "", std::get<0>(info), false, attr.getDesc().c_str(), classes,
+        CLdapAttribute a(attributeName.c_str(), "", std::get<0>(info), false, attr.getDesc().c_str(), classes, std::get<2>(info),
                          AttributeState::AttributeValueReadWrite);
         vector.push_back(a);
     }
@@ -349,7 +350,7 @@ QVector<CLdapAttribute> CLdapSchema::mustAttributesByClass(QString cl)
         auto info = attributeInfoByName(attributeName);
         auto attr = m_impl->attributesSchema.getAttributeTypeByName(attributeName);
         QStringList classes;
-        CLdapAttribute a(attributeName.c_str(), "", std::get<0>(info), true, attr.getDesc().c_str(), classes,
+        CLdapAttribute a(attributeName.c_str(), "", std::get<0>(info), true, attr.getDesc().c_str(), classes, std::get<2>(info),
                          AttributeState::AttributeValueReadWrite);
         vector.push_back(a);
     }
