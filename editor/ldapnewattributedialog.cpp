@@ -33,6 +33,8 @@ CLdapNewAttributeDialog::CLdapNewAttributeDialog(ldapcore::CLdapData& ldapData, 
     ui->labelValue->hide();
     ui->valueEdit->hide();
 
+    m_currentAttributes = m_entry->attributes();
+
     QString structuralClass = m_entry->structuralClass();
     QStringList entryClasses = m_entry->classes();
     QStringList classes = m_LdapData.schema().consistentClassesByStructuralAndOther(structuralClass, entryClasses);
@@ -76,20 +78,37 @@ void CLdapNewAttributeDialog::onCurrentClassChanged(int index)
         });
 
         QSet<QString> attrSet;
-        const QStringList exludeAttributes{"member","memberOf"};
+
         QVector<ldapcore::CLdapAttribute>* entryAttributes = m_entry->attributes();
         for (const auto& a : *entryAttributes)
         {
             attrSet.insert(a.name());
         }
 
+        auto allowAddAttribute = [this](int i)->bool{
+             const QStringList exludeAttributes{"member","memberOf"};
+             const ldapcore::CLdapAttribute& a = this->m_attributes[i];
+             if(exludeAttributes.contains(a.name()))
+                     return false;
+
+             typedef struct _findAttr{
+                 QString findName;
+                 _findAttr(const QString& name){findName = name;}
+                 bool operator()(const ldapcore::CLdapAttribute& ca){
+                     return ca.name() == findName;
+                 }
+             } findAttr;
+             bool attrInCurrent = std::find_if(this->m_currentAttributes->begin(),
+                                               this->m_currentAttributes->end(),
+                                               findAttr(a.name())) != this->m_currentAttributes->end();
+
+             return attrInCurrent ? !a.isSingle() : true;
+        };
+
         for (int i = 0; i < m_attributes.size(); i++)
         {
-            //exlude some attributes
-            if(!exludeAttributes.contains(m_attributes[i].name()))
-            {
+            if(allowAddAttribute(i))
                 ui->attrCombo->addItem(m_attributes[i].name(), i);
-            }
         }
 
         ui->attrCombo->setCurrentIndex(0);
