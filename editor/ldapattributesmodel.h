@@ -9,6 +9,7 @@ File contains  declarations for LDAP Entity's attributes model class
 
 
 #include <QAbstractTableModel>
+#include <QSortFilterProxyModel>
 #include <QStringList>
 #include <QVector>
 #include <QMap>
@@ -19,6 +20,43 @@ File contains  declarations for LDAP Entity's attributes model class
 
 namespace ldapeditor
 {
+/*!
+ * @ingroup ldapeditor
+ * @brief The LDAP attributes proxy model class
+ *
+ * The LDAP attributes list proxy model class, used for providing filterring items
+ */
+class CLdapAttributesProxyModel : public QSortFilterProxyModel
+{
+    Q_OBJECT
+public:
+    /*!
+     * @brief Constructor of CLdapAttributesProxyModel
+     * @param parent pointer to parent QObject
+     */
+    explicit CLdapAttributesProxyModel(QObject *parent = nullptr):QSortFilterProxyModel(parent)
+    {
+    }
+
+protected:
+    /*!
+     * @brief Protected method, used for filtering model itens
+     * @param sourceRow - row model item
+     * @param sourceParent - row model parent item
+     * @return true if sourceRow should be shown in view, and false if not
+     */
+    virtual bool filterAcceptsRow(int sourceRow,  const QModelIndex &sourceParent) const;
+
+    /*!
+     * @brief Protected method, used for sort model itens
+     * @param source_left - 1st model item
+     * @param source_right - 2nd model item
+     * @return true if source_left should be placed before source_right, and false if not
+     */
+    virtual bool lessThan(const QModelIndex &source_left, const QModelIndex &source_right) const;
+};
+
+
 /*!
  * @ingroup ldapeditor
  * @brief LDAP Entity's attributes model class

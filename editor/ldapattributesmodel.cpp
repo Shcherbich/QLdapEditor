@@ -15,6 +15,27 @@ File contains  implementations for LDAP Entity's attributes model class
 
 namespace ldapeditor
 {
+
+bool CLdapAttributesProxyModel::filterAcceptsRow(int sourceRow,  const QModelIndex &sourceParent) const
+{
+  QModelIndex indexAttr = sourceModel()->index(sourceRow, static_cast<int>(ldapeditor::AttributeColumn::Attribute), sourceParent);
+  QModelIndex indexValue = sourceModel()->index(sourceRow, static_cast<int>(ldapeditor::AttributeColumn::Value), sourceParent);
+
+  if(!filterRegExp().isEmpty())
+        return sourceModel()->data(indexAttr).toString().contains(filterRegExp()) ||
+               sourceModel()->data(indexValue).toString().contains(filterRegExp()) ;
+
+  return true;
+}
+
+bool CLdapAttributesProxyModel::lessThan(const QModelIndex &source_left, const QModelIndex &source_right) const
+{
+    QString strLeft = sourceModel()->data(source_left,Qt::DisplayRole).toString();
+    QString strRight = sourceModel()->data(source_right,Qt::DisplayRole).toString();
+    return strLeft.compare(strRight, Qt::CaseInsensitive) < 0;
+}
+
+
 CLdapAttributesModel::CLdapAttributesModel(ldapcore::CLdapData& ldapData, QObject* parent)
     : QAbstractTableModel(parent)
     , m_LdapData(ldapData)
@@ -137,7 +158,10 @@ bool CLdapAttributesModel::setData(const QModelIndex& index, const QVariant& val
                 if (index.column() == static_cast<int>(AttributeColumn::Value)) // changing value
                 {
                     ldapcore::CLdapAttribute temp(attr);
-                    temp.setValue(value.toString());
+                    if(attr.type() == ldapcore::AttrType::Boolean)
+                        temp.setValue(value.toBool()?"TRUE" : "FALSE");
+                    else
+                        temp.setValue(value.toString());
                     m_entry->validateAttribute(temp);
                 }
                 bRet = m_attrHelper.setData(attr, index, value, role);

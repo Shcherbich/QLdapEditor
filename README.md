@@ -1,5 +1,6 @@
 # QLdapEditor
 LDAP Editor based on Qt and ldapc++ wrapper
+![Screenshot](screenshot.png)
 
 ## Feature list
 ### Connection to LDAP server
@@ -7,6 +8,7 @@ LDAP Editor based on Qt and ldapc++ wrapper
   * Anonymous connection
   * Simple authenticated connection
   * TLS authenticated connection 
+* Show list of previous successful connections
 * Save last used successful connection settings
 * load last used succesful connection settings on start
 * Reconnect to server
@@ -20,8 +22,9 @@ LDAP Editor based on Qt and ldapc++ wrapper
 ### Browse anf edit LDAP attributes list
 * Add attribute
 * Delete attribute
-* Using different colors for show May/Must attributes
-* Using icon for show editable data
+* Use different colors for show May/Must attributes
+* Use icon for show editable data
+* Filter and sort data in attributes list
 ### Search LDAP data
 * Setup base DN for search
 * Setup entity filter for search
@@ -33,7 +36,7 @@ LDAP Editor based on Qt and ldapc++ wrapper
 * Lock/Inlock user's account on LDAP server with indication by icon
 ### Setup package
 * Support of RPM setup package for CentOS7
-* Adding application into 'Utilities' Main menu's group (Gnome/KDE) after installtion 
+* Add application into 'Utilities' Main menu's group (Gnome/KDE) after installation 
  
 
 
