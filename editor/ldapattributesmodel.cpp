@@ -108,6 +108,7 @@ bool CLdapAttributesModel::setHeaderData(int section, Qt::Orientation orientatio
 
 int CLdapAttributesModel::rowCount(const QModelIndex& parent) const
 {
+    Q_UNUSED(parent);
     return m_pAttributes ? m_pAttributes->count() : 0;
 }
 

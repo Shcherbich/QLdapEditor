@@ -7,13 +7,12 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 
 include_directories(/usr/include)
+include_directories(../common)
 include_directories(../3rd_party/openldap/contrib/ldapcpp/src)
 
 add_compile_options(-DLDAPEDITORCORE_SO)
 add_compile_options(-DLDAPEDITORCORE_SO_EXPORTS)
-add_compile_options(-std=c++11)
-add_compile_options(-Wall)
-add_compile_options(-Wextra)
+
 
 FIND_PACKAGE(Qt5Core CONFIG REQUIRED)
 FIND_PACKAGE(Qt5Widgets CONFIG REQUIRED)
@@ -34,7 +33,9 @@ set(LdapCore_SRCS
     CLdapData.h
     CLdapData.cpp
     CLdapAttribute.h
-    CLdapAttribute.cpp
+    CLdapAttribute.cpp    
+    ../common/common.cpp
+    ../common/common.h
 )
 
 if (APPLE)

@@ -88,6 +88,7 @@ namespace ldapeditor
 
     int CLdapTreeModel::columnCount(const QModelIndex &parent) const
     {
+        Q_UNUSED(parent);
         return 1;
     }
 
@@ -150,6 +151,7 @@ namespace ldapeditor
 
     bool CLdapTreeModel::setData(const QModelIndex &index, const QVariant &value, int role)
     {
+        Q_UNUSED(value);
         if (!index.isValid())
             return false;
 
@@ -232,11 +234,13 @@ namespace ldapeditor
 
     bool CLdapTreeModel::canFetchMore(const QModelIndex &parent) const
     {
+        Q_UNUSED(parent);
         return true;
     }
 
     void CLdapTreeModel::fetchMore(const QModelIndex& parent)
     {
+        Q_UNUSED(parent);
     }
 
     bool CLdapTreeModel::hasChildren(const QModelIndex &parent) const

@@ -13,11 +13,13 @@ File contains  implementation for LDAP tree view
 #include "ldapnewentrydialog.h"
 #include "changepassworddialog.h"
 
+#include "common.h"
+
 #include <QMessageBox>
 #include <functional>
 #include <tuple>
 
-extern std::vector<std::string> split(const std::string& str, const std::string& delim);
+//extern std::vector<std::string> split(const std::string& str, const std::string& delim);
 
 namespace ldapeditor
 {
@@ -116,7 +118,7 @@ void CLdapTreeView::onNewEntry()
 
     QString rdn = dialog.rdn();
     std::string delim = "=";
-    auto v = split(rdn.toStdString(), delim);
+    auto v = common::splitString(rdn.toStdString(), delim);
     std::map<std::string, std::string> a2v;
     if (v.size() > 1)
     {

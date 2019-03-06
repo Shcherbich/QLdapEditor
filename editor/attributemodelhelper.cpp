@@ -130,6 +130,7 @@ bool CAttributeModelHelper::setData(ldapcore::CLdapAttribute&  attr, const QMode
 
 QVariant CAttributeModelHelper::fontRoleData(const ldapcore::CLdapAttribute &attr, const QModelIndex &index)const
 {
+    Q_UNUSED(index);
     if (attr.isModified())
     {
         QFont font;
@@ -291,6 +292,7 @@ QVariant CAttributeModelHelper::tooltipRoleData(const ldapcore::CLdapAttribute &
 
 QVariant CAttributeModelHelper::foregroundRoleData(const ldapcore::CLdapAttribute &attr, const QModelIndex &index)const
 {
+    Q_UNUSED(index);
     if (attr.isMust())
     {
         return m_LdapEntry->isNew() ? QColor(Qt::blue) : QColor("#126180");
@@ -300,6 +302,7 @@ QVariant CAttributeModelHelper::foregroundRoleData(const ldapcore::CLdapAttribut
 
 QVariant  CAttributeModelHelper::backgroundRoleData(const ldapcore::CLdapAttribute &attr, const QModelIndex &index)const
 {
+    Q_UNUSED(index);
     return attr.isModified() ? QBrush(Qt::yellow) : QVariant();
 }
 

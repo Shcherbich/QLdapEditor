@@ -37,6 +37,7 @@ namespace ldapeditor
 
    int MustMayModel::rowCount(const QModelIndex &parent) const
    {
+       Q_UNUSED(parent);
        return must.size() + may.size();
    }
 

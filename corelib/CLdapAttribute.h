@@ -1,7 +1,6 @@
 #ifndef CLDAPATTRIBUTE_H
 #define CLDAPATTRIBUTE_H
 
-//#include <share.h>
 #include <QObject>
 #include <QVector>
 #include <QString>

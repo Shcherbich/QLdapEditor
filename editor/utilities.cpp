@@ -29,5 +29,6 @@ void moveItemBettwenLists(QListWidget* sourceList, QListWidget* destList)
         qDeleteAll(sourceList->selectedItems());
     }
 }
+
 } //namespace ldapeditor
 

@@ -34,6 +34,7 @@ void CLdapDataEditDelegate::setLdapEntry(ldapcore::CLdapEntry* entry)
 
 QWidget* CLdapDataEditDelegate::createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
+    Q_UNUSED(option);
     if(!m_entry)
         return nullptr;
 
@@ -76,7 +77,6 @@ QWidget* CLdapDataEditDelegate::createEditor(QWidget *parent, const QStyleOption
     else if(index.column() == static_cast<int>(AttributeColumn::Type))
     {
         QComboBox* e = new QComboBox(parent);
-        int i=0;
         e->addItem("ACIItem", static_cast<int>(ldapcore::AttrType::ACIItem));
         e->addItem("AccessPoint", static_cast<int>(ldapcore::AttrType::AccessPoint));
         e->addItem("AttributeTypeDescription", static_cast<int>(ldapcore::AttrType::AttributeTypeDescription));
@@ -218,6 +218,7 @@ void CLdapDataEditDelegate::setModelData(QWidget *editor, QAbstractItemModel *mo
 
 void CLdapDataEditDelegate::updateEditorGeometry(QWidget *editor,const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
+    Q_UNUSED(index);
     editor->setGeometry(option.rect);
 }
 

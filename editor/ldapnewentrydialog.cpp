@@ -8,6 +8,7 @@ File contains  implementations for dialog 'Add/EditLDPA Entity' class
 #include "ldapnewentrydialog.h"
 #include "ui_ldapnewentrydialog.h"
 #include "utilities.h"
+#include "common.h"
 
 #include <QComboBox>
 #include <QListWidgetItem>
@@ -15,28 +16,6 @@ File contains  implementations for dialog 'Add/EditLDPA Entity' class
 #include <string>
 #include <vector>
 
-std::vector<std::string> split(const std::string& str, const std::string& delim)
-{
-    using namespace std;
-
-    vector<string> tokens;
-    size_t prev = 0, pos = 0;
-    do
-    {
-        pos = str.find(delim, prev);
-        if (pos == string::npos)
-        {
-            pos = str.length();
-        }
-        string token = str.substr(prev, pos - prev);
-        if (!token.empty())
-        {
-            tokens.push_back(token);
-        }
-        prev = pos + delim.length();
-    } while (pos < str.length() && prev < str.length());
-    return tokens;
-}
 
 namespace ldapeditor {
 
@@ -206,7 +185,7 @@ void CLdapNewEntryDialog::onOkClicked()
     }
 
     std::string delim = "=";
-    auto v = split(m_rdn.toStdString(), delim);
+    auto v = common::splitString(m_rdn.toStdString(), delim);
     if (v.size() != 2 && !m_editMode)
     {
         QMessageBox::critical(this, tr("Error"), tr("The RDN has invalid format!. Format must be like as 'cn=SomaValue'!"), QMessageBox::Ok);

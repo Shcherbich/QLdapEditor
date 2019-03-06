@@ -120,10 +120,10 @@ namespace ldapeditor
          */
         void OnHeaderChanged(int logicalIndex, int oldSize, int newSize);
 
+        ldapcore::CLdapData&  m_LdapData;           ///< Reference to CLdapData member
+        CLdapSettings&        m_LdapSettings;       ///< Reference to application's settings member
         CLdapDataEditDelegate m_ldapDataDelegate;   ///< Ldap data delegate  editor member
         QStyledItemDelegate   m_defaultDelegate;    ///< Default data delegate edtitor member
-        ldapcore::CLdapData&  m_LdapData;           ///< Reference to CLdapData member
-        CLdapSettings&        m_LdapSettings;       ///< Referencve t oapplication's settings member
         QMenu m_contextMenu;                        ///< Context menu instance member
         QAction* m_newAttr{nullptr};                ///< 'New Attribute' action pointer member
         QAction* m_delAttr{nullptr};                ///< 'Delete Attribute' action pointer member

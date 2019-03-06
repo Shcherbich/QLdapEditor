@@ -19,6 +19,7 @@ FIND_PACKAGE(Qt5Widgets CONFIG REQUIRED)
 #include(${QT_USE_FILE})
 ADD_DEFINITIONS(${QT_DEFINITIONS})
 
+include_directories(../common)
 include_directories(../corelib)
 INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR})
 
@@ -49,6 +50,7 @@ SET(ldapeditor_SOURCES
     ldapnewentrydialog.ui
     mainwindow.cpp
     main.cpp
+    ../common/common.cpp
 # not used at the moment
 #    TableModel.h
 #    ModelDataAdapter.h
@@ -74,6 +76,7 @@ SET(ldapeditor_HEADERS
     ldapnewentrydialog.h
     mainwindow.h
     ldapeditordefines.h
+    ../common/common.h
 #    ${CMAKE_BINARY_DIR}/version.h
 )
 
