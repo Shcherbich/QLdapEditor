@@ -198,7 +198,8 @@ namespace ldapeditor
 
         QStringList newMembers = dlg.membersList();
         QStringList classes {"group"};
-        CLdapAttributesModel* srcModel = static_cast<CLdapAttributesModel*>(model());
+        CLdapAttributesProxyModel* proxyModel = static_cast<CLdapAttributesProxyModel*>(model());
+        CLdapAttributesModel* srcModel = static_cast<CLdapAttributesModel*>(proxyModel->sourceModel());
 
         // add appended members attributes
         for(const QString& s : newMembers)
@@ -247,7 +248,7 @@ namespace ldapeditor
        // m_attrList->horizontalHeader()->setSortIndicatorShown(true);
 
         m_attrList->setSortingEnabled(true);
-         m_attrList->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+        m_attrList->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
 
 //        connect(m_attrList->horizontalHeader(), &QHeaderView::sortIndicatorChanged, [this](int logicalIndex, Qt::SortOrder order){
 //         //  this->m_attrList->sortByColumn(logicalIndex, order);
