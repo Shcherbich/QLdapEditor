@@ -282,8 +282,7 @@ QVector<CLdapAttribute> CLdapSchema::attributeByClasses(QStringList& classes, st
 			auto info = attributeInfoByName(attributeName);
 			auto attr = m_impl->attributesSchema.getAttributeTypeByName(attributeName);
 			QStringList classes;
-            CLdapAttribute a(attributeName.c_str(), v.c_str(), std::get<0>(info), true, attr.getDesc().c_str(), classes, std::get<2>(info),
-			                 v.empty() ? AttributeState::AttributeValueReadWrite : AttributeState::AttributeReadOnly);
+            CLdapAttribute a(attributeName.c_str(), v.c_str(), std::get<0>(info), true, attr.getDesc().c_str(), classes, std::get<2>(info), AttributeState::AttributeReadOnly);
 			vector.push_back(a);
 		}
 	}

@@ -584,6 +584,7 @@ void CLdapEntry::setClasses(QStringList cList, bool updateAttributes)
     for (auto& a : m_classes)
     {
         aClass->m_Value = a;
+        aClass->setEditState(ldapcore::AttributeState::AttributeReadOnly);
         newAttributes.push_back(*aClass.get());
     }
     std::sort(newAttributes.begin(), newAttributes.end(), comp());
