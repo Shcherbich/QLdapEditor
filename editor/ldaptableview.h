@@ -120,6 +120,19 @@ namespace ldapeditor
          */
         void OnHeaderChanged(int logicalIndex, int oldSize, int newSize);
 
+        /*!
+         * \brief protected method for fetting pointer of source data model
+         * \return pointer to CLdapAttributesModel source data model
+         */
+        CLdapAttributesModel* sourceModel();
+
+        /*!
+         * \brief makes mapping from proxy model index to source model index
+         * \param index proxy model index
+         * \return  source model index
+         */
+        QModelIndex mapToSourceModel(QModelIndex index) const;
+
         ldapcore::CLdapData&  m_LdapData;           ///< Reference to CLdapData member
         CLdapSettings&        m_LdapSettings;       ///< Reference to application's settings member
         CLdapDataEditDelegate m_ldapDataDelegate;   ///< Ldap data delegate  editor member
@@ -183,7 +196,7 @@ namespace ldapeditor
         QVBoxLayout*     m_layout {nullptr};    ///< layout controls member
         QLineEdit*       m_filterEdit{nullptr}; ///< filter edit  member
         CAttributesList* m_attrList{nullptr};   ///< attributes list member
-        CLdapAttributesProxyModel* m_proxyModel{nullptr};
+        CLdapAttributesProxyModel* m_proxyModel{nullptr}; ///< proxy model for sort/filter operations
     };
 } //namespace ldapeditor
 #endif // LDAPTABLEVIEW_H

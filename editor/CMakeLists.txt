@@ -33,7 +33,6 @@ SET(ldapeditor_SOURCES
     resources.qrc
     ldapnewattributedialog.cpp
     ldapnewattributedialog.ui
-    cmustmaymodel.cpp
     ldapdataeditdelegate.cpp
     attributemodelhelper.cpp
     ldapsettings.cpp
@@ -51,9 +50,6 @@ SET(ldapeditor_SOURCES
     mainwindow.cpp
     main.cpp
     ../common/common.cpp
-# not used at the moment
-#    TableModel.h
-#    ModelDataAdapter.h
 )
 
 
@@ -62,7 +58,6 @@ SET(ldapeditor_HEADERS
     changepassworddialog.h
     addusertogroupdialog.h
     ldapnewattributedialog.h
-    cmustmaymodel.h
     ldapdataeditdelegate.h
     attributemodelhelper.h
     ldapsettings.h

@@ -118,7 +118,7 @@ namespace ldapeditor
         if(index.isValid())
         {
             // attribute can be deleted and Not ('member' or 'memberOf')'
-            delEnable = m_ldapDataDelegate.canDeleteRow(index) &&
+            delEnable = m_ldapDataDelegate.canDeleteRow(mapToSourceModel(index)) &&
                         !exludeAttributes.contains(index.data(ldapeditor::LDapEditorRoles::AttrNameRole).toString());
         }
         m_delAttr->setEnabled(delEnable);
@@ -133,7 +133,7 @@ namespace ldapeditor
         ldapeditor::CLdapNewAttributeDialog dlg(m_LdapData, m_entry);
         if(dlg.exec() == QDialog::Accepted)
         {
-            QModelIndex newAttr = static_cast<CLdapAttributesModel*>(model())->addAttribute(dlg.attribute());
+            QModelIndex newAttr = sourceModel()->addAttribute(dlg.attribute());
             if(newAttr.isValid())
             {
                 setCurrentIndex(newAttr);
@@ -144,10 +144,10 @@ namespace ldapeditor
     void CAttributesList::onDeleteAttribute()
     {
         QAction* a = qobject_cast<QAction*>(sender());
-        QModelIndex i = a->data().toModelIndex();
-        if(i.isValid())
+        QModelIndex index = mapToSourceModel(a->data().toModelIndex());
+        if(index.isValid())
         {
-            model()->removeRows(i.row(), 1, i.parent());
+            sourceModel()->removeRows(index.row(), 1, index.parent());
         }
     }
 
@@ -159,7 +159,7 @@ namespace ldapeditor
             if(index.column() == static_cast<int>(AttributeColumn::Ignore))
             {
                 bool isChecked = index.data(Qt::CheckStateRole).toInt() == Qt::Checked;
-                model()->setData(index, QVariant(!isChecked), Qt::CheckStateRole );
+                sourceModel()->setData(index, QVariant(!isChecked), Qt::CheckStateRole );
                 event->accept();
             }
         }
@@ -168,9 +168,8 @@ namespace ldapeditor
 
     bool CAttributesList::SaveData()
     {
-        bool isNew = m_entry->isNew();
-        bool bRet = static_cast<CLdapAttributesModel*>(model())->Save();
-        if(isNew)
+        bool bRet = sourceModel()->Save();
+        if(m_entry->isNew())
         {
             hideColumn(static_cast<int>(AttributeColumn::Ignore));
         }
@@ -198,13 +197,11 @@ namespace ldapeditor
 
         QStringList newMembers = dlg.membersList();
         QStringList classes {"group"};
-        CLdapAttributesProxyModel* proxyModel = static_cast<CLdapAttributesProxyModel*>(model());
-        CLdapAttributesModel* srcModel = static_cast<CLdapAttributesModel*>(proxyModel->sourceModel());
 
         // add appended members attributes
         for(const QString& s : newMembers)
         {
-            if(srcModel && !originalMembers.contains(s))
+            if(!originalMembers.contains(s))
             {
 
                 ldapcore::CLdapAttribute newAttr;
@@ -214,7 +211,7 @@ namespace ldapeditor
                 newAttr.setValue(s);
                 newAttr.setType(ldapcore::AttrType::DN);
                 newAttr.setEditState(ldapcore::AttributeState::AttributeReadOnly);
-                (void) srcModel->addAttribute(newAttr);
+                (void) sourceModel()->addAttribute(newAttr);
             }
         }
 
@@ -222,19 +219,31 @@ namespace ldapeditor
         QModelIndexList indexes;
         for(const QString& s : originalMembers)
         {
-            if(srcModel && !newMembers.contains(s))
+            if(!newMembers.contains(s))
             {
               // find index by value
-               indexes = srcModel->match(srcModel->index(0, static_cast<int>(ldapeditor::AttributeColumn::Value)),
+               indexes = sourceModel()->match(sourceModel()->index(0, static_cast<int>(ldapeditor::AttributeColumn::Value)),
                                                           Qt::DisplayRole, s, 1, Qt::MatchExactly);
                for(QModelIndex idx : indexes)
                {
-                   srcModel->removeRows(idx.row(),1);
+                   sourceModel()->removeRows(idx.row(),1);
                }
             }
         }
     }
 
+    CLdapAttributesModel* CAttributesList::sourceModel()
+    {
+        CLdapAttributesProxyModel* proxyModel = static_cast<CLdapAttributesProxyModel*>(model());
+        CLdapAttributesModel* srcModel = static_cast<CLdapAttributesModel*>(proxyModel->sourceModel());
+        return srcModel;
+    }
+
+    QModelIndex CAttributesList::mapToSourceModel(QModelIndex index) const
+    {
+        CLdapAttributesProxyModel* proxyModel = static_cast<CLdapAttributesProxyModel*>(model());
+        return proxyModel->mapToSource(index);
+    }
 
     CLdapTableView::CLdapTableView(QWidget *parent, ldapcore::CLdapData& ldapData, CLdapSettings& s)
         : QWidget(parent)
