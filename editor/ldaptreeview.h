@@ -72,6 +72,11 @@ signals:
      */
     void manageUsersInGroup();
 
+    /*!
+     * \brief Signal about changing classes list and adding/removing attributes in entity
+     */
+    void entityClassesChanged();
+
 protected :
     /*!
      * @brief protected method called when current item is changed

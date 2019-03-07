@@ -12,6 +12,7 @@ File contains  implementations for applications's main window
 #include "ldaptreemodel.h"
 #include "ldapattributesmodel.h"
 #include "ldapsettings.h"
+#include "common.h"
 
 #include "CLdapData.h"
 
@@ -113,6 +114,12 @@ MainWindow::MainWindow(CLdapSettings& settings, ldapcore::CLdapData& ldapData, Q
 
     connect(this, &MainWindow::removeEntity, m_TreeModel, &CLdapTreeModel::onRemoveEntity);
 
+    // enable/disable Save button
+    connect(m_LdapTree, &CLdapTreeView::entityClassesChanged, this, &MainWindow::onEntityClassesChanged);
+    connect(m_TableModel, &QAbstractItemModel::rowsInserted, this, &MainWindow::onEntityClassesChanged);
+    connect(m_TableModel, &QAbstractItemModel::rowsRemoved, this, &MainWindow::onEntityClassesChanged);
+    connect(m_TableModel, &QAbstractItemModel::dataChanged, this, &MainWindow::onEntityClassesChanged);
+
 }
 
 
@@ -141,9 +148,15 @@ void MainWindow::CreateActions()
 	dataMenu->setStatusTip(tr("Ldap search"));
 	dataMenu->addAction(searchAction);
 
-    QAction* saveDataAction = dataMenu->addAction(QIcon(":/save"),tr("&Save data"), this, &MainWindow::onSaveData);
+    m_saveDataAction = dataMenu->addAction(QIcon(":/save"),tr("&Save data"), this, &MainWindow::onSaveData);
 	dataMenu->setStatusTip(tr("Save data"));
-	dataMenu->addAction(saveDataAction);
+    m_saveDataAction->setEnabled(false);
+    dataMenu->addAction(m_saveDataAction);
+
+    m_revertChangesAction = dataMenu->addAction(tr("&Revert changes"), this, &MainWindow::onRevertChanges);
+    dataMenu->setStatusTip(tr("Revert pending changes"));
+    m_revertChangesAction->setEnabled(m_saveDataAction->isEnabled());
+    dataMenu->addAction(m_revertChangesAction);
 
     dataMenu->addSeparator();
     QAction* reloadDataAction = dataMenu->addAction(QIcon(":/network"),tr("&Reconnect"), this, &MainWindow::onReconnect);
@@ -173,7 +186,9 @@ void MainWindow::CreateActions()
     QToolBar* mainToolbar = addToolBar(tr("mainToolbar"));
     mainToolbar->addAction(searchAction);
     mainToolbar->addSeparator();
-    mainToolbar->addAction(saveDataAction);
+    mainToolbar->addAction(m_saveDataAction);
+    mainToolbar->addAction(m_revertChangesAction);
+    mainToolbar->addSeparator();
     mainToolbar->addAction(reloadDataAction);
     mainToolbar->addAction(refreshDataAction);
 }
@@ -231,6 +246,8 @@ QString MainWindow::normilizeDN(const QString& dn)
 
 void MainWindow::onTreeItemChanged(const QModelIndex& current, const QModelIndex& mainPrev)
 {
+    if(m_bRevertChangesInProgress) return;
+
     QModelIndex srcCur = m_TreeProxyModel->mapToSource(current);
     QModelIndex srcPrev = m_TreeProxyModel->mapToSource(mainPrev);
     if (!srcCur.isValid())
@@ -296,6 +313,8 @@ void MainWindow::onTreeItemChanged(const QModelIndex& current, const QModelIndex
         currentEntry->flushAttributesCache();
 		m_TableModel->setLdapEntry(currentEntry);
 		m_AttributesList->setLdapEntry(currentEntry);
+
+        m_saveDataAction->setEnabled(false);
 	}
 }
 
@@ -352,6 +371,85 @@ void MainWindow::onReload()
     //m_LdapTree->restoreState();
 
     statusBar()->showMessage(tr("Data reloaded"));
+}
+
+void MainWindow::onEntityClassesChanged()
+{
+    if(!m_LdapTree->updatesEnabled()) return;
+
+    bool enableSave{false};
+    if (m_TableModel->isNew())
+    {
+        enableSave = true;
+    }
+    else
+    {
+        QVector<ldapcore::CLdapAttribute> newRows, deleteRows;
+        QMap<QString, QVector<ldapcore::CLdapAttribute>> updateMap;
+        m_TableModel->changedRows(newRows, deleteRows, updateMap);
+
+        // first check
+        bool hasChanges = !(newRows.empty() && deleteRows.empty() && updateMap.empty());
+
+        // second check
+        hasChanges |= m_TableModel->isEdit();
+
+        enableSave = hasChanges;
+
+    }
+    m_saveDataAction->setEnabled(enableSave);
+    m_revertChangesAction->setEnabled(enableSave);
+    return;
+}
+
+void MainWindow::onRevertChanges()
+{
+    QModelIndex idx = m_LdapTree->currentIndex();
+    if(!idx.isValid()) return;
+
+    QModelIndex srcIdx = m_TreeProxyModel->mapToSource(idx);
+    if(!srcIdx.isValid()) return;
+
+
+    ldapcore::CLdapEntry* entry = static_cast<ldapcore::CLdapEntry*>(srcIdx.internalPointer());
+    ldapcore::CLdapEntry* parentEntry = entry->parent();
+    if (m_TableModel->isNew())
+    {
+        common::CBooleanAutoFlag f(m_bRevertChangesInProgress, true);
+        m_TreeModel->revert();
+        m_TreeModel->removeRow(srcIdx.row(), srcIdx.parent());
+        m_LdapTree->setCurrentIndex(idx.parent());
+        parentEntry->removeChild(entry);
+
+        m_TableModel->setLdapEntry(nullptr);
+        m_AttributesList->setLdapEntry(nullptr);
+
+    }
+    else if(m_TableModel->isEdit())
+    {
+        common::CBooleanAutoFlag f(m_bRevertChangesInProgress, true);
+        if(entry)
+        {
+            entry->setEditable(false);
+
+            QStringList cls;
+            entry->setClasses(cls);
+            entry->flushAttributesCache();
+            (void*)entry->attributes();
+            m_LdapTree->update(idx);
+            m_LdapTree->setCurrentIndex(idx);
+
+            m_TableModel->setLdapEntry(entry);
+           m_AttributesList->setLdapEntry(entry);
+        }
+    }
+    else
+    {
+        m_TableModel->revert();
+        m_LdapTree->setCurrentIndex(idx);
+        m_TableModel->setLdapEntry(entry);
+        m_AttributesList->setLdapEntry(entry);
+    }
 }
 
 }// namespace ldapeditor

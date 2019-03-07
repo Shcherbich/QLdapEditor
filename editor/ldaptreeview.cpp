@@ -252,6 +252,11 @@ void CLdapTreeView::onEditEntry()
 
     thisEntry->setClasses(newClasses, true);
     thisEntry->setEditable(true);
+
+    if(newClasses != originalClasses)
+    {
+        emit entityClassesChanged();
+    }
 }
 
 void CLdapTreeView::onDeleteEntry()
@@ -400,8 +405,9 @@ void CLdapTreeView::customContextMenuRequested(QPoint pos)
     QModelIndex modelIndex = static_cast<CLdapTreeProxyModel*>(model())->mapToSource(indexAt(pos));
     if(!modelIndex.isValid()) return;
 
-   m_newAttr->setData(modelIndex);
+    m_newAttr->setData(modelIndex);
 
+    m_newEntry->setVisible(false);
     m_changePassword->setVisible(false);
     m_enableUser->setVisible(false);
     m_manageUsersInGroup->setVisible(false);
@@ -409,6 +415,8 @@ void CLdapTreeView::customContextMenuRequested(QPoint pos)
     ldapcore::CLdapEntry* entry = static_cast<ldapcore::CLdapEntry*>(modelIndex.internalPointer());
     // check is root item clicked - no context menu to show
     if(!entry->parent()) return;
+
+    m_newEntry->setVisible(entry->isLoaded());
 
     if(entry->kind() == ldapcore::DirectoryKind::User)
     {
