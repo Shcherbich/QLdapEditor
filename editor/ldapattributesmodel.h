@@ -192,9 +192,9 @@ protected:
 
         /*!
          * \brief Returns information about chnaged rows
-         * \param newRows - number of new inserted rows
-         * \param deleteRows - number of removed rows
-         * \param updateRows - number of modified rows
+         * \param newRows - vector of new inserted attributes
+         * \param deleteRows - vector of removed attributes
+         * \param updateMap - map of changed attributes
          */
         void changedRows(QVector<ldapcore::CLdapAttribute>& newRows, QVector<ldapcore::CLdapAttribute>& deleteRows, QMap<QString, QVector<ldapcore::CLdapAttribute>>& updateMap);
 

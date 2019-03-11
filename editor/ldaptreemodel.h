@@ -39,6 +39,10 @@ namespace ldapeditor
         {
         }
 
+        /*!
+         * \brief Method for gettting list of persistent indexes
+         * \return QModelIndexList with persistent indexes
+         */
         QModelIndexList getPersistentIndexList() {
             return persistentIndexList();
         }

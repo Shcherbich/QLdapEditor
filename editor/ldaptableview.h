@@ -39,9 +39,10 @@ namespace ldapeditor
         /*!
          * \brief Constructor CLdapTableView
          * \param parent pointer to parent QWidget
-         * \param s  reference to CLdapSettings
+         * \param ldapData reference to ldapcore::CLdapData
+         * \param settings reference to CLdapSettings
          */
-        explicit CAttributesList(QWidget *parent, ldapcore::CLdapData&, CLdapSettings& s);
+        explicit CAttributesList(QWidget *parent, ldapcore::CLdapData& ldapData, CLdapSettings& settings);
 
         /*!
          * \brief Method sets pointer to CLdapEntry
@@ -63,11 +64,6 @@ namespace ldapeditor
     signals:
 
     public slots:
-        /*!
-         * \brief Public slot, called when user requested show of Context menu on item
-         * \param pos position in view for context menu
-         */
-      //  void customContextMenuRequested(QPoint pos);
 
         /*!
          * \brief Public slot, called by 'Manage User in group' action
@@ -159,10 +155,15 @@ namespace ldapeditor
         /*!
          * \brief Constructor CLdapTableView
          * \param parent pointer to parent QWidget
-         * \param s  reference to CLdapSettings
+         * \param ldapData reference to ldapcore::CLdapData
+         * \param settings reference to CLdapSettings
          */
-        explicit CLdapTableView(QWidget *parent, ldapcore::CLdapData&, CLdapSettings& s);
+        explicit CLdapTableView(QWidget *parent, ldapcore::CLdapData& ldapData, CLdapSettings& settings);
 
+        /*!
+         * \brief Method sets data model
+         * \param model data model to be set
+         */
         void setModel(QAbstractItemModel *model);
 
         /*!

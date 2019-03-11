@@ -245,11 +245,11 @@ namespace ldapeditor
         return proxyModel->mapToSource(index);
     }
 
-    CLdapTableView::CLdapTableView(QWidget *parent, ldapcore::CLdapData& ldapData, CLdapSettings& s)
+    CLdapTableView::CLdapTableView(QWidget *parent, ldapcore::CLdapData& ldapData, CLdapSettings& settings)
         : QWidget(parent)
         , m_layout(new QVBoxLayout)
         , m_filterEdit(new QLineEdit)
-        , m_attrList(new CAttributesList(this, ldapData, s))
+        , m_attrList(new CAttributesList(this, ldapData, settings))
         , m_proxyModel(new CLdapAttributesProxyModel(this))
     {
         m_attrList->horizontalHeader()->setDefaultSectionSize(100);

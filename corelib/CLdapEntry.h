@@ -45,7 +45,7 @@ public:
     /*!
      * \brief Constructor CLdapEntry class
      * @param parentLdapEntry pointer to CLdapEntry parent
-     * @param parentLdapEntry pointer to internal instance of LDAPEntry
+     * @param le pointer to internal instance of LDAPEntry
      * @param parent pointer to QObject parent
      */
     explicit CLdapEntry(CLdapEntry* parentLdapEntry, LDAPEntry* le, QObject* parent = nullptr);

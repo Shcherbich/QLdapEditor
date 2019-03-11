@@ -32,18 +32,19 @@ void moveItemBettwenLists(QListWidget* sourceList, QListWidget* destList);
 
 /*!
  * \brief utility function for checkign existing attribute with name in container
- * \param Container type of container, must contain ldapcore::CLdapAttribute
- * \param name  name of attribute foir search
- * \param caseSensitive  use CaseSansitive ot InCaceSansitive compare names
+ * \tparam Container type of container, must contain ldapcore::CLdapAttribute data
+ * \param attributes container with ldapcore::CLdapAttribute data
+ * \param attrName  name of attribute for search
+ * \param caseSensitive  use CaseSensitive ot InCaceSensitive compare names
  */
 template< class Container,
           class = typename std::enable_if< std::is_base_of<ldapcore::CLdapAttribute, typename Container::value_type>::value >::type >
-bool containsAttribute(const Container& v, const QString& name, bool caseSensitive = false)
+bool containsAttribute(const Container& attributes, const QString& attrName, bool caseSensitive = false)
 {
-    return std::find_if(std::begin(v), std::end(v), [name, caseSensitive](const ldapcore::CLdapAttribute& a)
+    return std::find_if(std::begin(attributes), std::end(attributes), [attrName, caseSensitive](const ldapcore::CLdapAttribute& a)
             {
-                return a.name().compare(name, caseSensitive ? Qt::CaseSensitive : Qt::CaseInsensitive) == 0;
-            }) != std::end(v);
+                return a.name().compare(attrName, caseSensitive ? Qt::CaseSensitive : Qt::CaseInsensitive) == 0;
+            }) != std::end(attributes);
 }
 }
 

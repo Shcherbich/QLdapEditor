@@ -19,6 +19,12 @@ using uEntry = std::shared_ptr<LDAPEntry>;
 
 struct comp
 {
+    /*!
+     * \brief Callbable method
+     * \param l left data
+     * \param r right data
+     * \return true of left data should be placed before right data, false - if else
+     */
     bool operator()(const ldapcore::CLdapAttribute& l, const ldapcore::CLdapAttribute& r)
     {
         if (l.isMust() != r.isMust())

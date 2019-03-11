@@ -95,7 +95,7 @@ public:
 
     /*!
      * @brief Method gets list of auxiliary classes by SUPer-or class
-     * @param c SUPer-or class to get
+     * @param sup SUPer-or class to get
      * @return QStringList list of auxiliary classes
      */
     QStringList auxiliaryClassesBySup(QString sup);

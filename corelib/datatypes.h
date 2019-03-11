@@ -6,7 +6,7 @@
 #include <memory>
 
 /*!
- \defgroup ldapcore
+ \defgroup ldapcore Core API
  \brief namespace for grouping ldap core related functionality
 
  Namespace ldapeditor wrapes all classes and declarations, related to ldap core functionality

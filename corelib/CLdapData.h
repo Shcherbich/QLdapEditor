@@ -117,7 +117,8 @@ public:
     bool isDnExist(QString dn);
 
     /*!
-     * \brief Method for changing user's passowrd by administrator
+     * \brief Method for changing user's password by administrator
+     * \param entry user's entry for changing password
      * \param userDN DN of user for changing password
      * \param newPassword new password string
 
@@ -126,6 +127,11 @@ public:
     void changeUserPassword(CLdapEntry* entry,const QString& userDN, const QString& newPassword);
 
 Q_SIGNALS:
+    /*!
+     * \brief signal to be emit when connection is completed
+     * \param isSucceed - boolean argument is connection successful
+     * \param errorDescription - string description of connection error
+     */
     void onConnectionCompleted(bool isSucceed, QString errorDescription);
 
 private:

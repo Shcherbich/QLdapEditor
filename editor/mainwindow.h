@@ -27,7 +27,7 @@ class CLdapData;
 
 
 /*!
- @defgroup ldapeditor
+ @defgroup ldapeditor Editor API
  @brief namespace for groupping editor related functionality
 
  Namespace ldapeditor wrapes all classes and declarations, related to editor functionality
@@ -127,6 +127,9 @@ namespace ldapeditor
          */
         void onEntityClassesChanged();
 
+        /*!
+         * \brief Handler for changes of classes list in enity after 'Revert changes'
+         */
         void onRevertChanges();
     protected:
 
