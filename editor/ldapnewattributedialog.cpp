@@ -9,6 +9,7 @@ File contains  implementations for dialog 'Add Attribute' class
 #include "ui_ldapnewattributedialog.h"
 #include "attributemodelhelper.h"
 #include <QDateTime>
+#include "utilities.h"
 
 namespace ldapeditor
 {
@@ -32,6 +33,8 @@ CLdapNewAttributeDialog::CLdapNewAttributeDialog(ldapcore::CLdapData& ldapData, 
 
     ui->labelValue->hide();
     ui->valueEdit->hide();
+
+    m_currentAttributes = m_entry->attributes();
 
     QString structuralClass = m_entry->structuralClass();
     QStringList entryClasses = m_entry->classes();
@@ -76,20 +79,26 @@ void CLdapNewAttributeDialog::onCurrentClassChanged(int index)
         });
 
         QSet<QString> attrSet;
-        const QStringList exludeAttributes{"member","memberOf"};
+
         QVector<ldapcore::CLdapAttribute>* entryAttributes = m_entry->attributes();
         for (const auto& a : *entryAttributes)
         {
             attrSet.insert(a.name());
         }
 
+        auto allowAddAttribute = [this](int i)->bool{
+             const QStringList exludeAttributes{"member","memberOf"};
+             const ldapcore::CLdapAttribute& a = this->m_attributes[i];
+             if(exludeAttributes.contains(a.name()))
+                     return false;
+
+             return containsAttribute(*this->m_currentAttributes, a.name()) ? !a.isSingle() : true;
+        };
+
         for (int i = 0; i < m_attributes.size(); i++)
         {
-            //exlude some attributes
-            if(!exludeAttributes.contains(m_attributes[i].name()))
-            {
+            if(allowAddAttribute(i))
                 ui->attrCombo->addItem(m_attributes[i].name(), i);
-            }
         }
 
         ui->attrCombo->setCurrentIndex(0);

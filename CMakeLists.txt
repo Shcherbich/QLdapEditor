@@ -7,7 +7,7 @@ SET(COMPANY "Very Big Company Inc.")
 
 SET(CMAKE_VERSION_MAJOR 0)
 SET(CMAKE_VERSION_MINOR 5)
-SET(CMAKE_VERSION_PATCH 51)
+SET(CMAKE_VERSION_PATCH 57)
 
 
 SET(VERSION "${CMAKE_VERSION_MAJOR}.${CMAKE_VERSION_MINOR}.${CMAKE_VERSION_PATCH}")
@@ -30,6 +30,10 @@ SET(PACKAGEGROUP "Utilities")
 IF(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
   SET(CMAKE_INSTALL_PREFIX /usr/local CACHE PATH "Install path prefix, prepended onto install directories."  FORCE)
 ENDIF(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+
+add_compile_options(-std=c++11)
+add_compile_options(-Wall)
+add_compile_options(-Wextra)
 
 #include_directories(common)
 add_subdirectory(corelib)

@@ -35,7 +35,6 @@ namespace ldapeditor
     public:
         /*!
          * \brief Constructor CConnectionDialog
-         * \param settings reference to application settings
          * \param ldapData reference to dapcore::CLdapData
          * \param parent pointer to parent QObject
          */
@@ -46,6 +45,10 @@ namespace ldapeditor
         */
         ~CConnectionDialog();
 
+        /*!
+         * \brief Methods returds settings
+         * \return  pointer to CLdapSettings
+         */
         CLdapSettings*  settings(){ return m_Settings;}
     private slots:
         /*!

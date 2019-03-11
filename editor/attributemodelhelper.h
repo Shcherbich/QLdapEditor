@@ -99,7 +99,7 @@ private:
     }tAttrHelper;
 
     /*!
-     * @typedef Map attribute type into string
+     * \var typedef QMap<ldapcore::AttrType, tAttrHelper> tAttrHelperMap;
      */
     typedef QMap<ldapcore::AttrType, tAttrHelper> tAttrHelperMap;
 

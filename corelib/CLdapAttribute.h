@@ -1,7 +1,6 @@
 #ifndef CLDAPATTRIBUTE_H
 #define CLDAPATTRIBUTE_H
 
-//#include <share.h>
 #include <QObject>
 #include <QVector>
 #include <QString>
@@ -115,9 +114,11 @@ public:
      * \param isMust true if is must-attribute, false if is may-attribute
      * \param desc description of attribute
      * \param classes list of classes which can contain this attribute
+     * \param isSingle true if is must-line value is supported, otherwise false
      * \param editState current editable state of attribute
      */
-    explicit CLdapAttribute(QString name, QString value, AttrType type, bool isMust, QString desc, QStringList& classes,
+    explicit CLdapAttribute(QString name, QString value, AttrType type, bool isMust, QString desc,
+                            QStringList& classes, bool isSingle,
                             AttributeState editState = AttributeState::AttributeValueReadWrite);
 
     /*!
@@ -187,6 +188,12 @@ public:
      * @return bool isMust
      */
     bool isMust() const;
+
+    /*!
+     * @brief Method returns true if is must-attribute, false if is may-attribute
+     * @return bool isSingle
+     */
+    bool isSingle() const;
 
     /*!
      * @brief Method returns list of classes which can contain this attribute
@@ -263,6 +270,11 @@ private:
      * @brief member Must bool
      */
     bool        m_isMust{false};
+
+    /*!
+     * @brief member Single bool
+     */
+    bool        m_isSingle{true};
 
     /*!
      * @brief member Description string

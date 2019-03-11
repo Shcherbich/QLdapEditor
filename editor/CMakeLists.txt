@@ -19,6 +19,7 @@ FIND_PACKAGE(Qt5Widgets CONFIG REQUIRED)
 #include(${QT_USE_FILE})
 ADD_DEFINITIONS(${QT_DEFINITIONS})
 
+include_directories(../common)
 include_directories(../corelib)
 INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR})
 
@@ -32,7 +33,6 @@ SET(ldapeditor_SOURCES
     resources.qrc
     ldapnewattributedialog.cpp
     ldapnewattributedialog.ui
-    cmustmaymodel.cpp
     ldapdataeditdelegate.cpp
     attributemodelhelper.cpp
     ldapsettings.cpp
@@ -49,9 +49,7 @@ SET(ldapeditor_SOURCES
     ldapnewentrydialog.ui
     mainwindow.cpp
     main.cpp
-# not used at the moment
-#    TableModel.h
-#    ModelDataAdapter.h
+    ../common/common.cpp
 )
 
 
@@ -60,7 +58,6 @@ SET(ldapeditor_HEADERS
     changepassworddialog.h
     addusertogroupdialog.h
     ldapnewattributedialog.h
-    cmustmaymodel.h
     ldapdataeditdelegate.h
     attributemodelhelper.h
     ldapsettings.h
@@ -74,6 +71,7 @@ SET(ldapeditor_HEADERS
     ldapnewentrydialog.h
     mainwindow.h
     ldapeditordefines.h
+    ../common/common.h
 #    ${CMAKE_BINARY_DIR}/version.h
 )
 

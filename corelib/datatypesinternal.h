@@ -15,6 +15,12 @@ namespace ldapcore
 */
 struct compMap
 {
+    /*!
+     * \brief Callable method for compare
+     * \param lhs left side data
+     * \param rhs right side data
+     * \return true if lhs should be placed before rhs, false - if else
+     */
 	bool operator()(const std::string& lhs, const std::string& rhs) const
 	{
 		return strcasecmp(lhs.c_str(), rhs.c_str()) < 0;

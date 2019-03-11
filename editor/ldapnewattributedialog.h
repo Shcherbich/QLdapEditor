@@ -68,6 +68,7 @@ private:
     ldapcore::CLdapEntry* m_entry{nullptr};        ///< pointer to CLDapEntity memeber
     Ui::CLdapNewAttributeDialog *ui;               ///< pointer to UI implementation memeber
     QVector<ldapcore::CLdapAttribute> m_attributes;///< array of available attributes
+    QVector<ldapcore::CLdapAttribute>* m_currentAttributes;///< array of current attributes
 
     QSet<QString> m_addMust; ///< set of unique Must attributes
     QSet<QString> m_addMay;  ///< set of unique May attributes

@@ -19,6 +19,12 @@ using uEntry = std::shared_ptr<LDAPEntry>;
 
 struct comp
 {
+    /*!
+     * \brief Callbable method
+     * \param l left data
+     * \param r right data
+     * \return true of left data should be placed before right data, false - if else
+     */
     bool operator()(const ldapcore::CLdapAttribute& l, const ldapcore::CLdapAttribute& r)
     {
         if (l.isMust() != r.isMust())
@@ -284,7 +290,7 @@ void CLdapEntry::loadAttributes(QVector<CLdapAttribute>& vRet, bool needToLoadSy
         for (auto& v : i->getValues())
         {
             CLdapAttribute attr(name.c_str(), v.c_str(), tp, must, attributeTypeByName.getDesc().c_str(),
-                                attrClasses, (isMust(name) && !isNew()) ? AttributeState::AttributeReadOnly : editState);
+                                attrClasses, std::get<2>(t), (isMust(name) && !isNew()) ? AttributeState::AttributeReadOnly : editState);
             vRet.push_back(attr);
         }
 
@@ -334,7 +340,7 @@ void CLdapEntry::loadAttributes(QVector<CLdapAttribute>& vRet, bool needToLoadSy
                         for (auto& v : i->getValues())
                         {
                             CLdapAttribute attr(name.c_str(), v.c_str(), tp, must, attributeTypeByName.getDesc().c_str(),
-                                                attrClasses, AttributeState::AttributeReadOnly);
+                                                attrClasses, std::get<2>(t), AttributeState::AttributeReadOnly);
                             vRet.push_back(attr);
                         }
                         if (must)
@@ -398,7 +404,7 @@ void CLdapEntry::availableAttributesMustImpl()
         auto tp = std::get<0>(t);
         auto attributeTypeByName = m_pData->schema().attributesSchema()->getAttributeTypeByName(must.c_str());
         QStringList classes;
-        CLdapAttribute attr(must.c_str(), "", tp, true, attributeTypeByName.getDesc().c_str(), classes, AttributeState::AttributeReadWrite);
+        CLdapAttribute attr(must.c_str(), "", tp, true, attributeTypeByName.getDesc().c_str(), classes, std::get<2>(t), AttributeState::AttributeReadWrite);
         m_Must.push_back(attr);
     }
 }
@@ -414,7 +420,8 @@ void CLdapEntry::availableAttributesMayImpl()
         auto tp = std::get<0>(t);
         auto attributeTypeByName = m_pData->schema().attributesSchema()->getAttributeTypeByName(may.c_str());
         QStringList classes;
-        CLdapAttribute attr(may.c_str(), "", tp, false, attributeTypeByName.getDesc().c_str(), classes, AttributeState::AttributeReadWrite);
+        CLdapAttribute attr(may.c_str(), "", tp, false, attributeTypeByName.getDesc().c_str(), classes,
+                            std::get<2>(t), AttributeState::AttributeReadWrite);
         m_May.push_back(attr);
     }
 }
@@ -424,13 +431,14 @@ std::shared_ptr<CLdapAttribute> CLdapEntry::createEmptyAttribute(std::string att
     auto t = m_pData->schema().attributeInfoByName(attributeName);
     auto tp = std::get<0>(t);
     auto attrClasses = m_pData->schema().classesByAttributeName(attributeName, m_classes);
-    std::shared_ptr<CLdapAttribute> p(new CLdapAttribute(attributeName.c_str(), "", tp, isMust(attributeName), "", attrClasses, AttributeState::AttributeReadWrite));
+    std::shared_ptr<CLdapAttribute> p(new CLdapAttribute(attributeName.c_str(), "", tp, isMust(attributeName), "",
+                                                         attrClasses, std::get<2>(t), AttributeState::AttributeReadWrite));
     return p;
 }
 
 bool CLdapEntry::isMust(std::string attributeName)
 {
-    auto f = std::find_if(m_Must.begin(), m_Must.end(), [&](const ldapcore::CLdapAttribute & a)
+    auto f = std::find_if(m_Must.begin(), m_Must.end(), [&](const ldapcore::CLdapAttribute& a)
     {
         return a.name() == attributeName.c_str();
     });
@@ -582,6 +590,7 @@ void CLdapEntry::setClasses(QStringList cList, bool updateAttributes)
     for (auto& a : m_classes)
     {
         aClass->m_Value = a;
+        aClass->setEditState(ldapcore::AttributeState::AttributeReadOnly);
         newAttributes.push_back(*aClass.get());
     }
     std::sort(newAttributes.begin(), newAttributes.end(), comp());
@@ -613,8 +622,27 @@ void CLdapEntry::removeChild(CLdapEntry* child)
 }
 
 
-void CLdapEntry::addAttributes(QVector<CLdapAttribute>& attrs)
+void CLdapEntry::addAttributes(QVector<CLdapAttribute>& attrs) noexcept(false)
 {
+    // check on single-value attribute
+    for (auto& a : m_attributes)
+    {
+        if (!a.isSingle())
+        {
+            continue;
+        }
+        auto wrongAttribute = std::find_if(attrs.begin(), attrs.end(), [&](const ldapcore::CLdapAttribute & o)
+        {
+            return a.name().compare(o.name(), Qt::CaseInsensitive) == 0;
+        }) != attrs.end();
+        if (!wrongAttribute)
+        {
+            continue;
+        }
+        QString text = QString("Single attribute %1 has multiple values.").arg(a.name());
+        throw CLdapMatchRuleException(text.toStdString().c_str());
+    }
+
     m_attributes << attrs;
     std::sort(m_attributes.begin(), m_attributes.end(), comp());
 }

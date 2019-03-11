@@ -15,6 +15,9 @@ static int count = 0;
 
 static void signalWrapper(int theSignalNumber, siginfo_t* theSignalDescription, void* theUserContext)
 {
+    Q_UNUSED(theSignalDescription);
+    Q_UNUSED(theUserContext);
+
 	// Do something here as reaction to you SIGPIPE
 	// This is better way to react on such things
 

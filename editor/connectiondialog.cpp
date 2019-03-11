@@ -238,7 +238,7 @@ namespace ldapeditor
         }
         else
         {
-            setWindowTitle(tr("Connection properties dialog"));
+            setWindowTitle(tr("Connection properties"));
             setEnabled(true);
         }
     }
@@ -248,7 +248,7 @@ namespace ldapeditor
         if(isSucceed)
         {
             m_WaitTime = 0;
-            setWindowTitle(tr("Connection properties dialog"));
+            setWindowTitle(tr("Connection properties"));
             setEnabled(true);
 
             QSettings session(m_sessionSettingsPath, QSettings::IniFormat);

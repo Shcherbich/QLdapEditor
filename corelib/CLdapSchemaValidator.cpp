@@ -815,9 +815,19 @@ std::string CheckDnString(std::string value)
     return ret == 0 ? "" : "There is not a distinguished name";
 }
 
+/*!
+ * \brief Contains information for validation LDAP data
+ */
 struct validateInfo
 {
+    /*!
+     * \brief LDAP Data Type string
+     */
     std::string type;
+
+    /*!
+     * \brief validation function pointer
+     */
     std::function< std::string(std::string)> funcToValidate;
 };
 

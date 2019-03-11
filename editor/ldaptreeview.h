@@ -72,6 +72,11 @@ signals:
      */
     void manageUsersInGroup();
 
+    /*!
+     * \brief Signal about changing classes list and adding/removing attributes in entity
+     */
+    void entityClassesChanged();
+
 protected :
     /*!
      * @brief protected method called when current item is changed
@@ -140,6 +145,7 @@ protected slots:
      */
     void onNewAttribute();
 private:
+    ldapcore::CLdapData& m_LdapData;    ///< ldapcore::CLdapData reference member
     QMenu       m_contextMenu;          ///< Context menu pointer member
     QAction*    m_newEntry{nullptr};    ///< 'New Entry' action member
     QAction*    m_editEntry{nullptr};   ///< 'Edit Entry' action member
@@ -149,7 +155,7 @@ private:
     QAction*    m_manageUsersInGroup{nullptr};  ///< 'Manage users in group' action pointer member
     QAction*    m_newAttr{nullptr};             ///< 'New Attribute' action pointer member
 
-    ldapcore::CLdapData& m_LdapData;    ///< ldapcore::CLdapData reference member
+
 };
 
 } //namespace ldapeditor

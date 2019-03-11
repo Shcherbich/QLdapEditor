@@ -12,6 +12,7 @@ File contains  implementations for LDAP Entity's attributes model class
 #include <QMessageBox>
 #include <QTime>
 #include <QtDebug>
+#include "utilities.h"
 
 namespace ldapeditor
 {
@@ -108,6 +109,7 @@ bool CLdapAttributesModel::setHeaderData(int section, Qt::Orientation orientatio
 
 int CLdapAttributesModel::rowCount(const QModelIndex& parent) const
 {
+    Q_UNUSED(parent);
     return m_pAttributes ? m_pAttributes->count() : 0;
 }
 
@@ -335,15 +337,7 @@ void CLdapAttributesModel::changedRows(
     // first - save new attributes
     for (auto& a : *m_pAttributes)
     {
-        if (!a.isModified())
-        {
-            continue;
-        }
-        auto f = std::find_if(reallyAttributes.begin(), reallyAttributes.end(), [&](const ldapcore::CLdapAttribute & o)
-        {
-            return a.name() == o.name();
-        });
-        if (f == reallyAttributes.end())
+        if(a.isModified() && !containsAttribute(reallyAttributes, a.name()))
         {
             newRows.push_back(a);
         }
@@ -352,14 +346,9 @@ void CLdapAttributesModel::changedRows(
     // second - delete attributes
     for (auto& r : reallyAttributes)
     {
-        auto f = std::find_if(m_pAttributes->begin(), m_pAttributes->end(), [&](const ldapcore::CLdapAttribute & o)
+        if(!containsAttribute(*m_pAttributes, r.name()))
         {
-            return r.name() == o.name();
-        });
-
-        if (f == m_pAttributes->end())
-        {
-            deleteRows.push_back(r);
+             deleteRows.push_back(r);
         }
     }
 
@@ -388,6 +377,8 @@ void CLdapAttributesModel::changedRows(
         {
             continue;
         }
+
+
         auto wasDeleted = std::find_if(m_pAttributes->begin(), m_pAttributes->end(), [&](const ldapcore::CLdapAttribute & o)
         {
             return a.name() == o.name() && a.value() == o.value();

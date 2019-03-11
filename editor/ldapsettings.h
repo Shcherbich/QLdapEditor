@@ -26,16 +26,11 @@ namespace ldapeditor
     public:
         /*!
          * \brief Constructor CLdapSettings
-         * \param settingsFile path to settings
+         * \param configFile path to settings
          * \param parent pointer to parent QObject
          */
         CLdapSettings(QString configFile, QObject* parent = nullptr);
 
-//        /*!
-//         * \brief Constructor CLdapSettings
-//         * \param parent pointer to parent QObject
-//         */
-//        CLdapSettings(QObject* parent = nullptr);
 
         /*!
          * \brief Method returns connection name
@@ -357,7 +352,7 @@ namespace ldapeditor
          mutable SimpleCrypt m_crypto; ///< simple engine for crype/decrypt data
          mutable ldapcore::tConnectionOptions m_connectionOptions; ///< connection options
 
-         QString m_configFile;
+         QString m_configFile; ///< path to configuration file
 
     };
 }//namespace ldapeditor

@@ -18,8 +18,15 @@ namespace ldapcore
 template <typename F>
 struct Task : public QRunnable
 {
+    /*!
+     * \brief member to task for execution
+     */
 	std::function< void() > task;
 
+    /*!
+     * \brief Constructor Task
+     * \param f function to be executable
+     */
 	Task(F f): task(std::bind(std::forward<F>(f))) {}
 
     /*!

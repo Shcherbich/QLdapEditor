@@ -39,9 +39,10 @@ namespace ldapeditor
         /*!
          * \brief Constructor CLdapTableView
          * \param parent pointer to parent QWidget
-         * \param s  reference to CLdapSettings
+         * \param ldapData reference to ldapcore::CLdapData
+         * \param settings reference to CLdapSettings
          */
-        explicit CAttributesList(QWidget *parent, ldapcore::CLdapData&, CLdapSettings& s);
+        explicit CAttributesList(QWidget *parent, ldapcore::CLdapData& ldapData, CLdapSettings& settings);
 
         /*!
          * \brief Method sets pointer to CLdapEntry
@@ -63,11 +64,6 @@ namespace ldapeditor
     signals:
 
     public slots:
-        /*!
-         * \brief Public slot, called when user requested show of Context menu on item
-         * \param pos position in view for context menu
-         */
-      //  void customContextMenuRequested(QPoint pos);
 
         /*!
          * \brief Public slot, called by 'Manage User in group' action
@@ -120,10 +116,23 @@ namespace ldapeditor
          */
         void OnHeaderChanged(int logicalIndex, int oldSize, int newSize);
 
+        /*!
+         * \brief protected method for fetting pointer of source data model
+         * \return pointer to CLdapAttributesModel source data model
+         */
+        CLdapAttributesModel* sourceModel();
+
+        /*!
+         * \brief makes mapping from proxy model index to source model index
+         * \param index proxy model index
+         * \return  source model index
+         */
+        QModelIndex mapToSourceModel(QModelIndex index) const;
+
+        ldapcore::CLdapData&  m_LdapData;           ///< Reference to CLdapData member
+        CLdapSettings&        m_LdapSettings;       ///< Reference to application's settings member
         CLdapDataEditDelegate m_ldapDataDelegate;   ///< Ldap data delegate  editor member
         QStyledItemDelegate   m_defaultDelegate;    ///< Default data delegate edtitor member
-        ldapcore::CLdapData&  m_LdapData;           ///< Reference to CLdapData member
-        CLdapSettings&        m_LdapSettings;       ///< Referencve t oapplication's settings member
         QMenu m_contextMenu;                        ///< Context menu instance member
         QAction* m_newAttr{nullptr};                ///< 'New Attribute' action pointer member
         QAction* m_delAttr{nullptr};                ///< 'Delete Attribute' action pointer member
@@ -146,10 +155,15 @@ namespace ldapeditor
         /*!
          * \brief Constructor CLdapTableView
          * \param parent pointer to parent QWidget
-         * \param s  reference to CLdapSettings
+         * \param ldapData reference to ldapcore::CLdapData
+         * \param settings reference to CLdapSettings
          */
-        explicit CLdapTableView(QWidget *parent, ldapcore::CLdapData&, CLdapSettings& s);
+        explicit CLdapTableView(QWidget *parent, ldapcore::CLdapData& ldapData, CLdapSettings& settings);
 
+        /*!
+         * \brief Method sets data model
+         * \param model data model to be set
+         */
         void setModel(QAbstractItemModel *model);
 
         /*!
@@ -183,7 +197,7 @@ namespace ldapeditor
         QVBoxLayout*     m_layout {nullptr};    ///< layout controls member
         QLineEdit*       m_filterEdit{nullptr}; ///< filter edit  member
         CAttributesList* m_attrList{nullptr};   ///< attributes list member
-        CLdapAttributesProxyModel* m_proxyModel{nullptr};
+        CLdapAttributesProxyModel* m_proxyModel{nullptr}; ///< proxy model for sort/filter operations
     };
 } //namespace ldapeditor
 #endif // LDAPTABLEVIEW_H

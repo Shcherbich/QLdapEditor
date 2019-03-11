@@ -41,9 +41,11 @@ public:
     /*!
      * @brief Method gets information about attribute
      * @param attrName name of attribute to get information
-     * @return std::tuple<AttrType, bool> firts is type of attribute, second is true if this attribute can be changed
+     * @return std::tuple<AttrType, bool> firts is type of attribute,
+     * second is true if this attribute can be changed
+     * third is true if attribute can be had only single value
      */
-    std::tuple<AttrType, bool> attributeInfoByName(std::string attrName);
+    std::tuple<AttrType, bool, bool> attributeInfoByName(std::string attrName);
 
     /*!
      * @brief Method checks that given attributeName is exist on schema
@@ -93,7 +95,7 @@ public:
 
     /*!
      * @brief Method gets list of auxiliary classes by SUPer-or class
-     * @param c SUPer-or class to get
+     * @param sup SUPer-or class to get
      * @return QStringList list of auxiliary classes
      */
     QStringList auxiliaryClassesBySup(QString sup);

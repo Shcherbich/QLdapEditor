@@ -13,11 +13,12 @@ File contains  implementation for LDAP tree view
 #include "ldapnewentrydialog.h"
 #include "changepassworddialog.h"
 
+#include "common.h"
+
 #include <QMessageBox>
 #include <functional>
 #include <tuple>
-
-extern std::vector<std::string> split(const std::string& str, const std::string& delim);
+#include "utilities.h"
 
 namespace ldapeditor
 {
@@ -58,6 +59,16 @@ CLdapTreeView::CLdapTreeView(QWidget* parent, ldapcore::CLdapData& ldapData)
     setRootIsDecorated(false);
     setSortingEnabled(true);
     sortByColumn(0, Qt::SortOrder::AscendingOrder);
+
+    QString style;
+    style += "QTreeView::branch:has-siblings:!adjoins-item{ border-image: url(none.png);}";
+    style += "QTreeView::branch:has-siblings:adjoins-item{ border-image: url(none.png);}";
+    style += "QTreeView::branch:!has-children:!has-siblings:adjoins-item{ border-image: url(none.png);}";
+    style += "QTreeView::branch:open:has-children:!has-siblings{ border-image: none; image: url(:/branch-open.png);}";
+    style += "QTreeView::branch:open:has-children:has-siblings{ border-image: none; image: url(:/branch-open.png);}";
+    style += "QTreeView::branch:has-children:!has-siblings:closed{ border-image: none; image: url(:/branch-closed.png);}";
+    style += "QTreeView::branch:closed:has-children:has-siblings{ border-image: none; image: url(:/branch-closed.png);}";
+    setStyleSheet(style);
 }
 
 void CLdapTreeView::currentChanged(const QModelIndex& current, const QModelIndex& previous)
@@ -106,7 +117,7 @@ void CLdapTreeView::onNewEntry()
 
     QString rdn = dialog.rdn();
     std::string delim = "=";
-    auto v = split(rdn.toStdString(), delim);
+    auto v = common::splitString(rdn.toStdString(), delim);
     std::map<std::string, std::string> a2v;
     if (v.size() > 1)
     {
@@ -172,7 +183,7 @@ void CLdapTreeView::onEditEntry()
         auxClasses.push_back(c.toStdString());
     }
 
-    // fill struct classes
+    // fill struct classes    
     std::for_each(originalClasses.constBegin(), originalClasses.constEnd(), [&structClasses, &auxClasses](const QString & c)
     {
         if (std::find(auxClasses.begin(), auxClasses.end(), c.toStdString()) == auxClasses.end())
@@ -200,25 +211,10 @@ void CLdapTreeView::onEditEntry()
     // delete attributes, which are not needed now
     for (auto& thisA : theseAttributes)
     {
-        auto bPrev = std::find_if(prevAttributes.begin(), prevAttributes.end(), [&](const ldapcore::CLdapAttribute & a)
-        {
-            return a.name().compare(thisA.name(), Qt::CaseInsensitive) == 0;
-        }) != prevAttributes.end();
-
-        auto bCurr = std::find_if(currAttributes.begin(), currAttributes.end(), [&](const ldapcore::CLdapAttribute & a)
-        {
-            return a.name().compare(thisA.name(), Qt::CaseInsensitive) == 0;
-        }) != currAttributes.end();
-
-        if (!bCurr && bPrev)
+        if( containsAttribute(prevAttributes, thisA.name()) &&
+           !containsAttribute(currAttributes, thisA.name()))
         {
             emit onRemoveAttribute(thisA);
-            continue;
-        }
-
-        if (bCurr && !bPrev)
-        {
-            continue;
         }
     }
 
@@ -226,12 +222,7 @@ void CLdapTreeView::onEditEntry()
     for (auto& currA : currAttributes)
     {
 
-        auto bThese = std::find_if(theseAttributes.begin(), theseAttributes.end(), [&](const ldapcore::CLdapAttribute & a)
-        {
-            return a.name().compare(a.name(), Qt::CaseInsensitive) == 0;
-        }) != theseAttributes.end();
-
-        if (!bThese)
+        if(!containsAttribute(prevAttributes, currA.name()))
         {
             emit onAddAttribute(currA);
             continue;
@@ -240,6 +231,11 @@ void CLdapTreeView::onEditEntry()
 
     thisEntry->setClasses(newClasses, true);
     thisEntry->setEditable(true);
+
+    if(newClasses != originalClasses)
+    {
+        emit entityClassesChanged();
+    }
 }
 
 void CLdapTreeView::onDeleteEntry()
@@ -388,8 +384,9 @@ void CLdapTreeView::customContextMenuRequested(QPoint pos)
     QModelIndex modelIndex = static_cast<CLdapTreeProxyModel*>(model())->mapToSource(indexAt(pos));
     if(!modelIndex.isValid()) return;
 
-   m_newAttr->setData(modelIndex);
+    m_newAttr->setData(modelIndex);
 
+    m_newEntry->setVisible(false);
     m_changePassword->setVisible(false);
     m_enableUser->setVisible(false);
     m_manageUsersInGroup->setVisible(false);
@@ -397,6 +394,8 @@ void CLdapTreeView::customContextMenuRequested(QPoint pos)
     ldapcore::CLdapEntry* entry = static_cast<ldapcore::CLdapEntry*>(modelIndex.internalPointer());
     // check is root item clicked - no context menu to show
     if(!entry->parent()) return;
+
+    m_newEntry->setVisible(entry->isLoaded());
 
     if(entry->kind() == ldapcore::DirectoryKind::User)
     {

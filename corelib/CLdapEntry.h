@@ -45,7 +45,7 @@ public:
     /*!
      * \brief Constructor CLdapEntry class
      * @param parentLdapEntry pointer to CLdapEntry parent
-     * @param parentLdapEntry pointer to internal instance of LDAPEntry
+     * @param le pointer to internal instance of LDAPEntry
      * @param parent pointer to QObject parent
      */
     explicit CLdapEntry(CLdapEntry* parentLdapEntry, LDAPEntry* le, QObject* parent = nullptr);
@@ -169,7 +169,7 @@ public:
      * @brief Method adds given attributes in list of attributes
      * @param attributes list of CLdapAttribute to adding in list of attributes
      */
-    void                    addAttributes(QVector<CLdapAttribute>& attributes);
+    void                    addAttributes(QVector<CLdapAttribute>& attributes) noexcept(false);
 
     /*!
      * @brief Method removes given child from children entries

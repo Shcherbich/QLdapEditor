@@ -18,6 +18,7 @@ File contains  declarations for applications's main window
 class QStandardItem;
 class QSettings;
 class QLabel;
+class QAction;
 
 
 namespace ldapcore {
@@ -26,7 +27,7 @@ class CLdapData;
 
 
 /*!
- @defgroup ldapeditor
+ @defgroup ldapeditor Editor API
  @brief namespace for groupping editor related functionality
 
  Namespace ldapeditor wrapes all classes and declarations, related to editor functionality
@@ -121,6 +122,15 @@ namespace ldapeditor
         */
         void onReload();
 
+        /*!
+         * \brief Handler for changes of classes list in enity after 'Edit entity'
+         */
+        void onEntityClassesChanged();
+
+        /*!
+         * \brief Handler for changes of classes list in enity after 'Revert changes'
+         */
+        void onRevertChanges();
     protected:
 
         /*!
@@ -212,6 +222,12 @@ namespace ldapeditor
           @brief member pointer QLabel about connected LDAP server(IP:port), shown in status bar
          */
         QLabel* m_IpStatus;
+
+        QAction* m_saveDataAction{nullptr}; ///< member for 'Save' action
+
+        QAction* m_revertChangesAction{nullptr}; ///< member for 'Revert changes' action
+
+        bool m_bRevertChangesInProgress{false}; ///< member boolean flag shows is Revert data operation is in progress
     };
 } //namespace ldapeditor
 #endif // MAINWINDOW_H
