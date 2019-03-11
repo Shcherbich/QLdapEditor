@@ -618,7 +618,7 @@ void CLdapEntry::removeChild(CLdapEntry* child)
 
 void CLdapEntry::addAttributes(QVector<CLdapAttribute>& attrs) noexcept(false)
 {
-    // chech on single-value attribute
+    // check on single-value attribute
     for (auto& a : m_attributes)
     {
         if (!a.isSingle())
