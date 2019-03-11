@@ -18,8 +18,7 @@ File contains  implementation for LDAP tree view
 #include <QMessageBox>
 #include <functional>
 #include <tuple>
-
-//extern std::vector<std::string> split(const std::string& str, const std::string& delim);
+#include "utilities.h"
 
 namespace ldapeditor
 {
@@ -184,7 +183,7 @@ void CLdapTreeView::onEditEntry()
         auxClasses.push_back(c.toStdString());
     }
 
-    // fill struct classes
+    // fill struct classes    
     std::for_each(originalClasses.constBegin(), originalClasses.constEnd(), [&structClasses, &auxClasses](const QString & c)
     {
         if (std::find(auxClasses.begin(), auxClasses.end(), c.toStdString()) == auxClasses.end())
@@ -212,25 +211,10 @@ void CLdapTreeView::onEditEntry()
     // delete attributes, which are not needed now
     for (auto& thisA : theseAttributes)
     {
-        auto bPrev = std::find_if(prevAttributes.begin(), prevAttributes.end(), [&](const ldapcore::CLdapAttribute & a)
-        {
-            return a.name().compare(thisA.name(), Qt::CaseInsensitive) == 0;
-        }) != prevAttributes.end();
-
-        auto bCurr = std::find_if(currAttributes.begin(), currAttributes.end(), [&](const ldapcore::CLdapAttribute & a)
-        {
-            return a.name().compare(thisA.name(), Qt::CaseInsensitive) == 0;
-        }) != currAttributes.end();
-
-        if (!bCurr && bPrev)
+        if( containsAttribute(prevAttributes, thisA.name()) &&
+           !containsAttribute(currAttributes, thisA.name()))
         {
             emit onRemoveAttribute(thisA);
-            continue;
-        }
-
-        if (bCurr && !bPrev)
-        {
-            continue;
         }
     }
 
@@ -238,12 +222,7 @@ void CLdapTreeView::onEditEntry()
     for (auto& currA : currAttributes)
     {
 
-        auto bThese = std::find_if(theseAttributes.begin(), theseAttributes.end(), [&](const ldapcore::CLdapAttribute & a)
-        {
-            return a.name().compare(a.name(), Qt::CaseInsensitive) == 0;
-        }) != theseAttributes.end();
-
-        if (!bThese)
+        if(!containsAttribute(prevAttributes, currA.name()))
         {
             emit onAddAttribute(currA);
             continue;

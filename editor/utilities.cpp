@@ -6,6 +6,7 @@ File contains  implementations for utility functions
 */
 
 #include "utilities.h"
+
 namespace ldapeditor {
 
 QString userNameFromDN(const QString dn)

@@ -9,6 +9,7 @@ File contains  implementations for dialog 'Add Attribute' class
 #include "ui_ldapnewattributedialog.h"
 #include "attributemodelhelper.h"
 #include <QDateTime>
+#include "utilities.h"
 
 namespace ldapeditor
 {
@@ -91,18 +92,7 @@ void CLdapNewAttributeDialog::onCurrentClassChanged(int index)
              if(exludeAttributes.contains(a.name()))
                      return false;
 
-             typedef struct _findAttr{
-                 QString findName;
-                 _findAttr(const QString& name){findName = name;}
-                 bool operator()(const ldapcore::CLdapAttribute& ca){
-                     return ca.name() == findName;
-                 }
-             } findAttr;
-             bool attrInCurrent = std::find_if(this->m_currentAttributes->begin(),
-                                               this->m_currentAttributes->end(),
-                                               findAttr(a.name())) != this->m_currentAttributes->end();
-
-             return attrInCurrent ? !a.isSingle() : true;
+             return containsAttribute(*this->m_currentAttributes, a.name()) ? !a.isSingle() : true;
         };
 
         for (int i = 0; i < m_attributes.size(); i++)

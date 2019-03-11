@@ -104,14 +104,9 @@ CLdapNewEntryDialog::CLdapNewEntryDialog(QWidget* parent, QString dn, QString rd
         QStringList attrs2Delete;
         for (const ldapcore::CLdapAttribute& entryA : theseAttributes)
         {
-            if (entryA.value().isEmpty()) continue;
-
-            if(std::find_if(attrs.begin(), attrs.end(), [&](const ldapcore::CLdapAttribute & a)
-                            {
-                                return entryA.name().compare(a.name(), Qt::CaseInsensitive) == 0;
-                            }) != attrs.end() )
+            if(!entryA.value().isEmpty() && containsAttribute(attrs, entryA.name()))
             {
-                attrs2Delete << entryA.name();
+                 attrs2Delete << entryA.name();
             }
         }
 
