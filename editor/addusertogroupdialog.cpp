@@ -41,7 +41,7 @@ CAddUserToGroupDialog::CAddUserToGroupDialog(ldapcore::CLdapData &ldapData, CLda
     searchOptions.basedn = settings.findUsersBaseDN().toStdString() ;
     searchOptions.filter = settings.findUsersFilter().toStdString();//"objectClass=user";
     searchOptions.attributes = "dn";
-    searchOptions.scope = 1;  //LDAPConnection::SEARCH_ONE
+    searchOptions.scope = 2;  //LDAPConnection::SEARCH_SUB
 
     QStringList allUsers = ldapData.search(searchOptions);
     for(const QString& userDN : allUsers )
