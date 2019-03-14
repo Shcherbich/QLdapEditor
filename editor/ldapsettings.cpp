@@ -232,7 +232,7 @@ namespace ldapeditor
 
     QString CLdapSettings::findUsersBaseDN() const
     {
-        return QString{"CN=Users,DC=sc4i,DC=local"};
+        return QString{"DC=sc4i,DC=local"};
     }
 
     QString     CLdapSettings::findUsersFilter() const
