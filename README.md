@@ -46,8 +46,8 @@ LDAP Editor based on Qt and ldapc++ wrapper
 - $sudo yum -y install qt5-qtbase-devel
 - $sudo yum -y install openldap-devel.x86_64
 - $sudo yum -y install openssl-devel
-- $wget http://download.qt.io/archive/qt/5.9/5.9.2/qt-opensource-linux-x64-5.8.2.run
-- $chmod a+x ./qt-opensource-linux-x64-5.8.2.run
-- $./qt-opensource-linux-x64-5.8.2.run
+- $wget http://download.qt.io/archive/qt/5.9/5.9.2/qt-opensource-linux-x64-5.9.2.run
+- $chmod a+x ./qt-opensource-linux-x64-5.9.2.run
+- $./qt-opensource-linux-x64-5.9.2.run
 
 [Fortress LDAP Schema and Config](https://github.com/apache/directory-fortress-core/tree/master/ldap) for reference.
